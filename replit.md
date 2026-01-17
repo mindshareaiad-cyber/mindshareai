@@ -9,6 +9,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
 - **Backend**: Express.js + TypeScript
 - **Database**: In-memory storage (MemStorage)
 - **AI**: OpenAI via Replit AI Integrations (gpt-4o-mini)
+- **Auth**: Supabase Authentication with custom login/signup pages
 
 ## Key Features
 1. **Landing Page** - ClickUp-inspired marketing site with hero, solutions, features, ROI, and pricing sections
@@ -25,10 +26,16 @@ client/src/
 │   ├── landing/       # Hero, Solutions, Features, ROI, Pricing, Header, Footer
 │   ├── dashboard/     # AppSidebar, DashboardHeader, Tabs (Overview, Prompts, Results, Suggestions)
 │   └── ui/            # shadcn components
+├── contexts/
+│   └── auth-context.tsx  # Supabase auth context provider
+├── lib/
+│   └── supabase.ts    # Supabase client configuration
 ├── pages/
 │   ├── landing.tsx    # Marketing landing page
-│   └── dashboard.tsx  # Main app dashboard
-└── App.tsx            # Router setup
+│   ├── login.tsx      # Custom login page
+│   ├── signup.tsx     # Custom signup page
+│   └── dashboard.tsx  # Main app dashboard (protected)
+└── App.tsx            # Router setup with auth
 
 server/
 ├── routes.ts          # API endpoints
