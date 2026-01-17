@@ -298,6 +298,11 @@ export default function SignUpPage() {
                 </span>
               </Link>
             </p>
+            <Link href="/">
+              <span className="text-sm text-muted-foreground hover:text-foreground hover:underline cursor-pointer" data-testid="link-back-home">
+                Back to home page
+              </span>
+            </Link>
           </CardFooter>
         </Card>
 
