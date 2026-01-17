@@ -1,14 +1,14 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+const client = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: "https://api.deepseek.com",
 });
 
 export async function generateAnswer(promptText: string): Promise<string> {
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const response = await client.chat.completions.create({
+      model: "deepseek-chat",
       messages: [
         {
           role: "system",
@@ -20,10 +20,11 @@ export async function generateAnswer(promptText: string): Promise<string> {
           content: promptText,
         },
       ],
-      max_completion_tokens: 300,
+      max_tokens: 300,
+      temperature: 0.7,
     });
 
-    return response.choices[0]?.message?.content || "";
+    return response.choices[0]?.message?.content?.trim() || "";
   } catch (error) {
     console.error("Error generating answer:", error);
     throw new Error("Failed to generate answer");
@@ -39,13 +40,13 @@ export async function scoreVisibility(
   try {
     const competitorList = competitors.map((c) => `- ${c}`).join("\n");
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const response = await client.chat.completions.create({
+      model: "deepseek-chat",
       messages: [
         {
           role: "system",
           content:
-            "You are an evaluation engine scoring brand visibility in AI answers for Answer Engine Optimization (AEO). You only output strict JSON.",
+            "You are an evaluation engine scoring brand visibility in AI answers for Answer Engine Optimization (AEO). You only output strict JSON with no additional text or markdown.",
         },
         {
           role: "user",
@@ -59,7 +60,7 @@ Assign a visibility score for the primary brand and each competitor:
 - 1 = mentioned but not the main recommendation
 - 0 = not mentioned at all
 
-Output STRICT JSON with this shape:
+Output ONLY valid JSON (no markdown, no explanation) with this exact shape:
 {
   "brand_score": 0,
   "competitor_scores": { "Competitor 1": 0, "Competitor 2": 0 }
@@ -76,12 +77,14 @@ COMPETITORS:
 ${competitorList || "None specified"}`,
         },
       ],
-      response_format: { type: "json_object" },
-      max_completion_tokens: 200,
+      max_tokens: 200,
+      temperature: 0.3,
     });
 
-    const content = response.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(content);
+    const content = response.choices[0]?.message?.content?.trim() || "{}";
+    // Remove any markdown code blocks if present
+    const jsonContent = content.replace(/```json\n?|\n?```/g, "").trim();
+    const parsed = JSON.parse(jsonContent);
 
     const brandScore = Math.max(0, Math.min(2, parsed.brand_score || 0));
     const competitorScores: Record<string, number> = {};
@@ -111,14 +114,14 @@ export async function generateSuggestedAnswer(
   brandDomain: string
 ): Promise<{ suggestedAnswer: string; suggestedPageType: string }> {
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const response = await client.chat.completions.create({
+      model: "deepseek-chat",
       messages: [
         {
           role: "system",
           content: `You are an AEO (Answer Engine Optimization) expert. Your job is to suggest how a brand should be mentioned in AI responses, and what type of content page would help achieve that visibility.
 
-Output strict JSON with:
+Output ONLY valid JSON (no markdown, no explanation) with this exact shape:
 {
   "suggested_answer": "A concise answer that naturally mentions and recommends the brand (under 100 words)",
   "suggested_page_type": "The type of content page to create (e.g., 'Comparison Guide', 'How-To Article', 'Product Page', 'FAQ Page', 'Case Study')"
@@ -135,12 +138,14 @@ Brand to optimize for:
 Generate a suggested answer that would naturally recommend this brand, and suggest what type of content page the brand should create to improve their visibility for this query.`,
         },
       ],
-      response_format: { type: "json_object" },
-      max_completion_tokens: 300,
+      max_tokens: 300,
+      temperature: 0.7,
     });
 
-    const content = response.choices[0]?.message?.content || "{}";
-    const parsed = JSON.parse(content);
+    const content = response.choices[0]?.message?.content?.trim() || "{}";
+    // Remove any markdown code blocks if present
+    const jsonContent = content.replace(/```json\n?|\n?```/g, "").trim();
+    const parsed = JSON.parse(jsonContent);
 
     return {
       suggestedAnswer: parsed.suggested_answer || "",
