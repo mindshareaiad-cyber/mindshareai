@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Separator } from "@/components/ui/separator";
 import { Eye, Loader2, Mail, Lock } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,9 +21,10 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -50,6 +54,19 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast({
+        title: "Google sign in failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <div className="w-full max-w-md">
@@ -68,12 +85,40 @@ export default function LoginPage() {
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
             <CardDescription>
-              Enter your credentials to access your dashboard
+              Sign in to your account to continue
             </CardDescription>
           </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="space-y-4">
+          <CardContent className="space-y-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              size="lg"
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading || isLoading}
+              data-testid="button-google-signin"
+            >
+              {googleLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <SiGoogle className="mr-2 h-4 w-4" />
+              )}
+              Continue with Google
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  Or continue with email
+                </span>
+              </div>
+            </div>
+
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="email"
@@ -101,7 +146,16 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Password</FormLabel>
+                        <a 
+                          href="#" 
+                          className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                          data-testid="link-forgot-password"
+                        >
+                          Forgot password?
+                        </a>
+                      </div>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -118,13 +172,12 @@ export default function LoginPage() {
                     </FormItem>
                   )}
                 />
-              </CardContent>
-              <CardFooter className="flex flex-col gap-4">
+
                 <Button
                   type="submit"
                   className="w-full"
                   size="lg"
-                  disabled={isLoading}
+                  disabled={isLoading || googleLoading}
                   data-testid="button-login-submit"
                 >
                   {isLoading ? (
@@ -136,17 +189,19 @@ export default function LoginPage() {
                     "Sign In"
                   )}
                 </Button>
-                <p className="text-sm text-center text-muted-foreground">
-                  Don't have an account?{" "}
-                  <Link href="/signup">
-                    <span className="text-foreground hover:underline cursor-pointer font-medium" data-testid="link-signup">
-                      Sign up
-                    </span>
-                  </Link>
-                </p>
-              </CardFooter>
-            </form>
-          </Form>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <p className="text-sm text-center text-muted-foreground">
+              Don't have an account?{" "}
+              <Link href="/signup">
+                <span className="text-foreground hover:underline cursor-pointer font-medium" data-testid="link-signup">
+                  Create an account
+                </span>
+              </Link>
+            </p>
+          </CardFooter>
         </Card>
       </div>
     </div>

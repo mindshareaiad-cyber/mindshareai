@@ -1,16 +1,22 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Eye, Loader2, Mail, Lock } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Eye, Loader2, Mail, Lock, User, Building2 } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 const signupSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  companyName: z.string().min(1, "Company name is required"),
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(1, "Please confirm your password"),
@@ -22,13 +28,17 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignUpPage() {
-  const { signUp } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
+      companyName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -38,7 +48,11 @@ export default function SignUpPage() {
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (data: SignupFormData) => {
-    const { error } = await signUp(data.email, data.password);
+    const { error } = await signUp(data.email, data.password, {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      companyName: data.companyName,
+    });
 
     if (error) {
       toast({
@@ -52,6 +66,19 @@ export default function SignUpPage() {
         description: "Please check your email to verify your account.",
       });
       setLocation("/login");
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setGoogleLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast({
+        title: "Google sign up failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setGoogleLoading(false);
     }
   };
 
@@ -71,14 +98,109 @@ export default function SignUpPage() {
 
         <Card className="border-2">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+            <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
             <CardDescription>
               Start tracking your brand's AI visibility today
             </CardDescription>
           </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="space-y-4">
+          <CardContent className="space-y-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              size="lg"
+              onClick={handleGoogleSignUp}
+              disabled={googleLoading || isLoading}
+              data-testid="button-google-signup"
+            >
+              {googleLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <SiGoogle className="mr-2 h-4 w-4" />
+              )}
+              Sign up with Google
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  Or continue with email
+                </span>
+              </div>
+            </div>
+
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="John"
+                              className="pl-10"
+                              data-testid="input-signup-firstname"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="Doe"
+                              className="pl-10"
+                              data-testid="input-signup-lastname"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="companyName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Name</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Acme Inc."
+                            className="pl-10"
+                            data-testid="input-signup-company"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="email"
@@ -101,12 +223,13 @@ export default function SignUpPage() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>Create Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -123,6 +246,7 @@ export default function SignUpPage() {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="confirmPassword"
@@ -145,13 +269,12 @@ export default function SignUpPage() {
                     </FormItem>
                   )}
                 />
-              </CardContent>
-              <CardFooter className="flex flex-col gap-4">
+
                 <Button
                   type="submit"
                   className="w-full"
                   size="lg"
-                  disabled={isLoading}
+                  disabled={isLoading || googleLoading}
                   data-testid="button-signup-submit"
                 >
                   {isLoading ? (
@@ -163,17 +286,19 @@ export default function SignUpPage() {
                     "Create Account"
                   )}
                 </Button>
-                <p className="text-sm text-center text-muted-foreground">
-                  Already have an account?{" "}
-                  <Link href="/login">
-                    <span className="text-foreground hover:underline cursor-pointer font-medium" data-testid="link-login">
-                      Sign in
-                    </span>
-                  </Link>
-                </p>
-              </CardFooter>
-            </form>
-          </Form>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <p className="text-sm text-center text-muted-foreground">
+              Already have an account?{" "}
+              <Link href="/login">
+                <span className="text-foreground hover:underline cursor-pointer font-medium" data-testid="link-login">
+                  Sign in
+                </span>
+              </Link>
+            </p>
+          </CardFooter>
         </Card>
 
         <p className="text-xs text-center text-muted-foreground mt-6">
