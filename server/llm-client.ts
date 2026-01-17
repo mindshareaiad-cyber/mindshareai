@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
+  apiKey: process.env.DEEPSEEK_API_KEY || "sk-placeholder",
   baseURL: "https://api.deepseek.com",
 });
 
