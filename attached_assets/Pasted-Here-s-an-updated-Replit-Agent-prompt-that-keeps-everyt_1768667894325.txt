@@ -1,0 +1,354 @@
+Here’s an updated Replit Agent prompt that keeps everything AEO‑only but tells it to design the landing page and dashboard in a ClickUp‑style (section structure, tone, layout).
+
+Copy‑paste this into Replit Agent:
+
+Prompt for Replit Agent (AEO SaaS app, ClickUp‑style UI)
+
+I want you to build a full‑stack SaaS web app, hosted entirely on Replit, focused ONLY on Answer Engine Optimization (AEO) and AI visibility for businesses.
+
+Use the structure, layout patterns, and tone from 
+https://clickup.com
+ as inspiration for the marketing landing page and in‑app dashboard design. The content is different (AEO visibility, not productivity), but the UX should feel similar: bold hero, clear value props, solution sections by use case, and a clean, modern dashboard layout.
+
+1. High‑level product description
+Build an “AI Visibility & AEO Dashboard” that helps businesses see if and how often their brand is mentioned or recommended by AI assistants (ChatGPT‑style models) for a set of buyer‑style questions, and then gives them a prioritized list of AEO actions.
+
+The app must:
+
+Accept a brand, competitors, and prompt sets.
+
+Call an LLM API to ask those prompts and capture the answers.
+
+Score visibility for each brand.
+
+Aggregate that into an AI Visibility Score and reports.
+
+Stay focused on AEO / AI search visibility only (no generic chatbots, no unrelated AI features).
+
+Use:
+
+Backend: Python + FastAPI.
+
+Frontend: React (Vite or CRA) within the same Replit project.
+
+DB: SQLite via SQLAlchemy.
+
+AI provider: OpenAI Chat Completions API (I will add OPENAI_API_KEY as an env var).
+
+Follow FastAPI best practices.
+​
+
+2. Data model (unchanged core)
+Implement these entities:
+
+Project
+
+id (UUID string)
+
+name (string)
+
+brand_name (string)
+
+brand_domain (string)
+
+competitors (array of strings)
+
+prompt_sets (relationship)
+
+PromptSet
+
+id (UUID)
+
+project_id (FK → Project)
+
+name
+
+persona (optional: “founder”, “marketing manager”, “consumer”)
+
+funnel_stage (optional: “TOFU”, “MOFU”, “BOFU”)
+
+country (optional)
+
+prompts (relationship)
+
+Prompt
+
+id (UUID)
+
+prompt_set_id (FK)
+
+text (question like “best CRM for startups in the UK”)
+
+Scan
+
+id (UUID)
+
+project_id (FK)
+
+created_at (datetime)
+
+engines (JSON array, e.g. ["openai-gpt-4o-mini"])
+
+ScanResult
+
+id (UUID)
+
+scan_id (FK)
+
+prompt_id (FK)
+
+engine (string)
+
+answer (text)
+
+brand_score (int: 0, 1, 2)
+
+competitor_scores (JSON: { "Competitor A": 2, "Competitor B": 1 })
+
+The backend must be able to compute:
+
+Project AI Visibility Score (avg brand_score across prompts/engines).
+
+Share of voice vs competitors.
+​
+
+3. Backend API routes
+Under /api, implement:
+
+POST /api/projects
+
+GET /api/projects/{project_id}
+
+POST /api/projects/{project_id}/prompt-sets
+
+GET /api/projects/{project_id}/prompt-sets
+
+POST /api/projects/{project_id}/scans
+
+Fetch all prompts for the project.
+
+For each prompt:
+
+Call LLM to generate an answer.
+
+Call LLM again to score visibility for brand + competitors.
+
+Save Scan + ScanResult rows.
+
+Return scan summary (visibility score, counts, engine).
+
+GET /api/projects/{project_id}/scans/latest
+
+GET /api/projects/{project_id}/gaps
+
+Prompts where brand_score == 0 and any competitor_score > 0.
+
+Use separate modules: models.py, schemas.py, routes/, llm_client.py.
+​
+
+4. LLM integration (AEO‑specific)
+In llm_client.py:
+
+async def generate_answer(prompt_text: str) -> str
+
+Use openai.chat.completions.create with model="gpt-4o-mini".
+
+System prompt:
+
+You are an expert assistant answering user questions about products, services, and businesses. Provide a concise, practical answer in under 120 words, suitable for being used as an AI result.
+
+async def score_visibility(answer: str, brand_name: str, brand_domain: str, competitors: list[str]) -> tuple[int, dict]
+
+System prompt:
+
+You are an evaluation engine scoring brand visibility in AI answers for Answer Engine Optimization (AEO). You only output strict JSON.
+
+User prompt template:
+
+You will receive:
+
+An AI answer to a user’s question.
+
+One primary brand (name + domain).
+
+A list of competitor brand names.
+
+Assign a visibility score for the primary brand and each competitor:
+
+2 = clearly recommended or strongly endorsed
+
+1 = mentioned but not the main recommendation
+
+0 = not mentioned at all
+
+Output STRICT JSON with this shape:
+{
+"brand_score": 0,
+"competitor_scores": { "Competitor 1": 0, "Competitor 2": 0 }
+}
+
+ANSWER:
+"""{ANSWER_TEXT}"""
+
+BRAND:
+
+name: {BRAND_NAME}
+
+domain: {BRAND_DOMAIN}
+
+COMPETITORS:
+
+{COMPETITOR_LIST}
+
+Parse JSON and return brand_score, competitor_scores. Use this only for AEO scoring.
+​
+
+5. ClickUp‑style marketing landing page (React)
+Build a marketing site at / that takes clear inspiration from ClickUp’s layout and flow (but content is about AI visibility / AEO):
+
+Hero section (like ClickUp’s)
+
+Big headline:
+
+Example: “Get your brand into AI’s answers.”
+
+Sub‑headline:
+
+“See when ChatGPT and other AI assistants recommend you—or ignore you—and get a playbook to fix it.”
+
+Primary CTA: “Run an AI Visibility Scan”.
+
+Secondary CTA: “Watch demo” (can be placeholder).
+
+Visual: dashboard mockup style (simple React UI / image) similar to ClickUp’s hero style.
+​
+
+“AI solutions for every team”‑style section
+Inspired by ClickUp’s “AI solutions for every team”, create 3–4 cards like:
+​
+
+“For SaaS & B2B marketers”
+
+“For agencies”
+
+“For local & services businesses”
+Each card shows:
+
+Short description of how they use AI visibility.
+
+3–4 bullet “REPLACES” style points (e.g. manual prompt checks, messy screenshots, ad‑hoc reports).
+
+Feature sections (ClickUp style)
+Use sections similar to ClickUp’s “Deliver projects on time”, “Maximize marketing’s impact”, etc., but for AEO:
+
+a) “Know when AI actually recommends you”
+
+Bullet list of core scanner features.
+
+Mention AI Visibility Score and share of voice.
+​
+
+b) “Turn gaps into an AEO roadmap”
+
+Explain gap list + suggested answers + page types.
+​
+
+c) “Designed for growth teams and agencies”
+
+Mention multi‑project, multi‑brand, white‑label reports.
+​
+
+Social proof / ROI section
+Similar structure to ClickUp’s ROI numbers, but generic placeholders (no fake stats):
+​
+
+“Save hours of manual AI prompt checking.”
+
+“See where AI should mention you but doesn’t.”
+
+“Give your team a clear AEO backlog in minutes.”
+
+Pricing section
+3 columns: Starter, Growth, Pro (no Enterprise). Show the limits and features by tier based on:
+
+Projects
+
+Prompts
+
+Engines
+
+Scans per month
+
+Reports / alerts availability.
+
+Overall styling: clean, modern, similar layout to ClickUp: big typography, section bands, iconography if possible.
+​
+
+6. In‑app dashboard (ClickUp‑inspired layout)
+When a user is “inside” the app (after they click “Open app” / “Go to dashboard”), use a layout inspired by ClickUp’s app:
+
+Left sidebar:
+
+Projects list (like ClickUp’s spaces/projects).
+
+Top bar:
+
+Project name, AI Visibility Score, “Run scan” button.
+
+Main content with tabs/sections:
+
+Overview tab
+
+Cards similar to ClickUp’s “overview” metrics:
+​
+
+AI Visibility Score (0–2 with color).
+
+Number of prompts.
+
+Number of engines.
+
+Last scan time.
+
+Prompts & Sets tab
+
+Similar to ClickUp’s lists: show PromptSets and prompts in a structured list with filters.
+
+Results tab
+
+Table view with sorting and filters: prompt, brand score, competitor scores.
+
+Toggle: “Show gaps only”.
+
+AEO Suggestions tab
+
+List of gap prompts with generated short answers and suggested page types.
+
+Visually mimic ClickUp’s principles: clear sections, cards, headings, “REPLACES” style bullet lists, but keep all wording about AI visibility and AEO marketing.
+​
+
+7. AEO‑specific metrics & logic
+Implement helpers:
+
+AI Visibility Score (average brand_score latest scan).
+
+Competitor share of voice (fraction of prompts where competitor_score > 0).
+​
+
+Expose in GET /api/projects/{project_id}/scans/latest and use in Overview tab and the landing page demo mockup.
+
+8. Non‑functional
+Use OPENAI_API_KEY env var, no hardcoded keys.
+
+Configure CORS so React frontend can call FastAPI.
+​
+
+Add README.md describing:
+
+Purpose (AEO / AI visibility only).
+
+Stack.
+
+How to run in Replit.
+
+Build the project end‑to‑end exactly for this AEO use case, with marketing and dashboard UI patterns inspired by ClickUp’s site and app, but no unrelated features.
