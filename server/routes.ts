@@ -2,14 +2,204 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateAnswer, scoreVisibility, generateSuggestedAnswer } from "./llm-client";
-import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema } from "@shared/schema";
+import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema } from "@shared/schema";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
+import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // ============= User Profiles =============
+
+  // Get user profile
+  app.get("/api/user-profile/:userId", async (req, res) => {
+    try {
+      const profile = await storage.getUserProfile(req.params.userId);
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error getting user profile:", error);
+      res.status(500).json({ error: "Failed to get user profile" });
+    }
+  });
+
+  // Create or update user profile
+  app.post("/api/user-profile", async (req, res) => {
+    try {
+      const { id, email, firstName, lastName, companyName } = req.body;
+      
+      let profile = await storage.getUserProfile(id);
+      
+      if (profile) {
+        profile = await storage.updateUserProfile(id, { email, firstName, lastName, companyName });
+      } else {
+        profile = await storage.createUserProfile({
+          id,
+          email,
+          firstName,
+          lastName,
+          companyName,
+        });
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      console.error("Error creating/updating user profile:", error);
+      res.status(500).json({ error: "Failed to save user profile" });
+    }
+  });
+
+  // Update onboarding info
+  app.post("/api/user-profile/:userId/onboarding", async (req, res) => {
+    try {
+      const parsed = updateUserProfileSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromError(parsed.error).message });
+      }
+
+      const profile = await storage.updateUserProfile(req.params.userId, {
+        ...parsed.data,
+        onboardingCompleted: true,
+      });
+
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+
+      res.json(profile);
+    } catch (error) {
+      console.error("Error updating onboarding:", error);
+      res.status(500).json({ error: "Failed to update onboarding" });
+    }
+  });
+
+  // ============= Stripe Endpoints =============
+
+  // Get Stripe publishable key
+  app.get("/api/stripe/publishable-key", async (req, res) => {
+    try {
+      const publishableKey = await getStripePublishableKey();
+      res.json({ publishableKey });
+    } catch (error) {
+      console.error("Error getting publishable key:", error);
+      res.status(500).json({ error: "Failed to get publishable key" });
+    }
+  });
+
+  // Create checkout session
+  app.post("/api/stripe/create-checkout-session", async (req, res) => {
+    try {
+      const { userId, email, priceId } = req.body;
+      const stripe = await getUncachableStripeClient();
+
+      let profile = await storage.getUserProfile(userId);
+      let customerId = profile?.stripeCustomerId;
+
+      // Create or get Stripe customer
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email,
+          metadata: { userId },
+        });
+        customerId = customer.id;
+        await storage.updateUserProfile(userId, { stripeCustomerId: customerId });
+      }
+
+      // Get the base URL
+      const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
+      const baseUrl = domains.length > 0 ? `https://${domains[0]}` : 'http://localhost:5000';
+
+      // Create checkout session
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        line_items: [{ price: priceId, quantity: 1 }],
+        mode: 'subscription',
+        success_url: `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/payment`,
+      });
+
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      res.status(500).json({ error: "Failed to create checkout session" });
+    }
+  });
+
+  // Verify payment success
+  app.post("/api/stripe/verify-payment", async (req, res) => {
+    try {
+      const { sessionId, userId } = req.body;
+      const stripe = await getUncachableStripeClient();
+
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      
+      if (session.payment_status === 'paid' && session.subscription) {
+        await storage.updateUserProfile(userId, {
+          stripeSubscriptionId: session.subscription as string,
+          subscriptionStatus: 'active',
+        });
+        res.json({ success: true });
+      } else {
+        res.json({ success: false });
+      }
+    } catch (error) {
+      console.error("Error verifying payment:", error);
+      res.status(500).json({ error: "Failed to verify payment" });
+    }
+  });
+
+  // Get subscription status
+  app.get("/api/stripe/subscription/:userId", async (req, res) => {
+    try {
+      const profile = await storage.getUserProfile(req.params.userId);
+      if (!profile) {
+        return res.json({ hasActiveSubscription: false });
+      }
+
+      const hasActiveSubscription = profile.subscriptionStatus === 'active';
+      res.json({
+        hasActiveSubscription,
+        subscriptionStatus: profile.subscriptionStatus,
+        onboardingCompleted: profile.onboardingCompleted,
+      });
+    } catch (error) {
+      console.error("Error getting subscription:", error);
+      res.status(500).json({ error: "Failed to get subscription status" });
+    }
+  });
+
+  // Create customer portal session
+  app.post("/api/stripe/customer-portal", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      const stripe = await getUncachableStripeClient();
+
+      const profile = await storage.getUserProfile(userId);
+      if (!profile?.stripeCustomerId) {
+        return res.status(400).json({ error: "No customer found" });
+      }
+
+      const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
+      const baseUrl = domains.length > 0 ? `https://${domains[0]}` : 'http://localhost:5000';
+
+      const session = await stripe.billingPortal.sessions.create({
+        customer: profile.stripeCustomerId,
+        return_url: `${baseUrl}/dashboard`,
+      });
+
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Error creating portal session:", error);
+      res.status(500).json({ error: "Failed to create portal session" });
+    }
+  });
+
   // ============= Projects =============
   
   // Get all projects
@@ -148,7 +338,7 @@ export async function registerRoutes(
   app.post("/api/projects/:projectId/scans", async (req, res) => {
     try {
       const scanInputSchema = z.object({
-        engines: z.array(z.string()).default(["gpt-4o-mini"]),
+        engines: z.array(z.string()).default(["deepseek-chat"]),
       });
       const parsed = scanInputSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -202,7 +392,6 @@ export async function registerRoutes(
             results.push(result);
           } catch (error) {
             console.error(`Error processing prompt ${prompt.id}:`, error);
-            // Continue with other prompts even if one fails
           }
         }
       }

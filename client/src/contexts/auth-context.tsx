@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import type { User, Session, AuthError } from "@supabase/supabase-js";
+import { apiRequest } from "@/lib/queryClient";
 
 interface UserMetadata {
   firstName?: string;
@@ -20,6 +21,21 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+async function createOrUpdateUserProfile(user: User) {
+  try {
+    const metadata = user.user_metadata || {};
+    await apiRequest("POST", "/api/user-profile", {
+      id: user.id,
+      email: user.email,
+      firstName: metadata.first_name || metadata.given_name || null,
+      lastName: metadata.last_name || metadata.family_name || null,
+      companyName: metadata.company_name || null,
+    });
+  } catch (error) {
+    console.error("Error creating/updating user profile:", error);
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -29,6 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        createOrUpdateUserProfile(session.user);
+      }
       setLoading(false);
     });
 
@@ -37,6 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        createOrUpdateUserProfile(session.user);
+      }
       setLoading(false);
     });
 

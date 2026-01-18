@@ -10,10 +10,22 @@ import {
   type ScanResult,
   type InsertScanResult,
   type GapAnalysis,
+  type UserProfile,
+  type InsertUserProfile,
+  type UpdateUserProfile,
+  userProfiles,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
+  // User Profiles
+  getUserProfile(id: string): Promise<UserProfile | undefined>;
+  getUserProfileByEmail(email: string): Promise<UserProfile | undefined>;
+  createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
+  updateUserProfile(id: string, data: UpdateUserProfile): Promise<UserProfile | undefined>;
+
   // Projects
   getProjects(): Promise<Project[]>;
   getProject(id: string): Promise<Project | undefined>;
@@ -45,15 +57,118 @@ export interface IStorage {
   // Gap Analysis
   getGaps(projectId: string): Promise<GapAnalysis[]>;
   updateGapSuggestion(promptId: string, suggestedAnswer: string, suggestedPageType: string): Promise<void>;
+
+  // Stripe data queries
+  getStripeProduct(productId: string): Promise<any>;
+  listStripeProducts(): Promise<any[]>;
+  getStripeSubscription(subscriptionId: string): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
+  private userProfilesMap: Map<string, UserProfile> = new Map();
   private projects: Map<string, Project> = new Map();
   private promptSets: Map<string, PromptSet> = new Map();
   private prompts: Map<string, Prompt> = new Map();
   private scans: Map<string, Scan> = new Map();
   private scanResults: Map<string, ScanResult> = new Map();
   private gapSuggestions: Map<string, { suggestedAnswer: string; suggestedPageType: string }> = new Map();
+
+  // User Profiles
+  async getUserProfile(id: string): Promise<UserProfile | undefined> {
+    try {
+      const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, id));
+      return profile;
+    } catch {
+      return this.userProfilesMap.get(id);
+    }
+  }
+
+  async getUserProfileByEmail(email: string): Promise<UserProfile | undefined> {
+    try {
+      const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.email, email));
+      return profile;
+    } catch {
+      return Array.from(this.userProfilesMap.values()).find(p => p.email === email);
+    }
+  }
+
+  async createUserProfile(profile: InsertUserProfile): Promise<UserProfile> {
+    try {
+      const [created] = await db.insert(userProfiles).values(profile).returning();
+      return created;
+    } catch {
+      const newProfile: UserProfile = {
+        ...profile,
+        firstName: profile.firstName || null,
+        lastName: profile.lastName || null,
+        companyName: profile.companyName || null,
+        websiteUrl: profile.websiteUrl || null,
+        industry: profile.industry || null,
+        companySize: profile.companySize || null,
+        onboardingCompleted: profile.onboardingCompleted ?? false,
+        stripeCustomerId: profile.stripeCustomerId || null,
+        stripeSubscriptionId: profile.stripeSubscriptionId || null,
+        subscriptionStatus: profile.subscriptionStatus || 'inactive',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      this.userProfilesMap.set(profile.id, newProfile);
+      return newProfile;
+    }
+  }
+
+  async updateUserProfile(id: string, data: UpdateUserProfile): Promise<UserProfile | undefined> {
+    try {
+      const [updated] = await db.update(userProfiles)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(userProfiles.id, id))
+        .returning();
+      return updated;
+    } catch {
+      const existing = this.userProfilesMap.get(id);
+      if (!existing) return undefined;
+      const updated = { ...existing, ...data, updatedAt: new Date() };
+      this.userProfilesMap.set(id, updated);
+      return updated;
+    }
+  }
+
+  // Stripe queries
+  async getStripeProduct(productId: string): Promise<any> {
+    try {
+      const result = await db.execute(
+        sql`SELECT * FROM stripe.products WHERE id = ${productId}`
+      );
+      return result.rows[0] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  async listStripeProducts(): Promise<any[]> {
+    try {
+      const result = await db.execute(
+        sql`SELECT p.*, pr.id as price_id, pr.unit_amount, pr.currency, pr.recurring 
+            FROM stripe.products p 
+            LEFT JOIN stripe.prices pr ON pr.product = p.id AND pr.active = true 
+            WHERE p.active = true`
+      );
+      return result.rows;
+    } catch {
+      return [];
+    }
+  }
+
+  async getStripeSubscription(subscriptionId: string): Promise<any> {
+    try {
+      const result = await db.execute(
+        sql`SELECT * FROM stripe.subscriptions WHERE id = ${subscriptionId}`
+      );
+      return result.rows[0] || null;
+    } catch {
+      return null;
+    }
+  }
 
   // Projects
   async getProjects(): Promise<Project[]> {
@@ -71,6 +186,7 @@ export class MemStorage implements IStorage {
     const project: Project = {
       ...insertProject,
       id,
+      userId: insertProject.userId || null,
       competitors: insertProject.competitors || [],
       createdAt: new Date(),
     };
@@ -80,17 +196,14 @@ export class MemStorage implements IStorage {
 
   async deleteProject(id: string): Promise<void> {
     this.projects.delete(id);
-    // Cascade delete prompt sets
     for (const [setId, set] of this.promptSets) {
       if (set.projectId === id) {
         await this.deletePromptSet(setId);
       }
     }
-    // Cascade delete scans
     for (const [scanId, scan] of this.scans) {
       if (scan.projectId === id) {
         this.scans.delete(scanId);
-        // Delete scan results
         for (const [resultId, result] of this.scanResults) {
           if (result.scanId === scanId) {
             this.scanResults.delete(resultId);
@@ -116,6 +229,9 @@ export class MemStorage implements IStorage {
     const promptSet: PromptSet = {
       ...insertPromptSet,
       id,
+      persona: insertPromptSet.persona || null,
+      funnelStage: insertPromptSet.funnelStage || null,
+      country: insertPromptSet.country || null,
       createdAt: new Date(),
     };
     this.promptSets.set(id, promptSet);
@@ -124,7 +240,6 @@ export class MemStorage implements IStorage {
 
   async deletePromptSet(id: string): Promise<void> {
     this.promptSets.delete(id);
-    // Cascade delete prompts
     for (const [promptId, prompt] of this.prompts) {
       if (prompt.promptSetId === id) {
         this.prompts.delete(promptId);
@@ -201,6 +316,7 @@ export class MemStorage implements IStorage {
     const result: ScanResult = {
       ...insertResult,
       id,
+      brandScore: insertResult.brandScore ?? 0,
       createdAt: new Date(),
     };
     this.scanResults.set(id, result);
