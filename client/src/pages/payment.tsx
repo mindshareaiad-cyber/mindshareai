@@ -7,7 +7,7 @@ import { Eye, Loader2, Check, CreditCard, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
-const PRICE_ID = "price_aeo_monthly"; // This will be created via Stripe product seed
+const PRICE_ID = "price_1SqzAz7rneonHWGFu991eKvi";
 
 export default function PaymentPage() {
   const { user, signOut } = useAuth();
