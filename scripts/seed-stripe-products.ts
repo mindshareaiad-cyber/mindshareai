@@ -5,43 +5,15 @@
 
 import Stripe from 'stripe';
 
-async function getStripeClient() {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? 'repl ' + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-      ? 'depl ' + process.env.WEB_REPL_RENEWAL
-      : null;
-
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found');
-  }
-
-  const url = new URL(`https://${hostname}/api/v2/connection`);
-  url.searchParams.set('include_secrets', 'true');
-  url.searchParams.set('connector_names', 'stripe');
-  url.searchParams.set('environment', 'development');
-
-  const response = await fetch(url.toString(), {
-    headers: {
-      'Accept': 'application/json',
-      'X_REPLIT_TOKEN': xReplitToken
-    }
-  });
-
-  const data = await response.json();
-  const connectionSettings = data.items?.[0];
-
-  if (!connectionSettings?.settings?.secret) {
-    throw new Error('Stripe connection not found');
-  }
-
-  return new Stripe(connectionSettings.settings.secret);
-}
-
 async function seedProducts() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  
+  if (!secretKey) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is required');
+  }
+
   console.log('Connecting to Stripe...');
-  const stripe = await getStripeClient();
+  const stripe = new Stripe(secretKey);
 
   // Check if product already exists
   const existingProducts = await stripe.products.search({ 
@@ -59,6 +31,7 @@ async function seedProducts() {
     
     if (prices.data.length > 0) {
       console.log('Price already exists:', prices.data[0].id);
+      console.log('\nIMPORTANT: Update the PRICE_ID in client/src/pages/payment.tsx with:', prices.data[0].id);
       console.log('Stripe products are already seeded!');
       return;
     }

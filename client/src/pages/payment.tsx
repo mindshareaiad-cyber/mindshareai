@@ -7,7 +7,7 @@ import { Eye, Loader2, Check, CreditCard, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
-const PRICE_ID = "price_1SqzAz7rneonHWGFu991eKvi";
+const PRICE_ID = "price_1SqzGDB7Z6HEJr4F7lSh2lcU";
 
 export default function PaymentPage() {
   const { user, signOut } = useAuth();
