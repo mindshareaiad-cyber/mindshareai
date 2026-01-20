@@ -147,9 +147,7 @@ function Router() {
       <Route path="/payment-success">
         <OnboardingRoute component={PaymentSuccessPage} />
       </Route>
-      <Route path="/dashboard">
-        <ProtectedRoute component={DashboardPage} />
-      </Route>
+      <Route path="/dashboard" component={DashboardPage} />
       <Route component={NotFound} />
     </Switch>
   );
