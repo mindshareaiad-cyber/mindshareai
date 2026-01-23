@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generateAnswer, scoreVisibility, generateSuggestedAnswer } from "./llm-client";
+import { generateAnswer, scoreVisibility, generateSuggestedAnswer, getAvailableEngines, type LLMEngine } from "./llm-client";
 import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema } from "@shared/schema";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
@@ -332,13 +332,26 @@ export async function registerRoutes(
     }
   });
 
+  // ============= Engines =============
+  
+  // Get available AI engines
+  app.get("/api/engines", async (req, res) => {
+    try {
+      const engines = getAvailableEngines();
+      res.json({ engines });
+    } catch (error) {
+      console.error("Error getting engines:", error);
+      res.status(500).json({ error: "Failed to get engines" });
+    }
+  });
+
   // ============= Scans =============
   
   // Run a scan
   app.post("/api/projects/:projectId/scans", async (req, res) => {
     try {
       const scanInputSchema = z.object({
-        engines: z.array(z.string()).default(["deepseek-chat"]),
+        engines: z.array(z.enum(["chatgpt", "deepseek"])).default(["chatgpt"]),
       });
       const parsed = scanInputSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -369,14 +382,15 @@ export async function registerRoutes(
         for (const engine of engines) {
           try {
             // Generate answer using LLM
-            const answer = await generateAnswer(prompt.text);
+            const answer = await generateAnswer(prompt.text, engine as LLMEngine);
             
             // Score visibility
             const { brandScore, competitorScores } = await scoreVisibility(
               answer,
               project.brandName,
               project.brandDomain,
-              project.competitors
+              project.competitors,
+              engine as LLMEngine
             );
 
             // Save result

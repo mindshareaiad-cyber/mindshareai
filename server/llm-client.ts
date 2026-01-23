@@ -1,14 +1,31 @@
 import OpenAI from "openai";
 
-const client = new OpenAI({
+// DeepSeek client
+const deepseekClient = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY || "sk-placeholder",
   baseURL: "https://api.deepseek.com",
 });
 
-export async function generateAnswer(promptText: string): Promise<string> {
+// OpenAI/ChatGPT client
+const openaiClient = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+});
+
+export type LLMEngine = "chatgpt" | "deepseek";
+
+function getClient(engine: LLMEngine) {
+  if (engine === "chatgpt") {
+    return { client: openaiClient, model: "gpt-4o-mini" };
+  }
+  return { client: deepseekClient, model: "deepseek-chat" };
+}
+
+export async function generateAnswer(promptText: string, engine: LLMEngine = "chatgpt"): Promise<string> {
   try {
+    const { client, model } = getClient(engine);
+    
     const response = await client.chat.completions.create({
-      model: "deepseek-chat",
+      model,
       messages: [
         {
           role: "system",
@@ -26,8 +43,8 @@ export async function generateAnswer(promptText: string): Promise<string> {
 
     return response.choices[0]?.message?.content?.trim() || "";
   } catch (error) {
-    console.error("Error generating answer:", error);
-    throw new Error("Failed to generate answer");
+    console.error(`Error generating answer with ${engine}:`, error);
+    throw new Error(`Failed to generate answer with ${engine}`);
   }
 }
 
@@ -35,13 +52,15 @@ export async function scoreVisibility(
   answer: string,
   brandName: string,
   brandDomain: string,
-  competitors: string[]
+  competitors: string[],
+  engine: LLMEngine = "chatgpt"
 ): Promise<{ brandScore: number; competitorScores: Record<string, number> }> {
   try {
+    const { client, model } = getClient(engine);
     const competitorList = competitors.map((c) => `- ${c}`).join("\n");
 
     const response = await client.chat.completions.create({
-      model: "deepseek-chat",
+      model,
       messages: [
         {
           role: "system",
@@ -82,7 +101,6 @@ ${competitorList || "None specified"}`,
     });
 
     const content = response.choices[0]?.message?.content?.trim() || "{}";
-    // Remove any markdown code blocks if present
     const jsonContent = content.replace(/```json\n?|\n?```/g, "").trim();
     const parsed = JSON.parse(jsonContent);
 
@@ -98,8 +116,7 @@ ${competitorList || "None specified"}`,
 
     return { brandScore, competitorScores };
   } catch (error) {
-    console.error("Error scoring visibility:", error);
-    // Return default scores on error
+    console.error(`Error scoring visibility with ${engine}:`, error);
     const competitorScores: Record<string, number> = {};
     for (const competitor of competitors) {
       competitorScores[competitor] = 0;
@@ -111,11 +128,14 @@ ${competitorList || "None specified"}`,
 export async function generateSuggestedAnswer(
   promptText: string,
   brandName: string,
-  brandDomain: string
+  brandDomain: string,
+  engine: LLMEngine = "chatgpt"
 ): Promise<{ suggestedAnswer: string; suggestedPageType: string }> {
   try {
+    const { client, model } = getClient(engine);
+    
     const response = await client.chat.completions.create({
-      model: "deepseek-chat",
+      model,
       messages: [
         {
           role: "system",
@@ -143,7 +163,6 @@ Generate a suggested answer that would naturally recommend this brand, and sugge
     });
 
     const content = response.choices[0]?.message?.content?.trim() || "{}";
-    // Remove any markdown code blocks if present
     const jsonContent = content.replace(/```json\n?|\n?```/g, "").trim();
     const parsed = JSON.parse(jsonContent);
 
@@ -152,7 +171,27 @@ Generate a suggested answer that would naturally recommend this brand, and sugge
       suggestedPageType: parsed.suggested_page_type || "Landing Page",
     };
   } catch (error) {
-    console.error("Error generating suggestion:", error);
-    throw new Error("Failed to generate suggestion");
+    console.error(`Error generating suggestion with ${engine}:`, error);
+    throw new Error(`Failed to generate suggestion with ${engine}`);
   }
+}
+
+// Get available engines based on configured API keys
+export function getAvailableEngines(): LLMEngine[] {
+  const engines: LLMEngine[] = [];
+  
+  if (process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+    engines.push("chatgpt");
+  }
+  
+  if (process.env.DEEPSEEK_API_KEY) {
+    engines.push("deepseek");
+  }
+  
+  // Default to chatgpt if no keys configured (will fail gracefully)
+  if (engines.length === 0) {
+    engines.push("chatgpt");
+  }
+  
+  return engines;
 }
