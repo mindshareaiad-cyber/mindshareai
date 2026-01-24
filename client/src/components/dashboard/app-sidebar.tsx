@@ -11,22 +11,69 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Eye, Plus, FolderOpen, Settings, HelpCircle } from "lucide-react";
+import { 
+  Eye, 
+  Plus, 
+  FolderOpen, 
+  Settings, 
+  HelpCircle,
+  LayoutDashboard,
+  MessageSquare,
+  BarChart3,
+  AlertTriangle,
+  Lightbulb,
+  ChevronDown,
+  ChevronRight
+} from "lucide-react";
+import { useState } from "react";
 import type { Project } from "@shared/schema";
+
+export type DashboardSection = "overview" | "prompts" | "results" | "gaps" | "suggestions";
 
 interface AppSidebarProps {
   projects: Project[];
   selectedProjectId: string | null;
   onSelectProject: (projectId: string) => void;
   onCreateProject: () => void;
+  activeSection: DashboardSection;
+  onSectionChange: (section: DashboardSection) => void;
 }
+
+const sections = [
+  { id: "overview" as const, label: "Overview", icon: LayoutDashboard },
+  { id: "prompts" as const, label: "Prompts", icon: MessageSquare },
+  { id: "results" as const, label: "Results", icon: BarChart3 },
+  { id: "gaps" as const, label: "Gap Analysis", icon: AlertTriangle },
+  { id: "suggestions" as const, label: "AEO Suggestions", icon: Lightbulb },
+];
 
 export function AppSidebar({
   projects,
   selectedProjectId,
   onSelectProject,
   onCreateProject,
+  activeSection,
+  onSectionChange,
 }: AppSidebarProps) {
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(
+    new Set(selectedProjectId ? [selectedProjectId] : [])
+  );
+
+  const toggleProject = (projectId: string) => {
+    const newExpanded = new Set(expandedProjects);
+    if (newExpanded.has(projectId)) {
+      newExpanded.delete(projectId);
+    } else {
+      newExpanded.add(projectId);
+    }
+    setExpandedProjects(newExpanded);
+  };
+
+  const handleProjectClick = (projectId: string) => {
+    onSelectProject(projectId);
+    setExpandedProjects(new Set([projectId]));
+  };
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b p-4">
@@ -60,27 +107,67 @@ export function AppSidebar({
                   <p className="text-xs">Create your first project to get started</p>
                 </div>
               ) : (
-                projects.map((project) => (
-                  <SidebarMenuItem key={project.id}>
-                    <SidebarMenuButton
-                      isActive={selectedProjectId === project.id}
-                      onClick={() => onSelectProject(project.id)}
-                      className="w-full"
-                      data-testid={`sidebar-project-${project.id}`}
-                    >
-                      <div className="flex items-center gap-2 w-full min-w-0">
-                        <div
-                          className={`h-2 w-2 rounded-full flex-shrink-0 ${
-                            selectedProjectId === project.id
-                              ? "bg-primary"
-                              : "bg-muted-foreground/30"
-                          }`}
-                        />
-                        <span className="truncate">{project.name}</span>
-                      </div>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))
+                projects.map((project) => {
+                  const isSelected = selectedProjectId === project.id;
+                  const isExpanded = expandedProjects.has(project.id);
+                  
+                  return (
+                    <div key={project.id}>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          isActive={isSelected && !isExpanded}
+                          onClick={() => handleProjectClick(project.id)}
+                          className="w-full"
+                          data-testid={`sidebar-project-${project.id}`}
+                        >
+                          <div className="flex items-center gap-2 w-full min-w-0">
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleProject(project.id);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.stopPropagation();
+                                  toggleProject(project.id);
+                                }
+                              }}
+                              className="flex-shrink-0 cursor-pointer"
+                              data-testid={`button-toggle-project-${project.id}`}
+                            >
+                              {isExpanded ? (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </span>
+                            <span className="truncate font-medium">{project.name}</span>
+                          </div>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      
+                      {isSelected && isExpanded && (
+                        <div className="ml-6 mt-1 space-y-0.5">
+                          {sections.map((section) => (
+                            <SidebarMenuItem key={section.id}>
+                              <SidebarMenuButton
+                                isActive={activeSection === section.id}
+                                onClick={() => onSectionChange(section.id)}
+                                className="w-full text-sm"
+                                data-testid={`sidebar-section-${section.id}`}
+                              >
+                                <section.icon className="h-4 w-4" />
+                                <span>{section.label}</span>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </SidebarMenu>
           </SidebarGroupContent>

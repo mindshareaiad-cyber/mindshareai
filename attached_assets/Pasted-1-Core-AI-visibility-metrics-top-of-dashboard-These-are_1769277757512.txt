@@ -1,0 +1,121 @@
+1. Core AI visibility metrics (top of dashboard)
+These are the “headline” stats:
+
+AI Visibility Score
+
+Numeric 0–2 or 0–100 index based on your brand_score across all prompts.
+​
+
+AI Mention Count
+
+Total prompts where your brand is mentioned (score ≥1) in the latest scan.
+​
+
+AI Recommendation Count
+
+Total prompts where your brand is clearly recommended / top choice (score = 2).
+​
+
+Share of Voice (%)
+
+Your percentage of mentions vs competitors for all monitored prompts.
+​
+
+Trend vs last scan / last 30 days
+
+Simple ↑ / ↓ next to each metric (change in Visibility Score, mentions, SoV).
+​
+
+2. Prompt‑level performance (tactical table)
+Per prompt, so teams can see where they win/lose:
+
+For each prompt row:
+​
+
+Prompt text (e.g. “best CRM for startups”).
+
+Prompt set labels (persona, funnel stage, country).
+
+Brand visibility score (0/1/2).
+
+Each competitor’s score.
+
+Engine(s) tested (DeepSeek, etc.).
+
+Last change indicator (e.g. “Improved since last scan” / “New gap”).
+
+Filters:
+
+Show only gaps (brand_score = 0 & competitor > 0).
+
+Filter by funnel stage or persona (TOFU/MOFU/BOFU, founder vs marketer).
+​
+
+3. Competitor and citation metrics
+To make it feel like true AEO intelligence, not just self‑tracking:
+
+Competitor share of voice table
+
+Each brand → Visibility Score, Mention Count, Recommendation Count, Share of Voice %.
+​
+
+AI Citation Count (later feature)
+
+How many times your domain/URLs are cited across answers in the scan.
+​
+
+AI Competitor Share
+
+How often competitors appear instead of you in your key prompts.
+​
+
+4. Content / AEO opportunity metrics
+This is where the product starts to feel like an AEO tool, not just analytics.
+​
+
+Gap opportunities count
+
+Number of prompts where:
+
+You rank in Google but are not mentioned in AI answers (if you integrate SEO later).
+
+Or simply: brand_score = 0 but competitor > 0.
+
+Top 10 prompts to fix (Content Opportunity Tracker)
+For each:
+
+Prompt text.
+
+Estimated intent (TOFU/MOFU/BOFU).
+
+Potential impact score (simple heuristic).
+
+Suggested content type (FAQ, comparison page, pricing page, etc.).
+​
+
+Suggested answer snippet
+
+A short AI‑generated answer they can paste into their content.
+
+5. Historical / timeline metrics
+Even if you don’t integrate GSC/GA yet, you can still give good historical AEO signals:
+​
+
+Timeline of:
+
+AI Visibility Score per scan.
+
+Share of Voice vs a chosen competitor.
+
+Total AI mentions over time.
+
+Optional (later):
+
+Correlate big jumps or drops with:
+
+AEO changes (content updates).
+
+Major AI platform updates (you can annotate).
+​
+
+If your dashboard exposes these data points—especially the core metrics + gap list + “top prompts to fix”—it stops feeling bare and starts looking like something you’d happily pay ££ for and show in a marketing meeting.
