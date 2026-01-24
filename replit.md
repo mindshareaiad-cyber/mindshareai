@@ -13,11 +13,15 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
 
 ## Key Features
 1. **Landing Page** - ClickUp-inspired marketing site with hero, solutions, features, ROI, and pricing sections
-2. **Dashboard** - Project management with sidebar navigation
-3. **Prompt Sets** - Organize buyer-intent questions by persona, funnel stage, country
-4. **AI Visibility Scans** - Run prompts through LLM, score brand visibility (0-2)
-5. **Gap Analysis** - Identify where competitors are mentioned but you're not
-6. **AEO Suggestions** - AI-generated recommendations for content improvement
+2. **Dashboard** - Project management with left sidebar navigation showing:
+   - **Overview** - Core AI visibility metrics (Score, Mentions, Recommendations, Share of Voice, Gap Opportunities)
+   - **Prompts** - Organize buyer-intent questions by persona, funnel stage, country
+   - **Results** - View scan results after running AI visibility scans
+   - **Gap Analysis** - Identify where competitors are mentioned but you're not
+   - **AEO Suggestions** - AI-generated recommendations for content improvement
+3. **AI Visibility Scans** - Run prompts through ChatGPT (GPT-4o-mini) or DeepSeek, score brand visibility (0-2)
+4. **Competitor Share of Voice** - Compare your visibility against competitors
+5. **Prompt-Level Performance** - Per-prompt table with filters (Gaps, Winning, Mentioned, Invisible)
 
 ## Project Structure
 ```
@@ -60,6 +64,10 @@ shared/
 - **2** = Clearly recommended or strongly endorsed
 - **1** = Mentioned but not the main recommendation
 - **0** = Not mentioned at all
+
+## AI Engines
+- **ChatGPT** (GPT-4o-mini) - Primary engine, most popular
+- **DeepSeek** - Alternative engine
 
 ## Running the App
 The app runs on port 5000 with `npm run dev`. The frontend is served via Vite with Express backend.
