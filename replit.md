@@ -65,9 +65,17 @@ shared/
 - **1** = Mentioned but not the main recommendation
 - **0** = Not mentioned at all
 
-## AI Engines
-- **ChatGPT** (GPT-4o-mini) - Primary engine, most popular
-- **DeepSeek** - Alternative engine
+## AI Engines by Subscription Tier
+- **Starter**: ChatGPT (GPT-4o-mini)
+- **Growth**: ChatGPT, Claude (Sonnet 4.5), Gemini (2.5 Flash)
+- **Pro**: ChatGPT, Claude, Gemini, Perplexity (Sonar), DeepSeek
+
+## AI Engine Details
+- **ChatGPT** - GPT-4o-mini via OpenAI/Replit AI Integrations
+- **Claude** - Claude Sonnet 4.5 via Replit AI Integrations (no API key needed)
+- **Gemini** - Gemini 2.5 Flash via Replit AI Integrations (no API key needed)
+- **Perplexity** - Llama 3.1 Sonar with web search (requires API key)
+- **DeepSeek** - DeepSeek Chat (requires API key)
 
 ## Running the App
 The app runs on port 5000 with `npm run dev`. The frontend is served via Vite with Express backend.
