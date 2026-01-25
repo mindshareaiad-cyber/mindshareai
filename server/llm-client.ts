@@ -1,47 +1,175 @@
 import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 
-// DeepSeek client
+// DeepSeek client (Pro only)
 const deepseekClient = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY || "sk-placeholder",
   baseURL: "https://api.deepseek.com",
 });
 
-// OpenAI/ChatGPT client
+// OpenAI/ChatGPT client (All tiers)
 const openaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
 });
 
-export type LLMEngine = "chatgpt" | "deepseek";
+// Anthropic/Claude client via Replit AI Integrations (Growth + Pro)
+const anthropicClient = new Anthropic({
+  apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || "placeholder",
+  baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+});
 
-function getClient(engine: LLMEngine) {
-  if (engine === "chatgpt") {
-    return { client: openaiClient, model: "gpt-4o-mini" };
+// Gemini client via Replit AI Integrations (Growth + Pro)
+const geminiClient = new GoogleGenAI({
+  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "placeholder",
+  httpOptions: {
+    apiVersion: "",
+    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
+  },
+});
+
+export type LLMEngine = "chatgpt" | "claude" | "gemini" | "perplexity" | "deepseek";
+export type SubscriptionTier = "starter" | "growth" | "pro";
+
+// Engine availability by subscription tier
+const ENGINE_TIERS: Record<SubscriptionTier, LLMEngine[]> = {
+  starter: ["chatgpt"],
+  growth: ["chatgpt", "claude", "gemini"],
+  pro: ["chatgpt", "claude", "gemini", "perplexity", "deepseek"],
+};
+
+export function getEnginesForTier(tier: SubscriptionTier): LLMEngine[] {
+  return ENGINE_TIERS[tier] || ENGINE_TIERS.starter;
+}
+
+export function isEngineAvailableForTier(engine: LLMEngine, tier: SubscriptionTier): boolean {
+  return ENGINE_TIERS[tier]?.includes(engine) || false;
+}
+
+async function callChatGPT(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
+  const response = await openaiClient.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: messages as any,
+    max_tokens: maxTokens,
+    temperature,
+  });
+  return response.choices[0]?.message?.content?.trim() || "";
+}
+
+async function callClaude(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
+  const systemMessage = messages.find(m => m.role === "system");
+  const userMessages = messages.filter(m => m.role !== "system");
+  
+  const response = await anthropicClient.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: maxTokens,
+    system: systemMessage?.content || "",
+    messages: userMessages.map(m => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    })),
+  });
+  
+  const content = response.content[0];
+  return content.type === "text" ? content.text : "";
+}
+
+async function callGemini(messages: { role: string; content: string }[], maxTokens: number): Promise<string> {
+  const systemMessage = messages.find(m => m.role === "system");
+  const userMessages = messages.filter(m => m.role !== "system");
+  
+  const contents = userMessages.map(m => ({
+    role: m.role === "user" ? "user" : "model",
+    parts: [{ text: m.content }],
+  }));
+  
+  const response = await geminiClient.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents,
+    config: {
+      maxOutputTokens: maxTokens,
+      systemInstruction: systemMessage?.content,
+    },
+  });
+  
+  return response.text || "";
+}
+
+async function callPerplexity(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  if (!apiKey) {
+    throw new Error("Perplexity API key not configured");
   }
-  return { client: deepseekClient, model: "deepseek-chat" };
+  
+  const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "llama-3.1-sonar-small-128k-online",
+      messages,
+      max_tokens: maxTokens,
+      temperature,
+    }),
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Perplexity API error: ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content?.trim() || "";
+}
+
+async function callDeepSeek(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
+  const response = await deepseekClient.chat.completions.create({
+    model: "deepseek-chat",
+    messages: messages as any,
+    max_tokens: maxTokens,
+    temperature,
+  });
+  return response.choices[0]?.message?.content?.trim() || "";
+}
+
+async function callEngine(
+  engine: LLMEngine,
+  messages: { role: string; content: string }[],
+  maxTokens: number,
+  temperature: number
+): Promise<string> {
+  switch (engine) {
+    case "chatgpt":
+      return callChatGPT(messages, maxTokens, temperature);
+    case "claude":
+      return callClaude(messages, maxTokens, temperature);
+    case "gemini":
+      return callGemini(messages, maxTokens);
+    case "perplexity":
+      return callPerplexity(messages, maxTokens, temperature);
+    case "deepseek":
+      return callDeepSeek(messages, maxTokens, temperature);
+    default:
+      throw new Error(`Unknown engine: ${engine}`);
+  }
 }
 
 export async function generateAnswer(promptText: string, engine: LLMEngine = "chatgpt"): Promise<string> {
   try {
-    const { client, model } = getClient(engine);
-    
-    const response = await client.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an expert assistant answering user questions about products, services, and businesses. Provide a concise, practical answer in under 120 words, suitable for being used as an AI result.",
-        },
-        {
-          role: "user",
-          content: promptText,
-        },
-      ],
-      max_tokens: 300,
-      temperature: 0.7,
-    });
+    const messages = [
+      {
+        role: "system",
+        content:
+          "You are an expert assistant answering user questions about products, services, and businesses. Provide a concise, practical answer in under 120 words, suitable for being used as an AI result.",
+      },
+      {
+        role: "user",
+        content: promptText,
+      },
+    ];
 
-    return response.choices[0]?.message?.content?.trim() || "";
+    return await callEngine(engine, messages, 300, 0.7);
   } catch (error) {
     console.error(`Error generating answer with ${engine}:`, error);
     throw new Error(`Failed to generate answer with ${engine}`);
@@ -56,20 +184,17 @@ export async function scoreVisibility(
   engine: LLMEngine = "chatgpt"
 ): Promise<{ brandScore: number; competitorScores: Record<string, number> }> {
   try {
-    const { client, model } = getClient(engine);
     const competitorList = competitors.map((c) => `- ${c}`).join("\n");
 
-    const response = await client.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an evaluation engine scoring brand visibility in AI answers for Answer Engine Optimization (AEO). You only output strict JSON with no additional text or markdown.",
-        },
-        {
-          role: "user",
-          content: `You will receive:
+    const messages = [
+      {
+        role: "system",
+        content:
+          "You are an evaluation engine scoring brand visibility in AI answers for Answer Engine Optimization (AEO). You only output strict JSON with no additional text or markdown.",
+      },
+      {
+        role: "user",
+        content: `You will receive:
 - An AI answer to a user's question.
 - One primary brand (name + domain).
 - A list of competitor brand names.
@@ -94,13 +219,10 @@ BRAND:
 
 COMPETITORS:
 ${competitorList || "None specified"}`,
-        },
-      ],
-      max_tokens: 200,
-      temperature: 0.3,
-    });
+      },
+    ];
 
-    const content = response.choices[0]?.message?.content?.trim() || "{}";
+    const content = await callEngine(engine, messages, 200, 0.3);
     const jsonContent = content.replace(/```json\n?|\n?```/g, "").trim();
     const parsed = JSON.parse(jsonContent);
 
@@ -132,37 +254,30 @@ export async function generateSuggestedAnswer(
   engine: LLMEngine = "chatgpt"
 ): Promise<{ suggestedAnswer: string; suggestedPageType: string }> {
   try {
-    const { client, model } = getClient(engine);
-    
-    const response = await client.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: "system",
-          content: `You are an AEO (Answer Engine Optimization) expert. Your job is to suggest how a brand should be mentioned in AI responses, and what type of content page would help achieve that visibility.
+    const messages = [
+      {
+        role: "system",
+        content: `You are an AEO (Answer Engine Optimization) expert. Your job is to suggest how a brand should be mentioned in AI responses, and what type of content page would help achieve that visibility.
 
 Output ONLY valid JSON (no markdown, no explanation) with this exact shape:
 {
   "suggested_answer": "A concise answer that naturally mentions and recommends the brand (under 100 words)",
   "suggested_page_type": "The type of content page to create (e.g., 'Comparison Guide', 'How-To Article', 'Product Page', 'FAQ Page', 'Case Study')"
 }`,
-        },
-        {
-          role: "user",
-          content: `User question: "${promptText}"
+      },
+      {
+        role: "user",
+        content: `User question: "${promptText}"
 
 Brand to optimize for:
 - Name: ${brandName}
 - Domain: ${brandDomain}
 
 Generate a suggested answer that would naturally recommend this brand, and suggest what type of content page the brand should create to improve their visibility for this query.`,
-        },
-      ],
-      max_tokens: 300,
-      temperature: 0.7,
-    });
+      },
+    ];
 
-    const content = response.choices[0]?.message?.content?.trim() || "{}";
+    const content = await callEngine(engine, messages, 300, 0.7);
     const jsonContent = content.replace(/```json\n?|\n?```/g, "").trim();
     const parsed = JSON.parse(jsonContent);
 
@@ -184,6 +299,18 @@ export function getAvailableEngines(): LLMEngine[] {
     engines.push("chatgpt");
   }
   
+  if (process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY) {
+    engines.push("claude");
+  }
+  
+  if (process.env.AI_INTEGRATIONS_GEMINI_API_KEY) {
+    engines.push("gemini");
+  }
+  
+  if (process.env.PERPLEXITY_API_KEY) {
+    engines.push("perplexity");
+  }
+  
   if (process.env.DEEPSEEK_API_KEY) {
     engines.push("deepseek");
   }
@@ -194,4 +321,12 @@ export function getAvailableEngines(): LLMEngine[] {
   }
   
   return engines;
+}
+
+// Get engines available for a user based on their subscription and configured keys
+export function getAvailableEnginesForUser(tier: SubscriptionTier): LLMEngine[] {
+  const configuredEngines = getAvailableEngines();
+  const tierEngines = getEnginesForTier(tier);
+  
+  return configuredEngines.filter(engine => tierEngines.includes(engine));
 }

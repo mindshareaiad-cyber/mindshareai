@@ -1,11 +1,21 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generateAnswer, scoreVisibility, generateSuggestedAnswer, getAvailableEngines, type LLMEngine } from "./llm-client";
+import { generateAnswer, scoreVisibility, generateSuggestedAnswer, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, isEngineAvailableForTier, type LLMEngine, type SubscriptionTier } from "./llm-client";
 import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema } from "@shared/schema";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
+
+// Helper to determine subscription tier from status
+function getSubscriptionTier(subscriptionStatus: string | null | undefined): SubscriptionTier {
+  if (!subscriptionStatus || subscriptionStatus !== 'active') {
+    return 'starter';
+  }
+  // For now, all active subscribers get 'pro' tier
+  // In a full implementation, this would check the Stripe price ID
+  return 'pro';
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -334,7 +344,7 @@ export async function registerRoutes(
 
   // ============= Engines =============
   
-  // Get available AI engines
+  // Get available AI engines (all configured)
   app.get("/api/engines", async (req, res) => {
     try {
       const engines = getAvailableEngines();
@@ -342,6 +352,25 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error getting engines:", error);
       res.status(500).json({ error: "Failed to get engines" });
+    }
+  });
+
+  // Get engines available for a specific user based on their subscription
+  app.get("/api/engines/:userId", async (req, res) => {
+    try {
+      const profile = await storage.getUserProfile(req.params.userId);
+      const tier = getSubscriptionTier(profile?.subscriptionStatus);
+      const allTierEngines = getEnginesForTier(tier);
+      const availableEngines = getAvailableEnginesForUser(tier);
+      
+      res.json({ 
+        tier,
+        allTierEngines,
+        availableEngines,
+      });
+    } catch (error) {
+      console.error("Error getting user engines:", error);
+      res.status(500).json({ error: "Failed to get user engines" });
     }
   });
 
