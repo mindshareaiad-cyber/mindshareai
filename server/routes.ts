@@ -6,15 +6,32 @@ import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateU
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
+import { getPlan, canCreateProject, canAddPrompts, canRunScan, canUseEngine, getPromptsForMultiEngine, ENGINE_TIERS, type PlanId } from "./plans";
 
-// Helper to determine subscription tier from status
-function getSubscriptionTier(subscriptionStatus: string | null | undefined): SubscriptionTier {
+// Helper to determine subscription tier from status and price
+function getUserPlanId(subscriptionStatus: string | null | undefined, stripePriceId?: string | null): PlanId {
   if (!subscriptionStatus || subscriptionStatus !== 'active') {
     return 'starter';
   }
-  // For now, all active subscribers get 'pro' tier
-  // In a full implementation, this would check the Stripe price ID
-  return 'pro';
+  
+  // Check price ID for tier determination
+  if (stripePriceId) {
+    const priceLower = stripePriceId.toLowerCase();
+    if (priceLower.includes("pro") || priceLower.includes("199")) {
+      return "pro";
+    }
+    if (priceLower.includes("growth") || priceLower.includes("79")) {
+      return "growth";
+    }
+  }
+  
+  // Default active subscribers to starter unless higher tier detected
+  return 'starter';
+}
+
+// Keep old function for backward compatibility
+function getSubscriptionTier(subscriptionStatus: string | null | undefined): SubscriptionTier {
+  return getUserPlanId(subscriptionStatus) as SubscriptionTier;
 }
 
 export async function registerRoutes(
@@ -342,6 +359,50 @@ export async function registerRoutes(
     }
   });
 
+  // ============= Plans =============
+  
+  // Get plan info for a user
+  app.get("/api/plans/:userId", async (req, res) => {
+    try {
+      const profile = await storage.getUserProfile(req.params.userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus);
+      const plan = getPlan(planId);
+      
+      // Get current usage
+      const projectCount = await storage.countProjectsByUser(req.params.userId);
+      const promptCount = await storage.countPromptsByUser(req.params.userId);
+      const scansThisMonth = await storage.countScansThisMonth(req.params.userId);
+      
+      res.json({
+        plan,
+        usage: {
+          projects: projectCount,
+          prompts: promptCount,
+          scansThisMonth,
+        },
+        limits: {
+          projectsRemaining: plan.maxProjects - projectCount,
+          promptsRemaining: plan.maxPrompts - promptCount,
+          scansRemaining: plan.maxScansPerMonth - scansThisMonth,
+        },
+      });
+    } catch (error) {
+      console.error("Error getting plan info:", error);
+      res.status(500).json({ error: "Failed to get plan info" });
+    }
+  });
+
+  // Get all available plans
+  app.get("/api/plans", async (req, res) => {
+    try {
+      const { PLANS } = await import("./plans");
+      res.json(Object.values(PLANS));
+    } catch (error) {
+      console.error("Error getting plans:", error);
+      res.status(500).json({ error: "Failed to get plans" });
+    }
+  });
+
   // ============= Engines =============
   
   // Get available AI engines (all configured)
@@ -380,13 +441,15 @@ export async function registerRoutes(
   app.post("/api/projects/:projectId/scans", async (req, res) => {
     try {
       const scanInputSchema = z.object({
-        engines: z.array(z.enum(["chatgpt", "deepseek"])).default(["chatgpt"]),
+        userId: z.string().optional(),
+        engines: z.array(z.enum(["chatgpt", "claude", "gemini", "perplexity", "deepseek"])).optional(),
+        multiEngine: z.boolean().default(false),
       });
       const parsed = scanInputSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ error: fromError(parsed.error).message });
       }
-      const { engines } = parsed.data;
+      const { userId, multiEngine } = parsed.data;
       const projectId = req.params.projectId;
 
       const project = await storage.getProject(projectId);
@@ -394,21 +457,59 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Project not found" });
       }
 
+      // Get user plan and check limits
+      const effectiveUserId = userId || project.userId;
+      let planId: PlanId = "starter";
+      
+      if (effectiveUserId) {
+        const profile = await storage.getUserProfile(effectiveUserId);
+        planId = getUserPlanId(profile?.subscriptionStatus);
+        
+        // Check scan limit
+        const scansThisMonth = await storage.countScansThisMonth(effectiveUserId);
+        if (!canRunScan(planId, scansThisMonth)) {
+          const plan = getPlan(planId);
+          return res.status(403).json({ 
+            error: `You've used all ${plan.maxScansPerMonth} scans for this month on your ${plan.name} plan. Upgrade to get more scans.` 
+          });
+        }
+      }
+
+      const plan = getPlan(planId);
+      
+      // Determine which engines to use based on plan
+      let enginesToUse: string[];
+      
+      if (multiEngine && plan.features.multiEngineComparison) {
+        // Multi-engine comparison: use allowed engines for this plan
+        enginesToUse = plan.allowedEngines.filter(e => canUseEngine(planId, e));
+      } else {
+        // Default: always use primary (cheapest) engine only
+        enginesToUse = [ENGINE_TIERS.primary];
+      }
+
       const prompts = await storage.getPromptsByProject(projectId);
       if (prompts.length === 0) {
         return res.status(400).json({ error: "No prompts to scan" });
       }
 
+      // For multi-engine, limit prompts to prevent excessive costs
+      let promptsToScan = prompts;
+      if (multiEngine && enginesToUse.length > 1) {
+        const maxPrompts = getPromptsForMultiEngine(planId, prompts.length);
+        promptsToScan = prompts.slice(0, maxPrompts);
+      }
+
       // Create the scan
       const scan = await storage.createScan({
         projectId,
-        engines,
+        engines: enginesToUse,
       });
 
       // Process each prompt
       const results = [];
-      for (const prompt of prompts) {
-        for (const engine of engines) {
+      for (const prompt of promptsToScan) {
+        for (const engine of enginesToUse) {
           try {
             // Generate answer using LLM
             const answer = await generateAnswer(prompt.text, engine as LLMEngine);
@@ -434,7 +535,7 @@ export async function registerRoutes(
 
             results.push(result);
           } catch (error) {
-            console.error(`Error processing prompt ${prompt.id}:`, error);
+            console.error(`Error processing prompt ${prompt.id} with ${engine}:`, error);
           }
         }
       }
@@ -447,6 +548,8 @@ export async function registerRoutes(
         scan,
         resultsCount: results.length,
         visibilityScore,
+        enginesUsed: enginesToUse,
+        promptsScanned: promptsToScan.length,
       });
     } catch (error) {
       console.error("Error running scan:", error);

@@ -1,0 +1,137 @@
+I need you to update my SaaS app’s pricing logic and API call behaviour for the AI visibility (AEO) tool, so that margins stay high while still matching the pricing table:
+
+Starter: $29/mo
+
+Growth: $79/mo
+
+Pro: $199/mo
+
+The UI cards can stay visually similar, but the limits and engine usage must change in code as follows.
+
+1. Plan limits to enforce in the backend
+Create or update a central config (e.g. plans.py or constants) that defines hard limits per plan:
+
+Starter – $29
+max_projects = 1
+
+max_prompts = 50
+
+max_engines = 1
+
+allowed_engines = ["primary"] (see engine rules below)
+
+max_scans_per_month = 10
+
+Features: basic reports only (no advanced AEO suggestions if we’re gating by plan).
+
+Growth – $79
+max_projects = 5
+
+max_prompts = 200
+
+max_engines = 2
+
+allowed_engines = ["primary", "secondary"]
+
+max_scans_per_month = 50
+
+Features: advanced reports, gap analysis, AEO suggestions.
+
+Pro – $199
+Do NOT make this truly unlimited in code; enforce a fair‑use cap:
+
+max_projects = 50 (high, but not infinite)
+
+max_prompts = 1000
+
+max_engines = all_available
+
+max_scans_per_month = 500
+
+Features: everything above + white‑label, API access, etc.
+
+Make sure these limits are actually checked when a user:
+
+Creates a project
+
+Adds prompts
+
+Runs a scan
+
+Return a clear error if they hit the limit (e.g. “You’ve used all scans for this month on your current plan”).
+
+2. Engine usage strategy (to keep costs low)
+Internally, define engines like this:
+
+primary = cheapest engine (e.g. DeepSeek / Gemini Flash / GPT‑4o‑mini class)
+
+secondary = one additional engine (e.g. a premium GPT or Claude tier)
+
+all_available = full set (primary + others)
+
+Adjust behaviour:
+
+Default scans for all plans must use ONLY the primary engine.
+
+When a user clicks “Run scan” normally, use primary only.
+
+Growth plan: allow a “Run comparison on second engine” action, but:
+
+Run it only for a subset of prompts (e.g. top 50 or a selected prompt set).
+
+This must still respect max_scans_per_month.
+
+Pro plan:
+
+Allow the user to choose multiple engines, but still route most usage through primary.
+
+For “multi‑engine comparison”, scan only a subset of prompts (e.g. top 50–100) across all selected engines, not the full 1000 by default.
+
+In code:
+
+Add an engine_mode or engines field to Scan creation.
+
+Implement logic in the scan service so that, depending on plan and action, it decides:
+
+which engine(s) to call
+
+how many prompts to include in multi‑engine runs
+
+3. Enforce scan + prompt limits
+Wherever scans are created (e.g. POST /api/projects/{project_id}/scans):
+
+Before running:
+
+Count user’s scans in the current billing period.
+
+If >= max_scans_per_month for their plan, return an error and do not call any LLMs.
+
+Likewise, when saving prompts:
+
+If adding new prompts would exceed max_prompts for their plan, block and return a clear message.
+
+4. Shorten LLM outputs to control tokens
+In the LLM client:
+
+For answer generation, keep answers under ~120–150 words via max_tokens and concise system prompts.
+
+For scoring, keep the scoring prompt as short as possible and enforce JSON‑only output.
+
+This reduces per‑scan token usage and supports the pricing model.
+
+5. UI adjustments (optional but helpful)
+Update the pricing table text to match the new enforced limits:
+
+Starter: “1 Engine - 10 scans / month”
+
+Growth: “Up to 2 Engines - 50 scans / month”
+
+Pro: “All Engines (fair‑use) - High scan limits”
+
+Ensure these labels line up with the backend plan constants.
+
+Implement these changes so that:
+
+The backend strictly enforces the plan limits.
+
+The scan orchestration uses the primary cheap engine by default, with controlled multi‑engine usage on Growth/Pro.

@@ -65,10 +65,15 @@ shared/
 - **1** = Mentioned but not the main recommendation
 - **0** = Not mentioned at all
 
+## Subscription Plans
+- **Starter ($29/mo)**: 1 project, 50 prompts, 1 engine (ChatGPT), 10 scans/month
+- **Growth ($79/mo)**: 5 projects, 200 prompts, 2 engines (ChatGPT + Gemini), 50 scans/month, gap analysis, AEO suggestions
+- **Pro ($199/mo)**: 50 projects, 1000 prompts, all 5 engines, 500 scans/month, white-label, API access
+
 ## AI Engines by Subscription Tier
-- **Starter**: ChatGPT (GPT-4o-mini)
-- **Growth**: ChatGPT, Claude (Sonnet 4.5), Gemini (2.5 Flash)
-- **Pro**: ChatGPT, Claude, Gemini, Perplexity (Sonar), DeepSeek
+- **Starter**: ChatGPT only (primary/cheapest engine)
+- **Growth**: ChatGPT + Gemini (2 engines)
+- **Pro**: ChatGPT, Claude, Gemini, Perplexity, DeepSeek (all 5 engines)
 
 ## AI Engine Details
 - **ChatGPT** - GPT-4o-mini via OpenAI/Replit AI Integrations

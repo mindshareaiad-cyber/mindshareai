@@ -28,9 +28,11 @@ export interface IStorage {
 
   // Projects
   getProjects(): Promise<Project[]>;
+  getProjectsByUser(userId: string): Promise<Project[]>;
   getProject(id: string): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
   deleteProject(id: string): Promise<void>;
+  countProjectsByUser(userId: string): Promise<number>;
 
   // Prompt Sets
   getPromptSets(projectId: string): Promise<PromptSet[]>;
@@ -44,11 +46,13 @@ export interface IStorage {
   getPrompt(id: string): Promise<Prompt | undefined>;
   createPrompt(prompt: InsertPrompt): Promise<Prompt>;
   deletePrompt(id: string): Promise<void>;
+  countPromptsByUser(userId: string): Promise<number>;
 
   // Scans
   getScans(projectId: string): Promise<Scan[]>;
   getLatestScan(projectId: string): Promise<Scan | undefined>;
   createScan(scan: InsertScan): Promise<Scan>;
+  countScansThisMonth(userId: string): Promise<number>;
 
   // Scan Results
   getScanResults(scanId: string): Promise<ScanResult[]>;
@@ -177,8 +181,18 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async getProjectsByUser(userId: string): Promise<Project[]> {
+    return Array.from(this.projects.values())
+      .filter((p) => p.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
   async getProject(id: string): Promise<Project | undefined> {
     return this.projects.get(id);
+  }
+
+  async countProjectsByUser(userId: string): Promise<number> {
+    return Array.from(this.projects.values()).filter((p) => p.userId === userId).length;
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
@@ -281,6 +295,22 @@ export class MemStorage implements IStorage {
     this.prompts.delete(id);
   }
 
+  async countPromptsByUser(userId: string): Promise<number> {
+    const userProjects = Array.from(this.projects.values()).filter(
+      (p) => p.userId === userId
+    );
+    const projectIds = new Set(userProjects.map((p) => p.id));
+    
+    const userPromptSets = Array.from(this.promptSets.values()).filter(
+      (ps) => projectIds.has(ps.projectId)
+    );
+    const promptSetIds = new Set(userPromptSets.map((ps) => ps.id));
+    
+    return Array.from(this.prompts.values()).filter(
+      (p) => promptSetIds.has(p.promptSetId)
+    ).length;
+  }
+
   // Scans
   async getScans(projectId: string): Promise<Scan[]> {
     return Array.from(this.scans.values())
@@ -302,6 +332,20 @@ export class MemStorage implements IStorage {
     };
     this.scans.set(id, scan);
     return scan;
+  }
+
+  async countScansThisMonth(userId: string): Promise<number> {
+    const userProjects = Array.from(this.projects.values()).filter(
+      (p) => p.userId === userId
+    );
+    const projectIds = new Set(userProjects.map((p) => p.id));
+    
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    return Array.from(this.scans.values()).filter(
+      (s) => projectIds.has(s.projectId) && new Date(s.createdAt) >= startOfMonth
+    ).length;
   }
 
   // Scan Results
