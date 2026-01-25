@@ -18,14 +18,21 @@ export class WebhookHandlers {
     await sync.processWebhook(payload, signature);
   }
 
-  static async handleSubscriptionUpdate(customerId: string, subscriptionId: string, status: string) {
+  static async handleSubscriptionUpdate(customerId: string, subscriptionId: string, status: string, priceId?: string) {
     try {
+      const updateData: Record<string, unknown> = {
+        stripeSubscriptionId: subscriptionId,
+        subscriptionStatus: status === 'active' || status === 'trialing' ? 'active' : status,
+        updatedAt: new Date(),
+      };
+      
+      // Store price ID for plan tier detection
+      if (priceId) {
+        updateData.stripePriceId = priceId;
+      }
+      
       await db.update(userProfiles)
-        .set({
-          stripeSubscriptionId: subscriptionId,
-          subscriptionStatus: status === 'active' || status === 'trialing' ? 'active' : status,
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(userProfiles.stripeCustomerId, customerId));
     } catch (error) {
       console.error('Error updating subscription status:', error);

@@ -16,6 +16,7 @@ export const userProfiles = pgTable("user_profiles", {
   onboardingCompleted: boolean("onboarding_completed").default(false).notNull(),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
+  stripePriceId: text("stripe_price_id"), // Stripe price ID for plan tier detection
   subscriptionStatus: text("subscription_status").default("inactive"), // active, inactive, canceled, past_due
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

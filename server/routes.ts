@@ -164,13 +164,25 @@ export async function registerRoutes(
       const { sessionId, userId } = req.body;
       const stripe = await getUncachableStripeClient();
 
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      const session = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ['line_items.data.price'],
+      });
       
       if (session.payment_status === 'paid' && session.subscription) {
-        await storage.updateUserProfile(userId, {
+        // Extract price ID from line items
+        const priceId = session.line_items?.data?.[0]?.price?.id;
+        
+        const updateData: Record<string, unknown> = {
           stripeSubscriptionId: session.subscription as string,
           subscriptionStatus: 'active',
-        });
+        };
+        
+        // Store price ID for plan tier detection
+        if (priceId) {
+          updateData.stripePriceId = priceId;
+        }
+        
+        await storage.updateUserProfile(userId, updateData);
         res.json({ success: true });
       } else {
         res.json({ success: false });
@@ -261,6 +273,22 @@ export async function registerRoutes(
       if (!parsed.success) {
         return res.status(400).json({ error: fromError(parsed.error).message });
       }
+      
+      // Enforce project limit based on user's plan
+      const userId = parsed.data.userId;
+      if (userId) {
+        const profile = await storage.getUserProfile(userId);
+        const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId);
+        const projectCount = await storage.countProjectsByUser(userId);
+        
+        if (!canCreateProject(planId, projectCount)) {
+          const plan = getPlan(planId);
+          return res.status(403).json({ 
+            error: `You've reached the ${plan.maxProjects} project limit on your ${plan.name} plan. Upgrade to create more projects.` 
+          });
+        }
+      }
+      
       const project = await storage.createProject(parsed.data);
       res.status(201).json(project);
     } catch (error) {
@@ -340,6 +368,30 @@ export async function registerRoutes(
       if (!parsed.success) {
         return res.status(400).json({ error: fromError(parsed.error).message });
       }
+      
+      // Get the prompt set to find the project and user
+      const promptSet = await storage.getPromptSet(req.params.promptSetId);
+      if (!promptSet) {
+        return res.status(404).json({ error: "Prompt set not found" });
+      }
+      
+      const project = await storage.getProject(promptSet.projectId);
+      const userId = project?.userId;
+      
+      // Enforce prompt limit based on user's plan
+      if (userId) {
+        const profile = await storage.getUserProfile(userId);
+        const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId);
+        const promptCount = await storage.countPromptsByUser(userId);
+        
+        if (!canAddPrompts(planId, promptCount, 1)) {
+          const plan = getPlan(planId);
+          return res.status(403).json({ 
+            error: `You've reached the ${plan.maxPrompts} prompt limit on your ${plan.name} plan. Upgrade to add more prompts.` 
+          });
+        }
+      }
+      
       const prompt = await storage.createPrompt(parsed.data);
       res.status(201).json(prompt);
     } catch (error) {
@@ -365,7 +417,7 @@ export async function registerRoutes(
   app.get("/api/plans/:userId", async (req, res) => {
     try {
       const profile = await storage.getUserProfile(req.params.userId);
-      const planId = getUserPlanId(profile?.subscriptionStatus);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId);
       const plan = getPlan(planId);
       
       // Get current usage
@@ -420,7 +472,7 @@ export async function registerRoutes(
   app.get("/api/engines/:userId", async (req, res) => {
     try {
       const profile = await storage.getUserProfile(req.params.userId);
-      const tier = getSubscriptionTier(profile?.subscriptionStatus);
+      const tier = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId) as SubscriptionTier;
       const allTierEngines = getEnginesForTier(tier);
       const availableEngines = getAvailableEnginesForUser(tier);
       
@@ -463,7 +515,7 @@ export async function registerRoutes(
       
       if (effectiveUserId) {
         const profile = await storage.getUserProfile(effectiveUserId);
-        planId = getUserPlanId(profile?.subscriptionStatus);
+        planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId);
         
         // Check scan limit
         const scansThisMonth = await storage.countScansThisMonth(effectiveUserId);
