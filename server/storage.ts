@@ -52,6 +52,7 @@ export interface IStorage {
   getScans(projectId: string): Promise<Scan[]>;
   getLatestScan(projectId: string): Promise<Scan | undefined>;
   createScan(scan: InsertScan): Promise<Scan>;
+  updateScanNotes(scanId: string, notes: string): Promise<Scan | null>;
   countScansThisMonth(userId: string): Promise<number>;
 
   // Scan Results
