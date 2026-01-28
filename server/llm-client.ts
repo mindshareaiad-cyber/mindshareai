@@ -8,9 +8,10 @@ const deepseekClient = new OpenAI({
   baseURL: "https://api.deepseek.com",
 });
 
-// OpenAI/ChatGPT client (All tiers)
+// OpenAI/ChatGPT client (All tiers) - uses Replit AI Integrations
 const openaiClient = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
 // Anthropic/Claude client via Replit AI Integrations (Growth + Pro)
