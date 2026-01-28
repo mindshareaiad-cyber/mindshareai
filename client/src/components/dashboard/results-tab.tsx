@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -10,9 +11,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { BarChart3, Filter } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { BarChart3, Filter, HelpCircle } from "lucide-react";
 import { useState } from "react";
 import type { ScanResult, Prompt } from "@shared/schema";
+
+const ENGINE_DISPLAY: Record<string, { label: string; color: string }> = {
+  chatgpt: { label: "ChatGPT", color: "bg-emerald-500/10 text-emerald-600" },
+  claude: { label: "Claude", color: "bg-orange-500/10 text-orange-600" },
+  gemini: { label: "Gemini", color: "bg-blue-500/10 text-blue-600" },
+  perplexity: { label: "Perplexity", color: "bg-purple-500/10 text-purple-600" },
+  deepseek: { label: "DeepSeek", color: "bg-cyan-500/10 text-cyan-600" },
+};
+
+const SCORING_CRITERIA = [
+  { score: 2, label: "Recommended", description: "Clearly recommended or strongly endorsed as a top choice" },
+  { score: 1, label: "Mentioned", description: "Mentioned in the response but not the primary recommendation" },
+  { score: 0, label: "Not Mentioned", description: "Not mentioned at all in the AI response" },
+];
 
 interface ResultsTabProps {
   results: (ScanResult & { prompt: Prompt })[];
@@ -31,12 +51,31 @@ function ScoreBadge({ score }: { score: number }) {
     if (score >= 1) return "Mentioned";
     return "Not Mentioned";
   };
+  
+  const criteria = SCORING_CRITERIA.find(c => c.score === score);
 
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStyle()}`}>
-      <span className="font-bold">{score}</span>
-      <span className="hidden sm:inline">- {getLabel()}</span>
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium cursor-help ${getStyle()}`}>
+          <span className="font-bold">{score}</span>
+          <span className="hidden sm:inline">- {getLabel()}</span>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs">
+        <p className="font-medium">{getLabel()}</p>
+        <p className="text-xs text-muted-foreground">{criteria?.description}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function EngineBadge({ engine }: { engine: string }) {
+  const display = ENGINE_DISPLAY[engine] || { label: engine, color: "bg-muted text-muted-foreground" };
+  return (
+    <Badge variant="secondary" className={`text-xs font-medium ${display.color}`}>
+      {display.label}
+    </Badge>
   );
 }
 
@@ -79,6 +118,25 @@ export function ResultsTab({ results, competitors }: ResultsTabProps) {
           </p>
         </div>
         <div className="flex items-center gap-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
+                <HelpCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Scoring</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="max-w-sm p-4">
+              <p className="font-semibold mb-2">Visibility Scoring Criteria</p>
+              <ul className="space-y-2 text-sm">
+                {SCORING_CRITERIA.map((c) => (
+                  <li key={c.score} className="flex gap-2">
+                    <span className="font-bold w-4">{c.score}</span>
+                    <span><strong>{c.label}:</strong> {c.description}</span>
+                  </li>
+                ))}
+              </ul>
+            </TooltipContent>
+          </Tooltip>
           <div className="flex items-center gap-2">
             <Switch
               id="gaps-filter"
@@ -124,9 +182,7 @@ export function ResultsTab({ results, competitors }: ResultsTabProps) {
                       </TableCell>
                     ))}
                     <TableCell className="text-center">
-                      <span className="text-xs text-muted-foreground">
-                        {result.engine}
-                      </span>
+                      <EngineBadge engine={result.engine} />
                     </TableCell>
                   </TableRow>
                 ))}

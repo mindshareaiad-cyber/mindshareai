@@ -96,6 +96,7 @@ export const scans = pgTable("scans", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   engines: jsonb("engines").notNull().$type<string[]>(),
+  notes: text("notes"), // User annotation: "site update", "launch", "PR", etc.
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

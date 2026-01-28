@@ -328,10 +328,20 @@ export class MemStorage implements IStorage {
     const scan: Scan = {
       ...insertScan,
       id,
+      notes: insertScan.notes || null,
       createdAt: new Date(),
     };
     this.scans.set(id, scan);
     return scan;
+  }
+  
+  async updateScanNotes(scanId: string, notes: string): Promise<Scan | null> {
+    const scan = this.scans.get(scanId);
+    if (!scan) return null;
+    
+    const updated = { ...scan, notes };
+    this.scans.set(scanId, updated);
+    return updated;
   }
 
   async countScansThisMonth(userId: string): Promise<number> {

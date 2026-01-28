@@ -1,0 +1,134 @@
+Yep—there are some real functional things to watch out for. None are deal-breakers, but if you don’t design for them early, they can quietly undermine trust in the product.
+I’ll group these by risk area, with why they matter and what to look into.
+________________________________________
+1. Model variability & “randomness”
+Concern:
+The same prompt can produce different answers across runs, models, time, temperature, or even user context.
+Why it matters:
+If a user sees their Visibility Score drop 20% and nothing changed on their side, they may think the tool is unreliable.
+Things to look into:
+•	Fix temperature and system prompts for consistency.
+•	Run each prompt multiple times and aggregate (e.g. majority vote or average score).
+•	Surface confidence ranges or “stable vs volatile prompts”.
+•	Label scans clearly: model version, date, settings.
+Reframe volatility:
+Make drift part of the value:
+“AI answers change. That’s exactly why tracking over time matters.”
+________________________________________
+2. Prompt representativeness (huge one)
+Concern:
+If the prompt set is bad, the metrics are misleading.
+Why it matters:
+Users may over-optimize for prompts that aren’t actually used by buyers—or miss the ones that are.
+Things to look into:
+•	Strong onboarding for prompt creation (templates, examples by role/industry).
+•	Encourage breadth, not just “best X tools”.
+•	Let users tag prompts by intent (comparison, shortlist, validation, alternatives).
+•	Eventually: suggest prompts based on search data, sales calls, or site queries.
+Quiet risk:
+Teams may game the score by writing prompts that flatter them. You may want guardrails.
+________________________________________
+3. Scoring ambiguity (“1 vs 2” edge cases)
+Concern:
+Determining “recommended” vs “mentioned” can be fuzzy.
+Why it matters:
+If users disagree with the score, trust erodes—even if the direction is right.
+Things to look into:
+•	Make scoring criteria explicit and visible.
+•	Allow users to click into why a score was given.
+•	Save the raw AI answer permanently for auditability.
+•	Consider letting users flag mis-scorings (even if you don’t change history).
+Design principle:
+Users should be able to say:
+“I see why the system scored it that way—even if I disagree.”
+________________________________________
+4. Competitor selection bias
+Concern:
+Users choose which competitors to include—this can skew Share of Voice.
+Why it matters:
+A brand might look dominant simply because they excluded real competitors.
+Things to look into:
+•	Suggest “commonly co-mentioned brands” as competitors.
+•	Warn when competitors appear in answers but aren’t tracked.
+•	Optionally auto-add “AI-discovered competitors” as read-only comparisons.
+This makes your metrics feel market-aware, not self-selected.
+________________________________________
+5. Over-attribution to content changes
+Concern:
+Users may assume:
+“We updated this page → AI Visibility went up → causation proven.”
+Why it matters:
+AI models retrain slowly and inconsistently. You don’t want to oversell immediacy.
+Things to look into:
+•	Encourage annotation of scans (“site update”, “launch”, “PR”).
+•	Show correlation, not hard causation.
+•	Educate users that improvements may lag.
+This protects you legally and reputationally.
+________________________________________
+6. “Gaming the model” temptation
+Concern:
+Users may try to stuff AI-bait answers that read unnaturally or harm conversion.
+Why it matters:
+If users hurt their site UX in pursuit of scores, they’ll blame you.
+Things to look into:
+•	Emphasize “AI-friendly and human-readable”.
+•	Recommend content types, not keyword stuffing.
+•	Provide examples that are concise, factual, and neutral—not salesy.
+Position yourself as anti-spam.
+________________________________________
+7. Model coverage gaps
+Concern:
+ChatGPT ≠ Claude ≠ Gemini ≠ Perplexity.
+Why it matters:
+Users may overgeneralize from one model’s behavior.
+Things to look into:
+•	Be very clear which models are included per plan.
+•	Avoid implying “AI as a whole” when it’s model-specific.
+•	Normalize results across models cautiously (or don’t normalize at all).
+Transparency > false universality.
+________________________________________
+8. Data retention & explainability
+Concern:
+Users may want to:
+•	audit old answers
+•	show proof internally
+•	understand why competitors win
+Things to look into:
+•	Long-term storage of full answers.
+•	Diffing between scans (“what changed?”).
+•	Highlighting phrases that triggered recommendations.
+This is a sleeper feature that drives stickiness.
+________________________________________
+9. Ethical & ToS considerations
+Concern:
+Some AI providers may restrict automated querying or evaluation at scale.
+Why it matters:
+Platform risk = existential risk.
+Things to look into:
+•	Strict rate limiting and caching.
+•	Model partnerships or official APIs only.
+•	Clear language: “simulation of AI answers,” not scraping user chats.
+This is boring but critical.
+________________________________________
+The meta-risk to keep in mind
+Your biggest danger isn’t technical—it’s over-precision.
+If users think:
+“This score is the truth”
+instead of:
+“This score is a directional signal”
+you’re set up for conflict.
+Design for:
+•	trends over absolutes
+•	comparison over perfection
+•	action over accuracy theater
+________________________________________
+TL;DR
+The concept is solid. The product wins if:
+•	users trust the direction, not the decimal
+•	volatility is explained, not hidden
+•	prompts and scoring feel fair and inspectable
+If you want, next we could:
+•	red-team this from a skeptical CMO’s POV
+•	design a “trust & methodology” page
+•	or pressure-test the first-time user experience where most confusion happens
+

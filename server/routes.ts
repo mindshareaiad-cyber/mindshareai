@@ -496,12 +496,13 @@ export async function registerRoutes(
         userId: z.string().optional(),
         engines: z.array(z.enum(["chatgpt", "claude", "gemini", "perplexity", "deepseek"])).optional(),
         multiEngine: z.boolean().default(false),
+        notes: z.string().optional(), // User annotation: "site update", "launch", "PR", etc.
       });
       const parsed = scanInputSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ error: fromError(parsed.error).message });
       }
-      const { userId, multiEngine } = parsed.data;
+      const { userId, multiEngine, notes } = parsed.data;
       const projectId = req.params.projectId;
 
       const project = await storage.getProject(projectId);
@@ -556,6 +557,7 @@ export async function registerRoutes(
       const scan = await storage.createScan({
         projectId,
         engines: enginesToUse,
+        notes,
       });
 
       // Process each prompt
@@ -658,6 +660,21 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error getting latest scan:", error);
       res.status(500).json({ error: "Failed to get latest scan" });
+    }
+  });
+  
+  // Update scan notes
+  app.patch("/api/scans/:scanId/notes", async (req, res) => {
+    try {
+      const { notes } = req.body;
+      const scan = await storage.updateScanNotes(req.params.scanId, notes || "");
+      if (!scan) {
+        return res.status(404).json({ error: "Scan not found" });
+      }
+      res.json(scan);
+    } catch (error) {
+      console.error("Error updating scan notes:", error);
+      res.status(500).json({ error: "Failed to update scan notes" });
     }
   });
 
