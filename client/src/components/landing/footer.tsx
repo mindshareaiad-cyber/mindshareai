@@ -29,9 +29,9 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-pricing">
+                <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-pricing">
                   Pricing
-                </a>
+                </Link>
               </li>
               <li>
                 <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-updates">

@@ -24,9 +24,9 @@ export function Header() {
             <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-features">
               Features
             </Link>
-            <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-pricing">
+            <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-pricing">
               Pricing
-            </a>
+            </Link>
             <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-resources">
               Resources
             </Link>
@@ -65,9 +65,9 @@ export function Header() {
               <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-features">
                 Features
               </Link>
-              <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-pricing">
+              <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-pricing">
                 Pricing
-              </a>
+              </Link>
               <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-resources">
                 Resources
               </Link>
