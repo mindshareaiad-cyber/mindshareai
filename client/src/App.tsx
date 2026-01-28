@@ -12,6 +12,11 @@ import SignUpPage from "@/pages/signup";
 import OnboardingPage from "@/pages/onboarding";
 import PaymentPage from "@/pages/payment";
 import PaymentSuccessPage from "@/pages/payment-success";
+import FeaturesPage from "@/pages/features";
+import ResourcesPage from "@/pages/resources";
+import AboutPage from "@/pages/about";
+import PrivacyPage from "@/pages/privacy";
+import TermsPage from "@/pages/terms";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -136,6 +141,11 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
+      <Route path="/features" component={FeaturesPage} />
+      <Route path="/resources" component={ResourcesPage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/privacy" component={PrivacyPage} />
+      <Route path="/terms" component={TermsPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={SignUpPage} />
       <Route path="/onboarding">

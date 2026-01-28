@@ -21,15 +21,15 @@ export function Header() {
           </Link>
           
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-features">
+            <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-features">
               Features
-            </a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-pricing">
+            </Link>
+            <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-pricing">
               Pricing
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-resources">
+            <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-resources">
               Resources
-            </a>
+            </Link>
           </nav>
           
           <div className="hidden md:flex items-center gap-3">
@@ -62,15 +62,15 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <nav className="flex flex-col gap-4">
-              <a href="#features" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-features">
+              <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-features">
                 Features
-              </a>
-              <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-pricing">
+              </Link>
+              <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-pricing">
                 Pricing
               </a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-resources">
+              <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-resources">
                 Resources
-              </a>
+              </Link>
               <div className="flex gap-2 pt-4 border-t">
                 <Link href="/dashboard" className="flex-1">
                   <Button variant="outline" className="w-full" data-testid="button-mobile-login">Log In</Button>

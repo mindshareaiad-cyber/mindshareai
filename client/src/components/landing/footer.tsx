@@ -24,19 +24,19 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Product</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#features" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-features">
+                <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-features">
                   Features
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-pricing">
+                <a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-pricing">
                   Pricing
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-changelog">
-                  Changelog
-                </a>
+                <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-updates">
+                  Updates
+                </Link>
               </li>
             </ul>
           </div>
@@ -45,19 +45,19 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Resources</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-docs">
+                <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-docs">
                   Documentation
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-blog">
+                <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-blog">
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-support">
+                <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-support">
                   Support
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -66,19 +66,19 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-about">
+                <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-about">
                   About
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-privacy">
+                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-privacy">
                   Privacy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-terms">
+                <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-terms">
                   Terms
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
