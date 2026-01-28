@@ -33,7 +33,7 @@ export function Header() {
           </nav>
           
           <div className="hidden md:flex items-center gap-3">
-            <ThemeToggle />
+            <ThemeToggle testId="button-theme-toggle-desktop" />
             <Link href="/dashboard">
               <Button variant="outline" size="sm" data-testid="button-header-login">
                 Log In
@@ -47,7 +47,7 @@ export function Header() {
           </div>
           
           <div className="flex md:hidden items-center gap-2">
-            <ThemeToggle />
+            <ThemeToggle testId="button-theme-toggle-mobile" />
             <Button
               size="icon"
               variant="ghost"

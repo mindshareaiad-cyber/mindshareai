@@ -132,6 +132,7 @@ export default function LoginPage() {
                             type="email"
                             placeholder="you@example.com"
                             className="pl-10"
+                            autoComplete="email"
                             data-testid="input-login-email"
                             {...field}
                           />
@@ -163,6 +164,7 @@ export default function LoginPage() {
                             type="password"
                             placeholder="Enter your password"
                             className="pl-10"
+                            autoComplete="current-password"
                             data-testid="input-login-password"
                             {...field}
                           />

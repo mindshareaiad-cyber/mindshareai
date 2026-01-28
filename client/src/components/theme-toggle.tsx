@@ -2,7 +2,7 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
-export function ThemeToggle() {
+export function ThemeToggle({ testId = "button-theme-toggle" }: { testId?: string }) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function ThemeToggle() {
       size="icon"
       variant="ghost"
       onClick={toggle}
-      data-testid="button-theme-toggle"
+      data-testid={testId}
     >
       {theme === "light" ? (
         <Moon className="h-4 w-4" />

@@ -147,6 +147,7 @@ export default function SignUpPage() {
                             <Input
                               placeholder="John"
                               className="pl-10"
+                              autoComplete="given-name"
                               data-testid="input-signup-firstname"
                               {...field}
                             />
@@ -168,6 +169,7 @@ export default function SignUpPage() {
                             <Input
                               placeholder="Doe"
                               className="pl-10"
+                              autoComplete="family-name"
                               data-testid="input-signup-lastname"
                               {...field}
                             />
@@ -191,6 +193,7 @@ export default function SignUpPage() {
                           <Input
                             placeholder="Acme Inc."
                             className="pl-10"
+                            autoComplete="organization"
                             data-testid="input-signup-company"
                             {...field}
                           />
@@ -214,6 +217,7 @@ export default function SignUpPage() {
                             type="email"
                             placeholder="you@example.com"
                             className="pl-10"
+                            autoComplete="email"
                             data-testid="input-signup-email"
                             {...field}
                           />
@@ -237,6 +241,7 @@ export default function SignUpPage() {
                             type="password"
                             placeholder="Create a password"
                             className="pl-10"
+                            autoComplete="new-password"
                             data-testid="input-signup-password"
                             {...field}
                           />
@@ -260,6 +265,7 @@ export default function SignUpPage() {
                             type="password"
                             placeholder="Confirm your password"
                             className="pl-10"
+                            autoComplete="new-password"
                             data-testid="input-signup-confirm-password"
                             {...field}
                           />
