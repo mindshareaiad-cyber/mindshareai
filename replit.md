@@ -84,6 +84,30 @@ Plan limits are enforced server-side via `server/plans.ts`. Stripe price ID is s
 - **Perplexity** - Llama 3.1 Sonar with web search (requires API key)
 - **DeepSeek** - DeepSeek Chat (requires API key)
 
+## External Hosting Configuration
+The app supports two modes for AI engine configuration:
+
+### Development Mode (Replit)
+Uses Replit AI Integrations - no API keys needed for ChatGPT, Claude, Gemini.
+Environment variables are auto-configured:
+- `AI_INTEGRATIONS_OPENAI_API_KEY` / `AI_INTEGRATIONS_OPENAI_BASE_URL`
+- `AI_INTEGRATIONS_ANTHROPIC_API_KEY` / `AI_INTEGRATIONS_ANTHROPIC_BASE_URL`
+- `AI_INTEGRATIONS_GEMINI_API_KEY` / `AI_INTEGRATIONS_GEMINI_BASE_URL`
+
+### Production Mode (External Hosting - AWS, Vercel, etc.)
+Set your own API keys - the app will automatically detect and use them:
+
+| Engine | Environment Variable | Get Key From |
+|--------|---------------------|--------------|
+| ChatGPT | `OPENAI_API_KEY` | platform.openai.com |
+| Claude | `ANTHROPIC_API_KEY` | console.anthropic.com |
+| Gemini | `GOOGLE_API_KEY` | aistudio.google.com |
+| Perplexity | `PERPLEXITY_API_KEY` | perplexity.ai/settings/api |
+| DeepSeek | `DEEPSEEK_API_KEY` | platform.deepseek.com |
+
+The code checks for direct API keys first, then falls back to Replit AI Integrations.
+On startup, the console logs which mode each engine is using.
+
 ## Running the App
 The app runs on port 5000 with `npm run dev`. The frontend is served via Vite with Express backend.
 

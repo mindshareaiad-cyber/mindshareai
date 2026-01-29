@@ -2,31 +2,77 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 
-// DeepSeek client (Pro only)
+// ============================================================================
+// AI CLIENT CONFIGURATION
+// ============================================================================
+// Supports two modes:
+// 1. REPLIT MODE (development): Uses Replit AI Integrations with managed keys
+// 2. DIRECT MODE (production): Uses your own API keys for external hosting
+//
+// Environment variables for DIRECT MODE (external hosting):
+// - OPENAI_API_KEY: Your OpenAI API key
+// - ANTHROPIC_API_KEY: Your Anthropic API key  
+// - GOOGLE_API_KEY: Your Google AI (Gemini) API key
+// - PERPLEXITY_API_KEY: Your Perplexity API key
+// - DEEPSEEK_API_KEY: Your DeepSeek API key
+//
+// If direct keys are not set, falls back to Replit AI Integrations
+// ============================================================================
+
+// Check if we're using direct API keys (external hosting mode)
+const useDirectOpenAI = !!process.env.OPENAI_API_KEY;
+const useDirectAnthropic = !!process.env.ANTHROPIC_API_KEY;
+const useDirectGemini = !!process.env.GOOGLE_API_KEY;
+
+// DeepSeek client (Pro only) - always uses direct API key
 const deepseekClient = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY || "sk-placeholder",
   baseURL: "https://api.deepseek.com",
 });
 
-// OpenAI/ChatGPT client (All tiers) - uses Replit AI Integrations
+// OpenAI/ChatGPT client (All tiers)
+// Priority: Direct API key > Replit AI Integrations
 const openaiClient = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey: useDirectOpenAI 
+    ? process.env.OPENAI_API_KEY 
+    : process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+  baseURL: useDirectOpenAI 
+    ? undefined  // Use default OpenAI endpoint
+    : process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-// Anthropic/Claude client via Replit AI Integrations (Growth + Pro)
+// Anthropic/Claude client (Growth + Pro)
+// Priority: Direct API key > Replit AI Integrations
 const anthropicClient = new Anthropic({
-  apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || "placeholder",
-  baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+  apiKey: useDirectAnthropic
+    ? process.env.ANTHROPIC_API_KEY!
+    : (process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || "placeholder"),
+  baseURL: useDirectAnthropic
+    ? undefined  // Use default Anthropic endpoint
+    : process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
 });
 
-// Gemini client via Replit AI Integrations (Growth + Pro)
+// Gemini client (Growth + Pro)
+// Priority: Direct API key > Replit AI Integrations
 const geminiClient = new GoogleGenAI({
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "placeholder",
-  httpOptions: {
-    apiVersion: "",
-    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
-  },
+  apiKey: useDirectGemini
+    ? process.env.GOOGLE_API_KEY!
+    : (process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "placeholder"),
+  httpOptions: useDirectGemini
+    ? undefined  // Use default Gemini endpoint
+    : {
+        apiVersion: "",
+        baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
+      },
+});
+
+// Log which mode we're using (helpful for debugging)
+console.log("[AI Engines] Configuration:", {
+  openai: useDirectOpenAI ? "Direct API Key" : "Replit AI Integration",
+  anthropic: useDirectAnthropic ? "Direct API Key" : "Replit AI Integration", 
+  gemini: useDirectGemini ? "Direct API Key" : "Replit AI Integration",
+  perplexity: process.env.PERPLEXITY_API_KEY ? "Direct API Key" : "Not configured",
+  deepseek: process.env.DEEPSEEK_API_KEY ? "Direct API Key" : "Not configured",
 });
 
 export type LLMEngine = "chatgpt" | "claude" | "gemini" | "perplexity" | "deepseek";
