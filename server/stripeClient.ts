@@ -21,12 +21,8 @@ export async function getStripePublishableKey() {
   return publishableKey;
 }
 
-export async function getStripeSecretKey() {
-  if (!secretKey) {
-    throw new Error('STRIPE_SECRET_KEY is required');
-  }
-  return secretKey;
-}
+// SECURITY: Secret key getter removed - secret keys should never be exposed or returned
+// The secret key is only used internally by getUncachableStripeClient() and getStripeSync()
 
 let stripeSync: any = null;
 

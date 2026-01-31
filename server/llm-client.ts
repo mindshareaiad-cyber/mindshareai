@@ -66,14 +66,16 @@ const geminiClient = new GoogleGenAI({
       },
 });
 
-// Log which mode we're using (helpful for debugging)
-console.log("[AI Engines] Configuration:", {
-  openai: useDirectOpenAI ? "Direct API Key" : "Replit AI Integration",
-  anthropic: useDirectAnthropic ? "Direct API Key" : "Replit AI Integration", 
-  gemini: useDirectGemini ? "Direct API Key" : "Replit AI Integration",
-  perplexity: process.env.PERPLEXITY_API_KEY ? "Direct API Key" : "Not configured",
-  deepseek: process.env.DEEPSEEK_API_KEY ? "Direct API Key" : "Not configured",
-});
+// Log which mode we're using (only in development for debugging)
+if (process.env.NODE_ENV === "development") {
+  console.log("[AI Engines] Configuration:", {
+    openai: useDirectOpenAI ? "Direct API Key" : "Replit AI Integration",
+    anthropic: useDirectAnthropic ? "Direct API Key" : "Replit AI Integration", 
+    gemini: useDirectGemini ? "Direct API Key" : "Replit AI Integration",
+    perplexity: process.env.PERPLEXITY_API_KEY ? "Configured" : "Not configured",
+    deepseek: process.env.DEEPSEEK_API_KEY ? "Configured" : "Not configured",
+  });
+}
 
 export type LLMEngine = "chatgpt" | "claude" | "gemini" | "perplexity" | "deepseek";
 export type SubscriptionTier = "starter" | "growth" | "pro";
