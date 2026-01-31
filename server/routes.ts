@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateAnswer, scoreVisibility, generateSuggestedAnswer, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, isEngineAvailableForTier, type LLMEngine, type SubscriptionTier } from "./llm-client";
-import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema } from "@shared/schema";
+import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema, insertSeoReadinessSchema, updateSeoReadinessSchema } from "@shared/schema";
+import { calculateOverallScore, getRecommendationLevel, buildReadinessReport, createDefaultAssessment } from "./seo-readiness";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
@@ -725,6 +726,203 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error generating suggestion:", error);
       res.status(500).json({ error: "Failed to generate suggestion" });
+    }
+  });
+
+  // ============= SEO Readiness =============
+
+  // Get SEO readiness assessment for a project
+  app.get("/api/projects/:projectId/seo-readiness", async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      let assessment = await storage.getSeoReadiness(projectId);
+      
+      if (!assessment) {
+        // Create default assessment if none exists
+        const defaultData = createDefaultAssessment(projectId);
+        assessment = await storage.createSeoReadiness({
+          projectId,
+          overallScore: 0,
+          hasWebsite: false,
+          hasMetaDescriptions: false,
+          hasStructuredHeaders: false,
+          hasBlogOrKnowledgeBase: false,
+          hasSchemaMarkup: false,
+          hasFaqSection: false,
+          hasContactInfo: false,
+          hasSocialProfiles: false,
+          contentDepthScore: 0,
+          technicalSeoScore: 0,
+          recommendationLevel: "not_ready",
+        });
+      }
+
+      const report = buildReadinessReport(assessment, project.brandName);
+      res.json(report);
+    } catch (error) {
+      console.error("Error getting SEO readiness:", error);
+      res.status(500).json({ error: "Failed to get SEO readiness" });
+    }
+  });
+
+  // Update SEO readiness assessment
+  app.patch("/api/projects/:projectId/seo-readiness", async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Validate request body using Zod schema
+      const parseResult = updateSeoReadinessSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid fields provided", 
+          details: parseResult.error.flatten() 
+        });
+      }
+
+      const validatedData = parseResult.data;
+      if (Object.keys(validatedData).length === 0) {
+        return res.status(400).json({ error: "No valid fields provided" });
+      }
+
+      // Get or create existing assessment
+      let assessment = await storage.getSeoReadiness(projectId);
+      
+      if (!assessment) {
+        assessment = await storage.createSeoReadiness({
+          projectId,
+          overallScore: 0,
+          hasWebsite: false,
+          hasMetaDescriptions: false,
+          hasStructuredHeaders: false,
+          hasBlogOrKnowledgeBase: false,
+          hasSchemaMarkup: false,
+          hasFaqSection: false,
+          hasContactInfo: false,
+          hasSocialProfiles: false,
+          contentDepthScore: 0,
+          technicalSeoScore: 0,
+          recommendationLevel: "not_ready",
+        });
+      }
+
+      // Merge with validated data only
+      const updatedData = { ...assessment, ...validatedData };
+      
+      // Recalculate score and level
+      const overallScore = calculateOverallScore(updatedData);
+      const recommendationLevel = getRecommendationLevel(overallScore);
+
+      const updated = await storage.updateSeoReadiness(projectId, {
+        ...validatedData,
+        overallScore,
+        recommendationLevel,
+      });
+
+      if (!updated) {
+        return res.status(500).json({ error: "Failed to update assessment" });
+      }
+
+      const report = buildReadinessReport(updated, project.brandName);
+      res.json(report);
+    } catch (error) {
+      console.error("Error updating SEO readiness:", error);
+      res.status(500).json({ error: "Failed to update SEO readiness" });
+    }
+  });
+
+  // Get guidance messages based on current visibility score
+  app.get("/api/projects/:projectId/guidance", async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Get SEO readiness
+      const seoAssessment = await storage.getSeoReadiness(projectId);
+      
+      // Get latest scan results
+      const latestScan = await storage.getLatestScan(projectId);
+      const scanResults = latestScan ? await storage.getScanResults(latestScan.id) : [];
+      
+      // Calculate average visibility score
+      const avgScore = scanResults.length > 0 
+        ? scanResults.reduce((sum, r) => sum + r.brandScore, 0) / scanResults.length 
+        : 0;
+
+      const guidance: any[] = [];
+
+      // SEO readiness guidance
+      if (seoAssessment && seoAssessment.overallScore < 60) {
+        guidance.push({
+          type: "warning",
+          title: "Improve SEO Foundation",
+          message: `Your SEO readiness score is ${seoAssessment.overallScore}/100. A stronger SEO foundation will help improve your AI visibility.`,
+          priority: 1,
+        });
+      }
+
+      // Visibility score guidance
+      if (scanResults.length > 0) {
+        if (avgScore < 0.5) {
+          guidance.push({
+            type: "action",
+            title: "Low AI Visibility",
+            message: `${project.brandName} is rarely mentioned in AI responses. Focus on creating authoritative content that directly answers user questions.`,
+            priority: 2,
+          });
+        } else if (avgScore < 1.5) {
+          guidance.push({
+            type: "info",
+            title: "Moderate AI Visibility",
+            message: `${project.brandName} is sometimes mentioned. Review gaps to understand where competitors are featured instead.`,
+            priority: 3,
+          });
+        } else {
+          guidance.push({
+            type: "success",
+            title: "Strong AI Visibility",
+            message: `${project.brandName} has good visibility in AI responses. Continue monitoring and optimizing for new prompts.`,
+            priority: 4,
+          });
+        }
+      } else {
+        guidance.push({
+          type: "info",
+          title: "Run Your First Scan",
+          message: "Create prompts and run an AI visibility scan to see how your brand appears in AI responses.",
+          priority: 0,
+        });
+      }
+
+      // Gap analysis guidance
+      const gaps = await storage.getGaps(projectId);
+      if (gaps.length > 0) {
+        guidance.push({
+          type: "action",
+          title: `${gaps.length} Gap Opportunities`,
+          message: `Found ${gaps.length} prompts where competitors are mentioned but ${project.brandName} isn't. Review the Gap Analysis for improvement opportunities.`,
+          priority: 2,
+        });
+      }
+
+      res.json({ guidance: guidance.sort((a, b) => a.priority - b.priority) });
+    } catch (error) {
+      console.error("Error getting guidance:", error);
+      res.status(500).json({ error: "Failed to get guidance" });
     }
   });
 

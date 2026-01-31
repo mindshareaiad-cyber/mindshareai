@@ -13,7 +13,10 @@ import {
   type UserProfile,
   type InsertUserProfile,
   type UpdateUserProfile,
+  type SeoReadiness,
+  type InsertSeoReadiness,
   userProfiles,
+  seoReadinessAssessments,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -67,6 +70,11 @@ export interface IStorage {
   getStripeProduct(productId: string): Promise<any>;
   listStripeProducts(): Promise<any[]>;
   getStripeSubscription(subscriptionId: string): Promise<any>;
+
+  // SEO Readiness
+  getSeoReadiness(projectId: string): Promise<SeoReadiness | undefined>;
+  createSeoReadiness(assessment: InsertSeoReadiness): Promise<SeoReadiness>;
+  updateSeoReadiness(projectId: string, data: Partial<InsertSeoReadiness>): Promise<SeoReadiness | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -415,6 +423,79 @@ export class MemStorage implements IStorage {
     suggestedPageType: string
   ): Promise<void> {
     this.gapSuggestions.set(promptId, { suggestedAnswer, suggestedPageType });
+  }
+
+  // Stripe data queries (placeholder implementations for interface compliance)
+  async getStripeProduct(productId: string): Promise<any> {
+    return null;
+  }
+
+  async listStripeProducts(): Promise<any[]> {
+    return [];
+  }
+
+  async getStripeSubscription(subscriptionId: string): Promise<any> {
+    return null;
+  }
+
+  // SEO Readiness
+  private seoReadinessMap: Map<string, SeoReadiness> = new Map();
+
+  async getSeoReadiness(projectId: string): Promise<SeoReadiness | undefined> {
+    try {
+      const [assessment] = await db.select().from(seoReadinessAssessments)
+        .where(eq(seoReadinessAssessments.projectId, projectId));
+      return assessment;
+    } catch {
+      return Array.from(this.seoReadinessMap.values()).find(a => a.projectId === projectId);
+    }
+  }
+
+  async createSeoReadiness(assessment: InsertSeoReadiness): Promise<SeoReadiness> {
+    try {
+      const [created] = await db.insert(seoReadinessAssessments).values(assessment).returning();
+      return created;
+    } catch {
+      const id = randomUUID();
+      const newAssessment: SeoReadiness = {
+        id,
+        projectId: assessment.projectId,
+        overallScore: assessment.overallScore ?? 0,
+        hasWebsite: assessment.hasWebsite ?? false,
+        hasMetaDescriptions: assessment.hasMetaDescriptions ?? false,
+        hasStructuredHeaders: assessment.hasStructuredHeaders ?? false,
+        hasBlogOrKnowledgeBase: assessment.hasBlogOrKnowledgeBase ?? false,
+        hasSchemaMarkup: assessment.hasSchemaMarkup ?? false,
+        hasFaqSection: assessment.hasFaqSection ?? false,
+        hasContactInfo: assessment.hasContactInfo ?? false,
+        hasSocialProfiles: assessment.hasSocialProfiles ?? false,
+        contentDepthScore: assessment.contentDepthScore ?? 0,
+        technicalSeoScore: assessment.technicalSeoScore ?? 0,
+        recommendationLevel: assessment.recommendationLevel ?? "not_ready",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      this.seoReadinessMap.set(id, newAssessment);
+      return newAssessment;
+    }
+  }
+
+  async updateSeoReadiness(projectId: string, data: Partial<InsertSeoReadiness>): Promise<SeoReadiness | undefined> {
+    try {
+      const [updated] = await db.update(seoReadinessAssessments)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(seoReadinessAssessments.projectId, projectId))
+        .returning();
+      return updated;
+    } catch {
+      const existing = Array.from(this.seoReadinessMap.values()).find(a => a.projectId === projectId);
+      if (existing) {
+        const updated = { ...existing, ...data, updatedAt: new Date() };
+        this.seoReadinessMap.set(existing.id, updated);
+        return updated;
+      }
+      return undefined;
+    }
   }
 }
 

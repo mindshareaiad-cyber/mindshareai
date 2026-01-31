@@ -59,6 +59,35 @@ shared/
 - `GET /api/projects/:id/scans/latest` - Get latest scan results
 - `GET /api/projects/:id/gaps` - Get gap analysis
 - `POST /api/gaps/:promptId/suggest` - Generate AEO suggestion
+- `GET /api/projects/:id/seo-readiness` - Get SEO readiness assessment
+- `PATCH /api/projects/:id/seo-readiness` - Update SEO readiness checklist
+
+## SEO Readiness Assessment
+Helps businesses understand if their SEO foundation is ready for AEO. Includes:
+
+**Checklist Items (weighted scoring):**
+- hasWebsite: 20 pts
+- hasBlogOrKnowledgeBase: 15 pts
+- hasFaqSection: 15 pts
+- hasMetaDescriptions: 10 pts
+- hasStructuredHeaders: 10 pts
+- hasSchemaMarkup: 10 pts
+- hasContactInfo: 10 pts
+- hasSocialProfiles: 10 pts
+
+**Recommendation Levels:**
+- not_ready: score < 30
+- needs_work: score 30-59
+- ready: score 60-84
+- excellent: score >= 85
+
+**AEO Ready Threshold:** score >= 60
+
+**UI Behavior:**
+- Shows full checklist when not ready
+- Collapses to compact card with toggle when ready
+- Loading skeleton during data fetch
+- Guidance messages provide actionable recommendations
 
 ## AI Visibility Scoring
 - **2** = Clearly recommended or strongly endorsed
