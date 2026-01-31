@@ -7,7 +7,7 @@ import { calculateOverallScore, getRecommendationLevel, buildReadinessReport, cr
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
-import { getPlan, canCreateProject, canAddPrompts, canRunScan, canUseEngine, getPromptsForMultiEngine, ENGINE_TIERS, type PlanId } from "./plans";
+import { getPlan, getPlanByPriceId, canCreateProject, canAddPrompts, canRunScan, canUseEngine, getPromptsForMultiEngine, ENGINE_TIERS, type PlanId } from "./plans";
 
 // Helper to determine subscription tier from status and price
 function getUserPlanId(subscriptionStatus: string | null | undefined, stripePriceId?: string | null): PlanId {
@@ -681,10 +681,34 @@ export async function registerRoutes(
 
   // ============= Gaps =============
   
-  // Get gaps for a project
+  // Get gaps for a project (requires Growth or Pro plan)
   app.get("/api/projects/:projectId/gaps", async (req, res) => {
     try {
-      const gaps = await storage.getGaps(req.params.projectId);
+      const { projectId } = req.params;
+      
+      // Get project to find user
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Check plan feature access - default to starter if no user
+      let planId: PlanId = "starter";
+      if (project.userId) {
+        const user = await storage.getUserProfile(project.userId);
+        planId = getPlanByPriceId(user?.stripePriceId || null);
+      }
+      const plan = getPlan(planId);
+      
+      if (!plan.features.gapAnalysis) {
+        return res.status(403).json({ 
+          error: "Gap analysis is not available on your plan",
+          requiredPlan: "growth",
+          currentPlan: planId
+        });
+      }
+
+      const gaps = await storage.getGaps(projectId);
       res.json(gaps);
     } catch (error) {
       console.error("Error getting gaps:", error);
@@ -692,7 +716,7 @@ export async function registerRoutes(
     }
   });
 
-  // Generate suggestion for a gap
+  // Generate suggestion for a gap (requires Growth or Pro plan)
   app.post("/api/gaps/:promptId/suggest", async (req, res) => {
     try {
       const promptId = req.params.promptId;
@@ -710,6 +734,22 @@ export async function registerRoutes(
       const project = await storage.getProject(promptSet.projectId);
       if (!project) {
         return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Check plan feature access for AEO suggestions - default to starter if no user
+      let planId: PlanId = "starter";
+      if (project.userId) {
+        const user = await storage.getUserProfile(project.userId);
+        planId = getPlanByPriceId(user?.stripePriceId || null);
+      }
+      const plan = getPlan(planId);
+      
+      if (!plan.features.aeoSuggestions) {
+        return res.status(403).json({ 
+          error: "AEO content suggestions are not available on your plan",
+          requiredPlan: "growth",
+          currentPlan: planId
+        });
       }
 
       // Generate suggestion
