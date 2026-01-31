@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generateAnswer, scoreVisibility, generateSuggestedAnswer, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, isEngineAvailableForTier, type LLMEngine, type SubscriptionTier } from "./llm-client";
-import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema, insertSeoReadinessSchema, updateSeoReadinessSchema } from "@shared/schema";
+import { generateAnswer, scoreVisibility, generateSuggestedAnswer, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, type LLMEngine, type SubscriptionTier } from "./llm-client";
+import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema, updateSeoReadinessSchema } from "@shared/schema";
 import { calculateOverallScore, getRecommendationLevel, buildReadinessReport, createDefaultAssessment } from "./seo-readiness";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
