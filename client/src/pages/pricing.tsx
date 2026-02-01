@@ -78,7 +78,7 @@ const faqs = [
   },
   {
     question: "Is there a free trial?",
-    answer: "Yes, all plans include a 14-day free trial. No credit card required to start.",
+    answer: "Yes, all plans include a 14-day free trial. A credit card is required to start your trial.",
   },
   {
     question: "What happens if I exceed my limits?",
@@ -86,7 +86,7 @@ const faqs = [
   },
   {
     question: "Do you offer annual billing?",
-    answer: "Yes, annual billing is available with a 20% discount. Contact our sales team to switch to annual billing.",
+    answer: "Not yet, but we're working on it! Currently all plans are billed monthly. We'll announce annual billing options soon.",
   },
 ];
 
@@ -191,7 +191,7 @@ export default function PricingPage() {
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Start your 14-day free trial today. No credit card required.
+            Start your 14-day free trial today.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/signup">
