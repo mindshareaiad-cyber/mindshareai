@@ -56,8 +56,6 @@ const plans = [
       { text: "Advanced reports", tooltip: "Detailed analytics and trends" },
       { text: "Gap analysis", tooltip: "Find where competitors beat you" },
       { text: "AEO content suggestions", tooltip: "AI-powered improvement recommendations" },
-      { text: "White-label reports", tooltip: "Branded reports for clients" },
-      { text: "API access", tooltip: "Integrate with your tools" },
       { text: "Priority support", tooltip: "Dedicated support team" },
     ],
     cta: "Get Started",

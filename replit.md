@@ -97,7 +97,7 @@ Helps businesses understand if their SEO foundation is ready for AEO. Includes:
 ## Subscription Plans (with Backend Enforcement)
 - **Starter ($29/mo)**: 1 project, 50 prompts, 1 engine (ChatGPT), 10 scans/month
 - **Growth ($79/mo)**: 5 projects, 200 prompts, 2 engines (ChatGPT + Gemini), 50 scans/month, gap analysis, AEO suggestions
-- **Pro ($199/mo)**: 50 projects, 1000 prompts, all 5 engines, 500 scans/month, white-label, API access
+- **Pro ($199/mo)**: 50 projects, 1000 prompts, all 5 engines, 500 scans/month, all Growth features, priority support
 
 Plan limits are enforced server-side via `server/plans.ts`. Stripe price ID is stored in user profile during checkout verification for accurate tier detection.
 
