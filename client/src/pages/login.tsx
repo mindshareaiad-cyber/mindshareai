@@ -76,7 +76,7 @@ export default function LoginPage() {
               <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
                 <Eye className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="font-bold text-2xl">AEO Dashboard</span>
+              <span className="font-bold text-2xl">Mindshare AI</span>
             </div>
           </Link>
         </div>

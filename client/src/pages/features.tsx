@@ -145,7 +145,7 @@ export default function FeaturesPage() {
             Everything You Need to Win in AI Search
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            AEO Dashboard gives you complete visibility into how AI assistants talk about your
+            Mindshare AI gives you complete visibility into how AI assistants talk about your
             brand, plus actionable recommendations to improve.
           </p>
           <Link href="/signup">
@@ -189,7 +189,7 @@ export default function FeaturesPage() {
 
       <section className="py-20 bg-card">
         <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose AEO Dashboard</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Mindshare AI</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {benefits.map((benefit) => (
               <div key={benefit.title} className="text-center" data-testid={`benefit-${benefit.title.toLowerCase().replace(/\s+/g, "-")}`}>

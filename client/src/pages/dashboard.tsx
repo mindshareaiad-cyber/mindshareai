@@ -259,7 +259,7 @@ export default function DashboardPage() {
             {!selectedProject ? (
               <div className="h-full flex flex-col items-center justify-center text-center">
                 <div className="max-w-md">
-                  <h2 className="text-2xl font-semibold mb-2" data-testid="text-welcome-title">Welcome to AEO Dashboard</h2>
+                  <h2 className="text-2xl font-semibold mb-2" data-testid="text-welcome-title">Welcome to Mindshare AI</h2>
                   <p className="text-muted-foreground mb-6" data-testid="text-welcome-description">
                     Select a project from the sidebar or create a new one to start tracking your AI visibility.
                   </p>

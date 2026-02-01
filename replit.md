@@ -1,4 +1,4 @@
-# AEO Dashboard - AI Visibility & Answer Engine Optimization
+# Mindshare AI - AI Visibility & Answer Engine Optimization
 
 ## Overview
 A full-stack SaaS application for tracking and improving brand visibility in AI-powered answers. The app helps businesses monitor how AI assistants like ChatGPT mention or recommend their brand compared to competitors.

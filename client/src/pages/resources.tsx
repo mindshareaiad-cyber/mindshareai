@@ -16,7 +16,7 @@ const resourceCategories = [
   {
     icon: BookOpen,
     title: "Documentation",
-    description: "Learn how to get the most out of AEO Dashboard with our comprehensive guides.",
+    description: "Learn how to get the most out of Mindshare AI with our comprehensive guides.",
     links: [
       { title: "Getting Started Guide", href: "/resources#docs" },
       { title: "Understanding Your Scores", href: "/resources#docs" },
@@ -76,7 +76,7 @@ export default function ResourcesPage() {
             Resources & Support
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Everything you need to succeed with AEO Dashboard. From getting started guides to
+            Everything you need to succeed with Mindshare AI. From getting started guides to
             advanced strategies.
           </p>
         </div>
@@ -151,7 +151,7 @@ export default function ResourcesPage() {
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
           <p className="text-muted-foreground mb-8">
-            Try AEO Dashboard free and see how your brand performs in AI search.
+            Try Mindshare AI free and see how your brand performs in AI search.
           </p>
           <Link href="/signup">
             <Button size="lg" data-testid="button-resources-cta">

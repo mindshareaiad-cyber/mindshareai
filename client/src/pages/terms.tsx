@@ -18,7 +18,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
                 <p className="text-muted-foreground">
-                  By accessing or using AEO Dashboard, you agree to be bound by these Terms of
+                  By accessing or using Mindshare AI, you agree to be bound by these Terms of
                   Service. If you do not agree to these terms, please do not use our service.
                 </p>
               </section>
@@ -26,7 +26,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">2. Description of Service</h2>
                 <p className="text-muted-foreground">
-                  AEO Dashboard provides tools for monitoring brand visibility in AI-powered
+                  Mindshare AI provides tools for monitoring brand visibility in AI-powered
                   search results. Our service includes AI visibility scoring, competitor analysis,
                   gap analysis, and content optimization suggestions.
                 </p>
@@ -74,8 +74,8 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">6. Intellectual Property</h2>
                 <p className="text-muted-foreground">
-                  The service, including all content, features, and functionality, is owned by AEO
-                  Dashboard and protected by copyright and other intellectual property laws. You
+                  The service, including all content, features, and functionality, is owned by Mindshare
+                  AI and protected by copyright and other intellectual property laws. You
                   retain ownership of any data you submit to the service.
                 </p>
               </section>
@@ -101,7 +101,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="text-2xl font-semibold mb-4">9. Limitation of Liability</h2>
                 <p className="text-muted-foreground">
-                  To the maximum extent permitted by law, AEO Dashboard shall not be liable for
+                  To the maximum extent permitted by law, Mindshare AI shall not be liable for
                   any indirect, incidental, special, consequential, or punitive damages arising
                   from your use of the service.
                 </p>

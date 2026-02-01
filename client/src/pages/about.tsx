@@ -33,7 +33,7 @@ const values = [
 ];
 
 const milestones = [
-  { year: "2024", event: "AEO Dashboard founded to help brands navigate AI-powered search" },
+  { year: "2024", event: "Mindshare AI founded to help brands navigate AI-powered search" },
   { year: "2024", event: "Launched support for 5 major AI engines" },
   { year: "2024", event: "Introduced Gap Analysis and AEO Suggestions" },
   { year: "2025", event: "Expanded to serve enterprise customers worldwide" },
@@ -48,7 +48,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-6">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6" data-testid="text-about-title">
-              About AEO Dashboard
+              About Mindshare AI
             </h1>
             <p className="text-xl text-muted-foreground">
               We're on a mission to help brands thrive in the age of AI-powered search. As
@@ -77,7 +77,7 @@ export default function AboutPage() {
                   misrepresented.
                 </p>
                 <p>
-                  We built AEO Dashboard to solve this problem. Our platform lets you see
+                  We built Mindshare AI to solve this problem. Our platform lets you see
                   exactly what AI assistants say about your brand, compare yourself to
                   competitors, and get actionable recommendations for improvement.
                 </p>

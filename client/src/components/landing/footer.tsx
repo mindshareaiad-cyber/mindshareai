@@ -12,7 +12,7 @@ export function Footer() {
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                   <Eye className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="font-bold text-lg">AEO Dashboard</span>
+                <span className="font-bold text-lg">Mindshare AI</span>
               </div>
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -85,7 +85,7 @@ export function Footer() {
         </div>
         
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} AEO Dashboard. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Mindshare AI. All rights reserved.</p>
         </div>
       </div>
     </footer>
