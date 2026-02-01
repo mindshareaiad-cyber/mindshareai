@@ -2,10 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock } from "lucide-react";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
+import { Link } from "wouter";
 
 const posts = [
   {
     id: 1,
+    slug: "what-is-aeo",
     title: "What is Answer Engine Optimization (AEO)?",
     excerpt: "Learn how AEO differs from traditional SEO and why it matters for your brand's visibility in AI-powered search.",
     date: "31 January 2026",
@@ -14,6 +16,7 @@ const posts = [
   },
   {
     id: 2,
+    slug: "how-ai-chooses-brands",
     title: "How AI Assistants Choose Which Brands to Recommend",
     excerpt: "Understanding the factors that influence whether ChatGPT, Claude, and other AI tools mention your brand.",
     date: "28 January 2026",
@@ -22,6 +25,7 @@ const posts = [
   },
   {
     id: 3,
+    slug: "content-strategies-ai-visibility",
     title: "5 Content Strategies to Improve Your AI Visibility",
     excerpt: "Practical tips for creating content that may help improve how AI assistants perceive and recommend your brand.",
     date: "25 January 2026",
@@ -46,29 +50,31 @@ export default function Blog() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (
-              <Card key={post.id} className="hover-elevate cursor-pointer" data-testid={`card-blog-post-${post.id}`}>
-                <CardHeader>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
-                      {post.category}
-                    </span>
-                  </div>
-                  <CardTitle className="text-xl leading-tight">{post.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">{post.excerpt}</p>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{post.date}</span>
+              <Link key={post.id} href={`/blog/${post.slug}`}>
+                <Card className="hover-elevate cursor-pointer h-full" data-testid={`card-blog-post-${post.id}`}>
+                  <CardHeader>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">
+                        {post.category}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{post.readTime}</span>
+                    <CardTitle className="text-xl leading-tight">{post.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-4">{post.excerpt}</p>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>{post.date}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{post.readTime}</span>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
 

@@ -1,0 +1,110 @@
+What is AEO (Answer Engine Optimization)?
+
+Quick definition
+Answer Engine Optimization (AEO) is the practice of optimizing your brand and content so that AI systems and modern search features choose your answers when users ask questions in natural language. Instead of just chasing blue links, AEO focuses on “being the answer.”
+
+From SEO to AEO
+Traditional SEO was built around:
+
+Keywords and backlinks
+
+Ranking in the top 10 results
+
+Optimizing pages for clicks
+
+AEO shifts the focus to:
+
+Questions and intent, not just keywords
+
+Getting selected as the direct answer in AI chat, featured snippets, and rich results
+
+Structuring information so machines can easily understand and trust it
+
+You’re no longer only asking, “How do I rank on page one?” but “How do I become the answer an AI gives to this question?”
+
+Why AEO matters now
+Modern users type or speak full questions into search and AI tools:
+
+“Best CRM for small agencies?”
+
+“What’s the easiest way to track VAT invoices?”
+
+“Which email tool is best for cold outreach?”
+
+AI systems and answer engines now:
+
+Synthesize multiple sources into one response
+
+Make recommendations without always showing the underlying links
+
+Prioritize clarity, trust, and authority over raw keyword matching
+
+If you’re not optimized for this, you can be invisible even if your SEO is decent.
+
+How AEO works in practice
+A strong AEO approach typically includes:
+
+Clear, question‑led content
+
+FAQ blocks, Q&A sections, and content built around real user questions
+
+Concise, direct answers high up on the page
+
+Structured data and context
+
+Schema markup (Organization, Product, FAQ, HowTo, Review)
+
+Clear info about who you are, what you do, pricing, locations, and use‑cases
+
+Topical authority
+
+Deep, consistent content around your niche rather than thin, scattered posts
+
+Demonstrating expertise, evidence, and up‑to‑date information
+
+Brand signals and trust
+
+Clear “About,” team, and contact details
+
+Third‑party mentions, reviews, and case studies that show you’re real and reliable
+
+Machine‑friendly clarity
+
+Simple language, clean headings, and logical structure
+
+Avoiding jargon and ambiguity so models can confidently pull snippets from you
+
+AEO vs traditional SEO: key differences
+Aspect	Traditional SEO	AEO (Answer Engine Optimization)
+Primary goal	Get clicks to your site	Get chosen as the direct answer
+Focus unit	Keywords & pages	Questions, entities, and brand visibility
+Measurement	Rankings, clicks, traffic	Inclusion in AI answers, featured spots, recommendations
+Content style	Long, keyword‑rich, link‑driven	Clear Q&A, concise explanations, context‑rich
+Main “decider”	Search engine algorithm	Search + AI models + answer engines
+Simple example
+Imagine a user asks an AI: “What’s a good tool to pre‑check VAT invoices before sending them to Xero?”
+
+AEO thinking asks:
+
+Do we have a page that directly answers that question?
+
+Is our product clearly described as solving that exact use case?
+
+Is our brand recognized by the AI as associated with “VAT invoice pre‑check” and “Xero”?
+
+Is our content structured so the model can safely lift a 1–2 sentence explanation and a recommendation?
+
+If the answer to those is “yes,” you increase your chances of being named in that response.
+
+Getting started with AEO
+If you’re starting from scratch, you can:
+
+List the top 50–100 questions your ideal customer actually asks
+
+Turn each into: a dedicated section, FAQ entry, or page with a clear, direct answer
+
+Add structured data where relevant (FAQ, product, how‑to)
+
+Make your brand’s “who we are / what we do / who we serve” brutally clear across the site
+
+Once that foundation is in place, you can layer on more advanced work: tracking when/where you’re mentioned in AI answers, refining prompts, and iterating content to increase your “answer share” over time.
