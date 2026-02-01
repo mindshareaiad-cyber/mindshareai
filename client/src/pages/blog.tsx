@@ -29,7 +29,7 @@ const posts = [
     title: "5 Content Strategies to Improve Your AI Visibility",
     excerpt: "Practical tips for creating content that may help improve how AI assistants perceive and recommend your brand.",
     date: "25 January 2026",
-    readTime: "6 min read",
+    readTime: "10 min read",
     category: "Strategy",
   },
 ];

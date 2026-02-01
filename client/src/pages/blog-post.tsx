@@ -494,12 +494,216 @@ const posts: Record<string, {
   "content-strategies-ai-visibility": {
     title: "5 Content Strategies to Improve Your AI Visibility",
     date: "25 January 2026",
-    readTime: "6 min read",
+    readTime: "10 min read",
     category: "Strategy",
     content: (
       <>
-        <p className="text-lg text-muted-foreground">
-          This article is coming soon. Check back for practical tips on creating content that may help improve your AI visibility.
+        <p>
+          AI assistants are quickly becoming the "first touch" for product discovery and research. Instead of scrolling through ten blue links, people now ask:
+        </p>
+        <ul>
+          <li>"What's the best tool for X?"</li>
+          <li>"Which platform is good for doing Y?"</li>
+          <li>"What should I use if I want Z?"</li>
+        </ul>
+        <p>
+          If you want your brand to show up in those answers, you need to design content not just for humans and search engines, but for AI systems too. That's what AI visibility and Answer Engine Optimization (AEO) are about.
+        </p>
+        <p>
+          Below are five practical content strategies to help you show up more often when AI assistants recommend tools and brands.
+        </p>
+
+        <h2>1. Build question-led, not keyword-led, content</h2>
+        <p>
+          Most sites are still organised around keywords. AI assistants think in questions and intents.
+        </p>
+
+        <h3>What to do</h3>
+        <p>Collect real questions your audience asks:</p>
+        <ul>
+          <li>Sales calls and demos</li>
+          <li>Support tickets</li>
+          <li>Communities, forums, Reddit, niche Slack groups</li>
+        </ul>
+        <p>Turn them into specific, answerable prompts, for example:</p>
+        <ul>
+          <li>"How can UK agencies reduce VAT invoice errors before Xero?"</li>
+          <li>"What's the best CRM for small creative agencies?"</li>
+          <li>"Which tool is best for automating invoice data entry?"</li>
+        </ul>
+
+        <h3>How to structure content</h3>
+        <p>For each important question:</p>
+        <p>Create a dedicated page or section with:</p>
+        <ul>
+          <li>A clear H1/H2 that closely matches the question</li>
+          <li>A direct, 2–3 sentence answer high on the page</li>
+          <li>Supporting detail, examples, and visuals underneath</li>
+        </ul>
+        <p>Add an FAQ block that includes the question verbatim plus a crisp answer.</p>
+        <p>This makes it easy for AI assistants to:</p>
+        <ul>
+          <li>Recognise that your page is a strong match</li>
+          <li>Lift concise, self-contained answers</li>
+          <li>Confidently attach your brand to that specific problem</li>
+        </ul>
+
+        <h2>2. Clarify your entity and niche in the first 50 words</h2>
+        <p>
+          If a model can't easily answer "Who are you?" and "What do you do?", it's unlikely to risk recommending you.
+        </p>
+
+        <h3>Your first 50 words should answer:</h3>
+        <ul>
+          <li>What is the product? (category)</li>
+          <li>Who is it for? (audience)</li>
+          <li>What problem does it solve? (use case)</li>
+          <li>Where does it mainly operate? (if relevant: country/market)</li>
+        </ul>
+
+        <h3>Example</h3>
+        <p><strong>Bad opening:</strong></p>
+        <p>
+          <em>"We help businesses work smarter and grow faster with powerful, intuitive software."</em>
+        </p>
+        <p><strong>Good opening:</strong></p>
+        <p>
+          <em>"VATMate is a UK-focused pre-flight VAT checker for small businesses and bookkeepers that use Xero and similar cloud accounting tools. It catches VAT and invoice issues before they hit your ledger."</em>
+        </p>
+        <p>The second example:</p>
+        <ul>
+          <li>Nails the category</li>
+          <li>Names the audience</li>
+          <li>States the core job</li>
+          <li>Anchors the geography</li>
+        </ul>
+        <p>
+          Clear entity definitions like this give models a strong reason to connect your brand with specific user intents.
+        </p>
+
+        <h2>3. Create comparison and alternatives content (the right way)</h2>
+        <p>A huge percentage of AI commerce queries look like:</p>
+        <ul>
+          <li>"X vs Y — which is better for…?"</li>
+          <li>"Best alternatives to [big competitor] for small teams?"</li>
+        </ul>
+        <p>If you're absent from that conversation, you're missing critical visibility.</p>
+
+        <h3>How to do it well</h3>
+        <p>Create honest comparison pages:</p>
+        <ul>
+          <li>"[Your Product] vs [Competitor]: Which is better for [use case]?"</li>
+          <li>Cover where each tool is stronger or weaker.</li>
+          <li>Avoid trash-talk; focus on fit.</li>
+        </ul>
+        <p>Build "best tools for X" content that:</p>
+        <ul>
+          <li>Genuinely includes other tools in your space</li>
+          <li>Explains who each tool is best for</li>
+          <li>Positions you clearly for your niche rather than "everyone"</li>
+        </ul>
+
+        <h3>Why this helps AI visibility</h3>
+        <ul>
+          <li>Comparisons and round-ups are heavily used as training and retrieval data.</li>
+          <li>Being mentioned alongside category leaders helps anchor you in the right cluster.</li>
+          <li>Clear statements like "Best for agencies under 20 staff" are gold for matching to specific queries.</li>
+        </ul>
+        <p>
+          You're effectively teaching models: "Whenever someone asks about this use case, we belong in the shortlist."
+        </p>
+
+        <h2>4. Make your content machine-readable: structure, schema, and consistency</h2>
+        <p>
+          AI systems and their retrieval layers love structure. You're not just writing for people skimming; you're writing for parsers and rankers.
+        </p>
+
+        <h3>On-page structure</h3>
+        <p>Use clear, descriptive headings (H1–H3) that contain:</p>
+        <ul>
+          <li>Product category</li>
+          <li>Audience</li>
+          <li>Use case</li>
+        </ul>
+        <p>Keep paragraphs short and focused on a single idea.</p>
+        <p>Use bullet lists and tables where appropriate (features, plans, pros/cons).</p>
+
+        <h3>Schema and metadata</h3>
+        <p>Where it fits your site, add structured data such as:</p>
+        <ul>
+          <li>Organization</li>
+          <li>Product</li>
+          <li>FAQPage</li>
+          <li>HowTo</li>
+          <li>Review/Rating (if appropriate and truthful)</li>
+        </ul>
+        <p>This doesn't magically guarantee AI recommendations, but it improves:</p>
+        <ul>
+          <li>How reliably you're understood</li>
+          <li>How often you're pulled into retrieval results</li>
+          <li>How cleanly your snippets display in search and answer surfaces</li>
+        </ul>
+
+        <h3>Consistency</h3>
+        <p>Use the same product name and core positioning across:</p>
+        <ul>
+          <li>Website</li>
+          <li>Docs</li>
+          <li>Social profiles</li>
+          <li>App directories</li>
+        </ul>
+        <p>
+          Avoid constantly rebranding your category ("platform", "OS", "workspace", "hub"). Pick one primary category and reinforce it.
+        </p>
+        <p>
+          Consistency is what turns a one-off mention into a strong, reliable association in the model's "memory."
+        </p>
+
+        <h2>5. Publish proof: case studies, outcomes, and real stories</h2>
+        <p>
+          AI assistants don't feel trust — but they learn trust patterns from text written by humans.
+        </p>
+
+        <h3>Types of proof that help</h3>
+        <p><strong>Case studies with specific outcomes:</strong></p>
+        <ul>
+          <li>"Reduced invoice corrections by 35%"</li>
+          <li>"Cut weekly reconciliation time from 5 hours to 2"</li>
+        </ul>
+        <p><strong>Customer quotes that mention:</strong></p>
+        <ul>
+          <li>Role ("bookkeeper", "agency owner")</li>
+          <li>Context ("UK VAT", "B2B cold outreach")</li>
+          <li>Measurable impact</li>
+        </ul>
+        <p><strong>Niche-relevant stories on your blog or partner sites:</strong></p>
+        <ul>
+          <li>"How [Client] cleaned up their VAT process before moving to Xero"</li>
+          <li>"What we learned auditing 10,000 supplier invoices for VAT errors"</li>
+        </ul>
+
+        <h3>Why this matters for AI</h3>
+        <p>When models and ranking systems repeatedly see:</p>
+        <ul>
+          <li>Your brand + your niche</li>
+          <li>Your brand + positive outcomes</li>
+          <li>Your brand + credible customer types</li>
+        </ul>
+        <p>
+          you become a "safe" option to mention for that niche. AI assistants are less likely to hedge and more likely to recommend you assertively.
+        </p>
+
+        <h2>Putting it all together: a simple playbook</h2>
+        <p>If you want a concrete, starting-from-scratch plan:</p>
+        <ol>
+          <li><strong>Map 30–50 real questions</strong> your ideal customers ask.</li>
+          <li><strong>Turn each into a page/section</strong> with: clear question-style heading, direct answer in 2–3 sentences, supporting explanation and examples.</li>
+          <li><strong>Rewrite your home and product pages</strong> so the first 50 words nail category, audience, and use case.</li>
+          <li><strong>Add at least:</strong> one honest "X vs Y" comparison page, one "best tools for [niche]" article that includes you fairly.</li>
+          <li><strong>Publish 3–5 proof assets</strong> (case studies, outcome-driven blogs, or testimonials) that tie your brand to real results in your niche.</li>
+        </ol>
+        <p>
+          Do this consistently and you're no longer just "on the internet." You're building the kind of structured, unambiguous presence that AI systems can understand, trust, and recommend when users ask for help.
         </p>
       </>
     ),
