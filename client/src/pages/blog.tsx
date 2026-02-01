@@ -20,7 +20,7 @@ const posts = [
     title: "How AI Assistants Choose Which Brands to Recommend",
     excerpt: "Understanding the factors that influence whether ChatGPT, Claude, and other AI tools mention your brand.",
     date: "28 January 2026",
-    readTime: "7 min read",
+    readTime: "12 min read",
     category: "AI Insights",
   },
   {
