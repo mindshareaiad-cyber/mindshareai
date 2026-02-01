@@ -15,12 +15,12 @@ export function HeroSection() {
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-              Get your brand into{" "}
-              <span className="text-primary">AI's answers</span>
+              Understand your brand's{" "}
+              <span className="text-primary">AI visibility</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
-              See when ChatGPT and other AI assistants recommend you—or ignore you—and get a playbook to fix it.
+              See how AI assistants respond to prompts about your industry—and get insights to help improve your visibility.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -57,20 +57,20 @@ export function HeroSection() {
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-success" />
-                      <span className="text-sm">Recommended in 85% of prompts</span>
+                      <span className="text-sm">Recommended in 85% of test prompts</span>
                     </div>
                     <TrendingUp className="h-4 w-4 text-success" />
                   </div>
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-warning" />
-                      <span className="text-sm">Mentioned in 12% of prompts</span>
+                      <span className="text-sm">Mentioned in 12% of test prompts</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-destructive" />
-                      <span className="text-sm">Missing from 3% of prompts</span>
+                      <span className="text-sm">Missing from 3% of test prompts</span>
                     </div>
                   </div>
                 </div>

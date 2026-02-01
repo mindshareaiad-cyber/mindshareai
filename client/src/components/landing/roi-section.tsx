@@ -27,7 +27,7 @@ export function ROISection() {
             Why teams choose our platform
           </h2>
           <p className="text-lg opacity-90 max-w-2xl mx-auto">
-            Focus on what matters—creating great content that AI loves to recommend.
+            Focus on what matters—creating quality content that may improve your AI visibility over time.
           </p>
         </div>
         

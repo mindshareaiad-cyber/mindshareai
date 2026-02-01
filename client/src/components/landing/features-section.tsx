@@ -3,26 +3,26 @@ import { Check, Eye, Map, Users, BarChart3, FileText, Target } from "lucide-reac
 const features = [
   {
     id: "visibility",
-    title: "Know when AI actually recommends you",
-    description: "Get clear visibility into how AI assistants respond to buyer-intent questions about your industry.",
+    title: "See how AI responds to your prompts",
+    description: "Run controlled prompts through AI models via API and analyse the responses for brand mentions.",
     icon: Eye,
     bullets: [
       "AI Visibility Score from 0 to 2",
       "Share of voice vs competitors",
-      "Real-time prompt monitoring",
+      "Prompt-based monitoring you control",
       "Multi-engine scanning (GPT-4o, Claude, etc.)",
     ],
   },
   {
     id: "roadmap",
-    title: "Turn gaps into an AEO roadmap",
-    description: "Identify exactly where AI should mention you but doesn't, and get actionable recommendations.",
+    title: "Identify potential visibility gaps",
+    description: "Discover prompts where competitors appear but you don't, and get content suggestions that may help.",
     icon: Map,
     bullets: [
       "Gap analysis for missing mentions",
-      "Suggested answers for each gap",
+      "Suggested content for each gap",
       "Content type recommendations",
-      "Priority scoring for quick wins",
+      "Priority scoring for potential quick wins",
     ],
   },
   {
@@ -45,10 +45,10 @@ export function FeaturesSection() {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Everything you need for AEO success
+            Tools to support your AEO strategy
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            A complete toolkit to monitor, analyze, and improve your brand's visibility in AI-powered answers.
+            Monitor, analyse, and work towards improving your brand's visibility in AI-powered answers.
           </p>
         </div>
         

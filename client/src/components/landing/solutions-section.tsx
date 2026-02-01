@@ -27,7 +27,7 @@ const solutions = [
   {
     icon: MapPin,
     title: "For Local & Service Businesses",
-    description: "Ensure AI assistants recommend your business when people ask for local services.",
+    description: "Understand how AI assistants respond to local service queries and identify ways to improve visibility.",
     replaces: [
       "Hoping AI finds your business",
       "No visibility into AI recommendations",
