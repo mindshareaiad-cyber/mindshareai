@@ -1,0 +1,198 @@
+Terms of Service
+Last updated: 31 January 2026
+
+Please read these Terms of Service (“Terms”) carefully before using our website, products, and services (collectively, the “Service”). By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.
+
+1. Who we are
+We provide a software‑as‑a‑service platform that measures how often brands are mentioned or recommended in AI‑generated answers for specific, user‑defined prompts and generates analytics and suggestions to improve “Answer Engine Optimization” (AEO) and AI visibility (the “Platform”).
+
+2. Eligibility
+You may use the Service only if you:
+
+Are at least 18 years old; and
+
+Have the authority to enter into these Terms on behalf of yourself or the entity you represent.
+
+By using the Service, you represent and warrant that you meet these requirements.
+
+3. Accounts and access
+You are responsible for:
+
+Providing accurate registration information.
+
+Keeping your login credentials confidential.
+
+All activity that occurs under your account.
+
+We may suspend or terminate accounts that violate these Terms or pose a risk to the Service or other users.
+
+4. Description of the Service
+The Service allows you to:
+
+Create projects for one or more brands.
+
+Define sets of natural‑language prompts (e.g. “best CRM for startups in the UK”).
+
+Run scans where the Platform sends those prompts to third‑party AI models via their APIs.
+
+Receive analytics on whether and how often your brand and selected competitors are mentioned or recommended in the AI responses.
+
+View reports, dashboards, and generated content suggestions intended to support AEO and AI visibility strategies.
+
+You acknowledge that:
+
+The Service does not access or analyse private end‑user conversations inside AI tools.
+
+All metrics are derived only from prompts run through our controlled scanning process.
+
+AI outputs are probabilistic and may vary over time and across runs.
+
+5. Third‑party services
+The Platform integrates with third‑party AI providers and other services (for example, large language model APIs and payment processors).
+
+We do not control or guarantee the availability, accuracy, or behaviour of any third‑party services.
+
+Your use of such services may be subject to separate terms and privacy policies with those providers.
+
+We may change or replace third‑party providers at any time if required for technical, commercial, legal, or security reasons.
+
+You are responsible for ensuring that your use of the Service, including any data you submit, complies with applicable third‑party terms.
+
+6. Plans, pricing, and billing
+We offer multiple subscription plans (such as Starter, Growth, and Pro), each with different limits on features, prompts, projects, scans, and engines.
+
+Current pricing and plan details are displayed on our website and may change from time to time.
+
+Unless otherwise stated, fees are charged in advance on a recurring basis and are non‑refundable, including for partial periods or unused capacity.
+
+By upgrading or downgrading your plan, you authorise us and our payment provider to adjust your billing accordingly.
+
+We may offer free trials or promotions at our discretion and may modify or discontinue such offers at any time.
+
+7. Usage limits and fair use
+Your use of the Service is subject to the usage limits associated with your subscription plan, including but not limited to:
+
+Maximum number of projects and prompts.
+
+Maximum number of scans per billing period.
+
+Maximum number and type of AI engines available.
+
+We may implement additional reasonable technical or fair‑use safeguards (for example, rate limiting or soft caps) to protect the Platform and other customers. We will act in good faith and aim not to unreasonably restrict legitimate use.
+
+8. Data and content
+8.1 Your data
+“Your Data” means prompts, brand names, domains, competitor names, configuration, and other information you submit to the Service, as well as the metrics we calculate specifically for your account.
+
+You retain all rights to Your Data. You grant us a non‑exclusive, worldwide licence to store, process, and use Your Data solely:
+
+To provide, maintain, and improve the Service.
+
+To prevent or address technical issues or security incidents.
+
+To comply with legal obligations.
+
+We will not sell Your Data to third parties.
+
+8.2 AI outputs and derived metrics
+The Service stores AI responses received from third‑party models for the prompts you run, along with scoring and analytics derived from those responses.
+
+Subject to applicable third‑party terms, you may use these outputs and metrics for your internal business purposes, marketing analysis, and reporting.
+
+We may use aggregated and/or anonymised data (that does not identify you or your brands) to improve the Service, develop features, and publish benchmarks or research.
+
+Because AI models are probabilistic and may be updated, we do not guarantee that responses or metrics will remain identical across time or runs.
+
+8.3 Prohibited data
+You must not submit to the Service:
+
+Sensitive personal data (such as health, financial, or biometric data).
+
+Personal data of children.
+
+Any data that you do not have the right to use or disclose.
+
+Content that is illegal, infringing, defamatory, or otherwise violates applicable law or third‑party rights.
+
+We may remove or restrict access to any data that we believe breaches these requirements.
+
+9. Acceptable use
+You agree not to:
+
+Use the Service for any unlawful purpose or in violation of any applicable law or regulation.
+
+Attempt to reverse engineer, decompile, scrape, or otherwise misuse third‑party AI services accessed through the Platform.
+
+Interfere with or disrupt the integrity, security, or performance of the Service.
+
+Use the Service to build or train a competing product that replicates our core analytics in a confusingly similar way.
+
+We may suspend or terminate access if we reasonably believe you are violating this section.
+
+10. Intellectual property
+All rights, title, and interest in and to the Service, including software, design, text, graphics, and logos, are owned by us or our licensors, and are protected by intellectual property laws.
+
+Except for the limited rights expressly granted in these Terms, no licence or right is granted to you by implication or otherwise.
+
+11. Disclaimer of warranties
+The Service is provided on an “as is” and “as available” basis.
+
+To the maximum extent permitted by law, we disclaim all warranties, express or implied, including warranties of merchantability, fitness for a particular purpose, non‑infringement, and accuracy of results or metrics.
+
+We do not warrant that:
+
+The Service will be uninterrupted, secure, or error‑free.
+
+Any metrics or recommendations will meet your requirements, produce specific business outcomes, or be free from inaccuracies or omissions.
+
+You are solely responsible for how you use the outputs and insights generated by the Service.
+
+12. Limitation of liability
+To the maximum extent permitted by law:
+
+We shall not be liable for any indirect, incidental, consequential, special, or exemplary damages, including loss of profits, revenue, or data, arising out of or in connection with your use of the Service.
+
+Our total aggregate liability for any claims arising out of or relating to the Service or these Terms shall not exceed the amount you paid to us for the Service in the three (3) months immediately preceding the event giving rise to the claim.
+
+Nothing in these Terms excludes or limits liability that cannot be excluded or limited under applicable law.
+
+13. Indemnity
+You agree to indemnify and hold us harmless from and against any claims, damages, losses, liabilities, costs, and expenses (including reasonable legal fees) arising out of or related to:
+
+Your use of the Service,
+
+Your Data or content you submit, or
+
+Your breach of these Terms or applicable law.
+
+14. Term, suspension, and termination
+These Terms remain in effect while you use the Service.
+
+We may suspend or terminate your access to the Service, with or without notice, if:
+
+You breach these Terms,
+
+You fail to pay applicable fees, or
+
+We are required to do so by law or by a third‑party provider.
+
+You may stop using the Service and cancel your subscription at any time via your account settings or by contacting us. Unless required by law, fees already paid are non‑refundable.
+
+Upon termination, your right to access the Service will cease. We may retain certain data as required or permitted by law and our data‑retention policies.
+
+15. Changes to the Service and these Terms
+We may modify, suspend, or discontinue any part of the Service at any time, including features and pricing, with reasonable notice where practicable.
+
+We may update these Terms from time to time. When we do, we will post the updated Terms on our website and update the “Last updated” date. If changes are material, we will use reasonable efforts to notify you. Your continued use of the Service after changes become effective constitutes your acceptance of the updated Terms.
+
+16. Governing law and jurisdiction
+These Terms are governed by and construed in accordance with the laws of the jurisdiction in which our company is registered, without regard to its conflict of law principles.
+
+Any disputes arising out of or relating to these Terms or the Service shall be subject to the exclusive jurisdiction of the courts of that jurisdiction.
+
+17. Contact
+If you have any questions about these Terms, please contact us at:
+
+Email: [your support email]
+
+Address: [your company name and registered address]
