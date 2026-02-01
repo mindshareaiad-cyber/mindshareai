@@ -33,6 +33,11 @@ export function Footer() {
                   Pricing
                 </a>
               </li>
+              <li>
+                <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-blog">
+                  Blog
+                </Link>
+              </li>
             </ul>
           </div>
           
