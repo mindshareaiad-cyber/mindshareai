@@ -49,6 +49,8 @@ const plans = [
       "Advanced reports",
       "Gap analysis",
       "AEO content suggestions",
+      "White-label reports",
+      "API access",
       "Priority support",
     ],
     cta: "Get Started",
