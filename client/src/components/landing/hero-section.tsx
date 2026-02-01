@@ -1,12 +1,8 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, Sparkles, TrendingUp, Eye } from "lucide-react";
+import { ArrowRight, Sparkles, TrendingUp, Eye } from "lucide-react";
 import { Link } from "wouter";
-import { VideoModal } from "./video-modal";
 
 export function HeroSection() {
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
-
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-accent/20 to-background py-20 md:py-32">
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
@@ -34,16 +30,6 @@ export function HeroSection() {
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="gap-2 w-full sm:w-auto" 
-                data-testid="button-cta-secondary"
-                onClick={() => setIsVideoOpen(true)}
-              >
-                <Play className="h-4 w-4" />
-                Watch Demo
-              </Button>
             </div>
           </div>
           
@@ -93,8 +79,6 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-
-      <VideoModal isOpen={isVideoOpen} onClose={() => setIsVideoOpen(false)} />
     </section>
   );
 }
