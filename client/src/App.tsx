@@ -20,6 +20,7 @@ import PrivacyPage from "@/pages/privacy";
 import TermsPage from "@/pages/terms";
 import BlogPage from "@/pages/blog";
 import BlogPostPage from "@/pages/blog-post";
+import ContactPage from "@/pages/contact";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -152,6 +153,7 @@ function Router() {
       <Route path="/terms" component={TermsPage} />
       <Route path="/blog" component={BlogPage} />
       <Route path="/blog/:slug" component={BlogPostPage} />
+      <Route path="/contact" component={ContactPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={SignUpPage} />
       <Route path="/onboarding">

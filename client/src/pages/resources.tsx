@@ -7,7 +7,6 @@ import {
   BookOpen,
   FileText,
   Video,
-  MessageCircle,
   Mail,
   ExternalLink,
 } from "lucide-react";
@@ -50,17 +49,11 @@ const resourceCategories = [
 
 const supportOptions = [
   {
-    icon: MessageCircle,
-    title: "Live Chat",
-    description: "Get help from our team in real-time during business hours.",
-    action: "Start Chat",
-    available: true,
-  },
-  {
     icon: Mail,
     title: "Email Support",
-    description: "Send us a detailed question and we'll respond within 24 hours.",
+    description: "Send us a message and we'll respond within 24 hours.",
     action: "Contact Us",
+    href: "/contact",
     available: true,
   },
 ];
@@ -124,7 +117,7 @@ export default function ResourcesPage() {
           <p className="text-muted-foreground text-center mb-12 max-w-2xl mx-auto">
             Our support team is here to help you succeed. Choose the option that works best for you.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 gap-6 max-w-lg mx-auto">
             {supportOptions.map((option) => (
               <Card key={option.title} className="hover-elevate" data-testid={`card-support-${option.title.toLowerCase().replace(/\s+/g, "-")}`}>
                 <CardContent className="p-6">
@@ -135,9 +128,11 @@ export default function ResourcesPage() {
                     <div className="flex-1">
                       <h3 className="font-semibold mb-1">{option.title}</h3>
                       <p className="text-sm text-muted-foreground mb-4">{option.description}</p>
-                      <Button size="sm" variant="outline" data-testid={`button-support-${option.title.toLowerCase().replace(/\s+/g, "-")}`}>
-                        {option.action}
-                      </Button>
+                      <Link href={option.href || "#"}>
+                        <Button size="sm" variant="outline" data-testid={`button-support-${option.title.toLowerCase().replace(/\s+/g, "-")}`}>
+                          {option.action}
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </CardContent>

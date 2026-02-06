@@ -38,6 +38,11 @@ export function Footer() {
                   Blog
                 </Link>
               </li>
+              <li>
+                <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-contact">
+                  Contact
+                </Link>
+              </li>
             </ul>
           </div>
           

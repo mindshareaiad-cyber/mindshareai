@@ -966,5 +966,31 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const schema = z.object({
+        name: z.string().min(1),
+        email: z.string().email(),
+        subject: z.string().optional(),
+        message: z.string().min(1),
+      });
+      const data = schema.parse(req.body);
+      console.log("[Contact Form]", {
+        name: data.name,
+        email: data.email,
+        subject: data.subject || "(none)",
+        message: data.message.substring(0, 200),
+        timestamp: new Date().toISOString(),
+      });
+      res.json({ success: true });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: fromError(error).toString() });
+      } else {
+        res.status(500).json({ error: "Failed to process contact form" });
+      }
+    }
+  });
+
   return httpServer;
 }
