@@ -160,6 +160,159 @@ const posts: Record<string, {
       </>
     ),
   },
+  "multimodal-retrieval-aeo": {
+    title: "How to Implement Multimodal Retrieval in AEO Strategies",
+    date: "6 February 2026",
+    readTime: "10 min read",
+    category: "Strategy",
+    content: (
+      <>
+        <p>
+          Multimodal retrieval in AEO means making sure answer engines can find and fuse your text, images, video, and audio as a single, coherent "answer package." Here's how to implement it in a practical, systems-driven way.
+        </p>
+
+        <h2>1. Start with Use Cases and Questions, Not Formats</h2>
+        <p>Before you touch tech, define the questions you want to win and which modalities best support them.</p>
+        <p>For each key question (e.g. "How do I pre-check VAT invoices before Xero?"), decide:</p>
+        <ul>
+          <li>What should be answered in text (definition, steps, pros/cons).</li>
+          <li>What needs an image (dashboard, workflow diagram, before/after).</li>
+          <li>What benefits from video or screen recording (end-to-end flow, setup).</li>
+          <li>Where audio might make sense (explainer clips, podcast snippet).</li>
+        </ul>
+        <p>This becomes your multimodal content spec per topic.</p>
+
+        <h2>2. Make Every Asset "Retrieval-Ready" on Its Own</h2>
+        <p>Each modality must carry enough metadata and surrounding context that an AI system can retrieve and understand it even if it sees it without the rest.</p>
+
+        <h3>For Images</h3>
+        <ul>
+          <li>Use descriptive file names (e.g. <em>vat-precheck-xero-dashboard.png</em>).</li>
+          <li>Add precise alt text that encodes entity + use case ("Dashboard in VATMate showing VAT error flags before pushing invoices to Xero").</li>
+          <li>Place images next to on-topic copy that names the problem, product, and audience.</li>
+          <li>Use appropriate schema where relevant (ImageObject within Product/Article).</li>
+        </ul>
+
+        <h3>For Video</h3>
+        <ul>
+          <li>Host on a crawlable platform (your site + YouTube/Vimeo) and embed in relevant pages.</li>
+          <li>Provide a full, human-edited transcript on the same page.</li>
+          <li>Add chapters with question-style titles ("How to connect VATMate to Xero", "Reviewing failed invoices").</li>
+          <li>Mark up with VideoObject schema; optionally Clip/SeekToAction for key segments.</li>
+        </ul>
+
+        <h3>For Audio / Podcast</h3>
+        <ul>
+          <li>Publish full transcripts with headings that mirror conversational queries.</li>
+          <li>Use clear episode titles ("How AI answer engines pick which finance tools to recommend").</li>
+          <li>Consider speakable markup on short, summary segments suitable for voice answers.</li>
+        </ul>
+        <p>The goal: every asset is independently understandable as an answer fragment.</p>
+
+        <h2>3. Build a Unified, Multimodal "Answer Hub" per Topic</h2>
+        <p>Instead of scattering formats, create topic hubs where all modalities live together around a single intent.</p>
+        <p>Structure a hub page like:</p>
+        <ul>
+          <li><strong>H1:</strong> Question or intent ("How to pre-check VAT invoices before Xero")</li>
+          <li>Short, direct text answer (2-4 sentences).</li>
+          <li>Expanded written guide (steps, caveats, examples).</li>
+          <li>Inline: video embed + transcript, key screenshots + captions, downloadable assets if relevant.</li>
+        </ul>
+        <p>Benefits:</p>
+        <ul>
+          <li>Text gives LLMs an easy entry point.</li>
+          <li>Visuals and video offer rich context + snippets for multimodal systems.</li>
+          <li>Co-location makes it more likely that retrieval systems pull multiple modalities from the same URL.</li>
+        </ul>
+
+        <h2>4. Align Semantics Across Text, Visuals, and Audio</h2>
+        <p>Multimodal retrieval works best when all modalities tell the same semantic story using the same entities and phrases.</p>
+        <p>Concretely, use the same product name, problem wording, and audience label in:</p>
+        <ul>
+          <li>On-screen UI (e.g. "VAT pre-check for Xero").</li>
+          <li>Alt text and image captions.</li>
+          <li>Video titles, chapter names, and spoken script.</li>
+          <li>Page headings and intro copy.</li>
+        </ul>
+        <p>Repeat key triplets:</p>
+        <ul>
+          <li>[Product] + [category] + [integration/stack]</li>
+          <li>[Product] + [job-to-be-done] + [audience]</li>
+        </ul>
+        <p>
+          This consistency helps both text-only and multimodal retrievers align signals across formats.
+        </p>
+
+        <h2>5. Implement Basic Hybrid Retrieval in Your Own Stack</h2>
+        <p>If you're building an AEO-focused product or internal tooling, you can treat multimodal retrieval as hybrid search over text + visuals.</p>
+
+        <h3>Index Text</h3>
+        <ul>
+          <li>Use embeddings (e.g. sentence-level) over: page copy, transcripts, alt text, FAQs.</li>
+          <li>Store in a vector DB with metadata (URL, modality tags, entities).</li>
+        </ul>
+
+        <h3>Index Images / Visual Regions</h3>
+        <ul>
+          <li>Run OCR and index extracted text, and/or use a vision encoder to embed the whole image or specific regions.</li>
+          <li>Attach metadata (page URL, what's depicted, product, feature).</li>
+        </ul>
+
+        <h3>At Query Time</h3>
+        <ul>
+          <li>Convert the user question into an embedding.</li>
+          <li>Retrieve top-N text chunks from your text index and top-M visual items from the image index.</li>
+          <li>Optionally fuse scores (e.g. weighted sum / reciprocal rank fusion).</li>
+        </ul>
+
+        <h3>Rank and Assemble</h3>
+        <ul>
+          <li>Rerank candidates by intent match and entity/feature match.</li>
+          <li>Surface a bundle: text snippet + relevant screenshot + recommended video segment.</li>
+        </ul>
+        <p>
+          Even without fancy research-grade RAG, this gives you internal, explainable multimodal retrieval that mirrors how external answer engines will behave.
+        </p>
+
+        <h2>6. Add Structure and Metadata for External Answer Engines</h2>
+        <p>On your public site, you can't control external retrievers, but you can feed them richer hints:</p>
+        <ul>
+          <li>Use schema for: Article / HowTo + FAQPage on hubs, VideoObject with key timestamps, ImageObject for critical visuals.</li>
+          <li>Maintain clean HTML hierarchy (H1, H2, H3), fast pages, compressed but high-quality media, alt text everywhere.</li>
+          <li>Use canonical URLs for each topic hub so all signals consolidate.</li>
+          <li>Ensure each hub is linked from logical places (nav, related articles, product pages).</li>
+          <li>Include image and video sitemaps where applicable.</li>
+        </ul>
+        <p>
+          You're essentially making it cheap for crawlers and AI systems to discover, parse, and reuse your multimodal assets.
+        </p>
+
+        <h2>7. Measure, Iterate, and Prune</h2>
+        <p>Finally, treat multimodal retrieval as an ongoing optimization loop:</p>
+
+        <h3>Track</h3>
+        <ul>
+          <li>Which pages get cited or summarized by AI tools (manually sampled or via tooling).</li>
+          <li>Engagement with embedded visuals and video (heatmaps, watch time, scroll depth).</li>
+        </ul>
+
+        <h3>Iterate</h3>
+        <ul>
+          <li>Promote visuals that users and AIs gravitate toward (e.g. move key diagram higher).</li>
+          <li>Split overloaded, mixed-intent pages into cleaner, single-intent hubs.</li>
+        </ul>
+
+        <h3>Prune</h3>
+        <ul>
+          <li>Remove or consolidate outdated, conflicting visuals and videos that dilute your signals.</li>
+          <li>Standardize naming and design patterns across UI screenshots so they're recognizable.</li>
+        </ul>
+        <p>
+          The mental model: you're curating a multimodal knowledge base about what your product is, who it's for, and how it works — and you want both humans and AI answer engines to retrieve the right slice of it in one shot.
+        </p>
+      </>
+    ),
+  },
   "is-aeo-a-myth": {
     title: "Is AEO a Myth?",
     date: "6 February 2026",

@@ -1,0 +1,209 @@
+How to implement multimodal retrieval in AEO strategies
+Multimodal retrieval in AEO = making sure answer engines can find and fuse your text, images, video, and audio as a single, coherent “answer package.” Here’s how to implement it in a practical, systems‑driven way.
+
+1. Start with use‑cases and questions, not formats
+Before you touch tech, define the questions you want to win and which modalities best support them.
+
+For each key question (e.g. “How do I pre‑check VAT invoices before Xero?”), decide:
+
+What should be answered in text (definition, steps, pros/cons).
+
+What needs an image (dashboard, workflow diagram, before/after).
+
+What benefits from video or screen recording (end‑to‑end flow, setup).
+
+Where audio might make sense (explainer clips, podcast snippet).
+
+Create a simple matrix:
+
+Question / intent	Text needed	Image needed	Video/audio needed
+How do I pre‑check VAT invoices before Xero?	Definition + 5‑step process	Flow diagram, UI screenshot	2–3 min walkthrough video
+Best tools to reduce invoice errors for UK SMEs?	Shortlist + criteria	Comparison table screenshot	5 min “how to choose” explainer
+This becomes your multimodal content spec per topic.
+
+2. Make every asset “retrieval‑ready” on its own
+Each modality must carry enough metadata and surrounding context that an AI system can retrieve and understand it even if it sees it without the rest.
+
+For images
+Use descriptive file names (e.g. vat-precheck-xero-dashboard.png).
+
+Add precise alt text that encodes entity + use case (“Dashboard in VATMate showing VAT error flags before pushing invoices to Xero”).
+
+Place images next to on‑topic copy that names the problem, product, and audience.
+
+Use appropriate schema where relevant (ImageObject within Product/Article).
+
+For video
+Host on a crawlable platform (your site + YouTube/Vimeo) and embed in relevant pages.
+
+Provide a full, human‑edited transcript on the same page.
+
+Add chapters with question‑style titles (“How to connect VATMate to Xero”, “Reviewing failed invoices”).
+
+Mark up with VideoObject schema; optionally Clip/SeekToAction for key segments.
+
+For audio / podcast
+Publish full transcripts with headings that mirror conversational queries.
+
+Use clear episode titles (“How AI answer engines pick which finance tools to recommend”).
+
+Consider speakable markup on short, summary segments suitable for voice answers.
+
+The goal: every asset is independently understandable as an answer fragment.
+
+3. Build a unified, multimodal “answer hub” per topic
+Instead of scattering formats, create topic hubs where all modalities live together around a single intent.
+
+Structure a hub page like:
+
+H1: Question or intent (“How to pre‑check VAT invoices before Xero”)
+
+Short, direct text answer (2–4 sentences).
+
+Expanded written guide (steps, caveats, examples).
+
+Inline:
+
+Video embed + transcript.
+
+Key screenshots + captions.
+
+Downloadable assets if relevant (checklists, sample CSV).
+
+Benefits:
+
+Text gives LLMs an easy entry point.
+
+Visuals and video offer rich context + snippets for multimodal systems.
+
+Co‑location makes it more likely that retrieval systems pull multiple modalities from the same URL.
+
+4. Align semantics across text, visuals, and audio
+Multimodal retrieval works best when all modalities tell the same semantic story using the same entities and phrases.
+
+Concretely:
+
+Use the same product name, problem wording, and audience label in:
+
+On‑screen UI (e.g. “VAT pre‑check for Xero”).
+
+Alt text and image captions.
+
+Video titles, chapter names, and spoken script.
+
+Page headings and intro copy.
+
+Repeat key triplets:
+
+[Product] + [category] + [integration/stack]
+
+[Product] + [job-to-be-done] + [audience]
+
+Example:
+“VATMate is a pre‑flight VAT checker for UK SMEs using Xero” appears:
+
+In the first 50 words of the page.
+
+In image captions (“VATMate pre‑flight VAT checker showing failed invoices from UK suppliers”).
+
+In the spoken intro of the video and its title/description.
+
+This consistency helps both text‑only and multimodal retrievers align signals across formats.
+
+5. Implement basic hybrid retrieval in your own stack
+If you’re building an AEO‑focused product or internal tooling, you can treat multimodal retrieval as hybrid search over text + visuals.
+
+At a high level:
+
+Index text
+
+Use embeddings (e.g. sentence‑level) over: page copy, transcripts, alt text, FAQs.
+
+Store in a vector DB with metadata (URL, modality tags, entities).
+
+Index images / visual regions
+
+Either:
+
+Run OCR and index extracted text, and/or
+
+Use a vision encoder to embed the whole image or specific regions (e.g. UI panels).
+
+Attach metadata (page URL, what’s depicted, product, feature).
+
+At query time
+
+Convert the user question into an embedding.
+
+Retrieve:
+
+Top‑N text chunks from your text index.
+
+Top‑M visual items from the image index.
+
+Optionally fuse scores (e.g. weighted sum / reciprocal rank fusion).
+
+Rank and assemble
+
+Rerank candidates by:
+
+Intent match (is it “how‑to”, “what is”, “compare”, “recommend”?).
+
+Entity/feature match (mentions of product, integration, geography).
+
+Surface a bundle: text snippet + relevant screenshot + recommended video segment.
+
+Even without fancy research‑grade RAG, this gives you internal, explainable multimodal retrieval that mirrors how external answer engines will behave.
+
+6. Add structure and metadata for external answer engines
+On your public site, you can’t control external retrievers, but you can feed them richer hints:
+
+Use schema for:
+
+Article / HowTo + FAQPage on hubs.
+
+VideoObject with key timestamps.
+
+ImageObject for critical visuals.
+
+Maintain:
+
+Clean HTML hierarchy (H1 → H2 → H3).
+
+Fast pages, compressed but high‑quality media, alt text everywhere.
+
+Canonical URLs for each topic hub so all signals consolidate.
+
+Ensure:
+
+Each hub is linked from logical places (nav, related articles, product pages).
+
+Sitemaps include image and video sitemaps where applicable.
+
+You’re essentially making it cheap for crawlers and AI systems to discover, parse, and reuse your multimodal assets.
+
+7. Measure, iterate, and prune
+Finally, treat multimodal retrieval as an ongoing optimization loop:
+
+Track:
+
+Which pages get cited or summarized by AI tools (manually sampled or via tooling).
+
+Engagement with embedded visuals and video (heatmaps, watch time, scroll depth).
+
+Iterate:
+
+Promote visuals that users and AIs gravitate toward (e.g. move key diagram higher).
+
+Split overloaded, mixed‑intent pages into cleaner, single‑intent hubs.
+
+Prune:
+
+Remove or consolidate outdated, conflicting visuals and videos that dilute your signals.
+
+Standardize naming and design patterns across UI screenshots so they’re recognizable.
+
+The mental model: you’re curating a multimodal knowledge base about what your product is, who it’s for, and how it works — and you want both humans and AI answer engines to retrieve the right slice of it in one shot.
+
+If you share your stack (e.g. “we’re on Next.js + Supabase + a vector DB”), I can outline a very concrete implementation plan, including where to put embeddings, how to store media metadata, and how to design the topic hub templates.
+

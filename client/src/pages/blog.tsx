@@ -7,6 +7,15 @@ import { Link } from "wouter";
 const posts = [
   {
     id: 1,
+    slug: "multimodal-retrieval-aeo",
+    title: "How to Implement Multimodal Retrieval in AEO Strategies",
+    excerpt: "Making sure answer engines can find and fuse your text, images, video, and audio as a single, coherent answer package.",
+    date: "6 February 2026",
+    readTime: "10 min read",
+    category: "Strategy",
+  },
+  {
+    id: 2,
     slug: "is-aeo-a-myth",
     title: "Is AEO a Myth?",
     excerpt: "AEO isn't a myth, but a lot of the hype around it is. Here's how answer engine optimization actually works and where the real opportunity lies.",
