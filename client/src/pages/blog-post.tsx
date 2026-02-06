@@ -160,6 +160,277 @@ const posts: Record<string, {
       </>
     ),
   },
+  "why-businesses-need-aeo": {
+    title: "Why Businesses Need to Consider Answer Engine Optimization (AEO)",
+    date: "6 February 2026",
+    readTime: "14 min read",
+    category: "Strategy",
+    content: (
+      <>
+        <p>
+          AI assistants are quietly becoming the front door to the internet. People now ask, "What's the best tool for…?", "Which platform should I use for…?", or "How do I solve…?" and get a single, confident answer instead of a list of links.
+        </p>
+        <p>
+          If your brand isn't part of those answers, you're effectively invisible in a growing share of buying journeys.
+        </p>
+        <p>
+          That's where Answer Engine Optimization (AEO) comes in. It's the discipline of making your brand the obvious and safe choice for AI systems when they decide which products and services to recommend.
+        </p>
+        <p>
+          This article breaks down why AEO matters now, what's changed from traditional SEO, and who should start caring about it today.
+        </p>
+
+        <h2>From SEO to AEO: The Shift in How People Discover Brands</h2>
+        <p>Traditional SEO was built around web search:</p>
+        <ul>
+          <li>Users type short keywords ("CRM software", "invoice tool UK")</li>
+          <li>Search engines return a list of links</li>
+          <li>You fight to rank as high as possible and win the click</li>
+        </ul>
+        <p>Answer engines and AI assistants flip that model:</p>
+        <ul>
+          <li>Users ask full questions ("What's the best CRM for agencies under 20 staff?")</li>
+          <li>The system synthesizes an answer, often naming a handful of brands</li>
+          <li>The user might never see a traditional results page</li>
+        </ul>
+        <p>In other words, the key question is changing from:</p>
+        <p><em>"How do I rank for this keyword?"</em></p>
+        <p>to</p>
+        <p><em>"How do I become the answer to this question?"</em></p>
+        <p>AEO is about aligning your brand, content, and positioning with that new reality.</p>
+
+        <h2>Why Businesses Need to Take AEO Seriously</h2>
+
+        <h3>1. AI is becoming the default starting point</h3>
+        <p>In many workflows, especially for younger users and busy professionals, AI has become the first stop:</p>
+        <ul>
+          <li>"Recommend 3 tools to help me manage invoices."</li>
+          <li>"Give me options for affordable marketing automation."</li>
+          <li>"What software should I use to pre-check VAT before Xero?"</li>
+        </ul>
+        <p>
+          If an assistant consistently recommends your competitors and never mentions you, you're losing discovery before any search results appear.
+        </p>
+
+        <h3>2. Fewer slots, higher stakes</h3>
+        <p>On a search results page, there might be ten blue links and a handful of ads.</p>
+        <p>In an AI answer, there might be:</p>
+        <ul>
+          <li>One direct recommendation</li>
+          <li>Or a short list of 3–5 options</li>
+        </ul>
+        <p>That means:</p>
+        <ul>
+          <li>Fewer overall brands get visibility</li>
+          <li>The winners get disproportionate attention and trust</li>
+          <li>Being "pretty visible" is no longer enough — you need to be on the shortlist</li>
+        </ul>
+        <p>AEO is about making sure you're eligible for those few, high-value slots.</p>
+
+        <h3>3. Brand discovery is moving up-funnel into conversations</h3>
+        <p>Buyers are increasingly:</p>
+        <ul>
+          <li>Brainstorming options with AI</li>
+          <li>Asking follow-up questions ("Which is better for X?", "What's easier to set up?")</li>
+          <li>Narrowing their shortlist before they ever land on a website</li>
+        </ul>
+        <p>
+          If you only optimize for the moment someone already knows your name, you're defending a shrinking part of the funnel.
+        </p>
+        <p>
+          AEO helps you show up when buyers are still asking, "What should I even be looking at?"
+        </p>
+
+        <h3>4. Strong AEO compounds your existing marketing</h3>
+        <p>The building blocks of AEO overlap with things you should be doing anyway:</p>
+        <ul>
+          <li>Clear positioning and messaging</li>
+          <li>Helpful, question-led content</li>
+          <li>Case studies and social proof</li>
+          <li>Clean technical structure and schema</li>
+        </ul>
+        <p>The difference is intent: you're not just trying to rank higher; you're deliberately shaping how AI systems understand your brand:</p>
+        <ul>
+          <li>What category you're in</li>
+          <li>Which problems you solve</li>
+          <li>Which customers you're for</li>
+          <li>When it's "safe" to recommend you</li>
+        </ul>
+        <p>
+          That understanding amplifies the impact of your paid, organic, and partner efforts because every asset now also trains and reinforces your "AI profile".
+        </p>
+
+        <h2>Who AEO Is Really For (It's Not Just Enterprises)</h2>
+        <p>AEO sounds abstract, but it's very concrete when you look at who actually benefits.</p>
+        <p>If any of these descriptions fit you, you're in the target audience.</p>
+
+        <h3>1. B2B SaaS and software companies</h3>
+        <p>If you sell:</p>
+        <ul>
+          <li>CRM, project management, analytics, accounting, email, or niche tooling</li>
+          <li>To buyers who research online and ask "best tools for X" style questions</li>
+        </ul>
+        <p>…you are already being judged and recommended by AI systems, whether you're ready or not.</p>
+        <p>You need AEO if:</p>
+        <ul>
+          <li>Your ICP is likely to ask an assistant what to use in your category</li>
+          <li>You rely on inbound and content for a significant chunk of pipeline</li>
+          <li>You compete with better-known brands that dominate "best tools for…" lists</li>
+        </ul>
+        <p>For you, AEO is about:</p>
+        <ul>
+          <li>Being consistently associated with a specific problem and segment</li>
+          <li>Showing up in comparisons and "alternatives to X" conversations</li>
+          <li>Making it easy for AI systems to understand who you're perfect for</li>
+        </ul>
+
+        <h3>2. Service businesses with defined niches</h3>
+        <p>Think:</p>
+        <ul>
+          <li>Agencies and consultancies</li>
+          <li>Specialist accounting, legal, or compliance services</li>
+          <li>Niche B2B providers (e.g. fulfillment for a certain industry, technical auditing, CRO, etc.)</li>
+        </ul>
+        <p>Your prospects are asking questions like:</p>
+        <ul>
+          <li>"Who helps with [specific problem] for [industry]?"</li>
+          <li>"Best agency for [type of work] for [type of business]?"</li>
+        </ul>
+        <p>AEO matters if:</p>
+        <ul>
+          <li>You want to be one of the 2–3 names that pop up when someone asks that question</li>
+          <li>You've invested in case studies, but you're not seeing them reflected in AI answers</li>
+          <li>You operate in markets where reputation and trust are everything</li>
+        </ul>
+        <p>Here, AEO looks like:</p>
+        <ul>
+          <li>Tight positioning around a category (e.g. "Shopify CRO agency", "UK VAT specialist for SaaS")</li>
+          <li>Content that directly answers who you're for and when you're not a fit</li>
+          <li>Making your expertise visible and machine-readable (FAQs, structured data, clear service pages)</li>
+        </ul>
+
+        <h3>3. Challenger brands in crowded categories</h3>
+        <p>If you're up against big incumbents, AI will naturally default to:</p>
+        <ul>
+          <li>Well-known, heavily mentioned brands</li>
+          <li>Products with tons of docs, reviews, and how-tos</li>
+        </ul>
+        <p>AEO gives you a way to compete without outspending them:</p>
+        <ul>
+          <li>You target specific use cases and segments where you're uniquely strong</li>
+          <li>You create content that makes you the obvious answer to narrow but valuable questions</li>
+          <li>You show up as "best for [niche]", not "best for everyone"</li>
+        </ul>
+        <p>This is especially powerful for:</p>
+        <ul>
+          <li>Vertical SaaS (e.g. tools built specifically for agencies, clinics, logistics, etc.)</li>
+          <li>Region-focused products (e.g. UK-only, EU-focused, compliance-heavy markets)</li>
+        </ul>
+
+        <h3>4. Brands with complex, technical, or regulated offerings</h3>
+        <p>If your product or service is:</p>
+        <ul>
+          <li>Hard to explain in a sentence</li>
+          <li>Full of jargon</li>
+          <li>In a regulated space (finance, tax, healthcare, security, compliance)</li>
+        </ul>
+        <p>Then AI systems:</p>
+        <ul>
+          <li>Struggle to confidently summarize you</li>
+          <li>Are more likely to default to generic answers</li>
+          <li>May avoid recommending you if they're unsure what you actually do</li>
+        </ul>
+        <p>AEO helps by:</p>
+        <ul>
+          <li>Translating your offer into plain-language problem/solution pairs</li>
+          <li>Providing clear "For/Not For" guidance that models can echo</li>
+          <li>Structuring information so it's easy to lift safe, accurate snippets</li>
+        </ul>
+        <p>This reduces the friction for assistants to include you when users ask nuanced, high-stakes questions.</p>
+
+        <h2>What AEO Looks Like in Practice</h2>
+        <p>AEO isn't a separate marketing channel; it's a lens you apply to your existing strategy.</p>
+        <p>Here's what it typically involves day-to-day.</p>
+
+        <h3>1. Question-driven content planning</h3>
+        <p>Instead of asking "Which keywords should we rank for?", you ask:</p>
+        <ul>
+          <li>"What exact questions do our best customers ask before they find us?"</li>
+          <li>"What do they ask when comparing us to alternatives?"</li>
+          <li>"What would they ask an AI assistant if they didn't know we exist?"</li>
+        </ul>
+        <p>You then:</p>
+        <ul>
+          <li>Build pages and sections where those questions appear as headings</li>
+          <li>Answer them clearly and directly in a way AI can safely reuse</li>
+          <li>Tie those answers explicitly to your brand, product, and niche</li>
+        </ul>
+
+        <h3>2. Radical clarity on positioning</h3>
+        <p>You define, in unambiguous language:</p>
+        <ul>
+          <li><strong>Category:</strong> what are you? (e.g. "pre-flight VAT checker", "CRM for agencies")</li>
+          <li><strong>Audience:</strong> who are you for? (e.g. "UK-based SMEs", "B2B agencies 10–50 staff")</li>
+          <li><strong>Use cases:</strong> what jobs do you help them do?</li>
+          <li><strong>Constraints:</strong> where do you operate? What do you integrate with?</li>
+        </ul>
+        <p>This clarity should show up:</p>
+        <ul>
+          <li>In your hero copy and first paragraphs</li>
+          <li>In your docs, help center, and pricing pages</li>
+          <li>In profiles on directories, marketplaces, and partner sites</li>
+        </ul>
+
+        <h3>3. Structured proof and comparisons</h3>
+        <p>You deliberately create:</p>
+        <ul>
+          <li>Case studies that spell out industry, situation, and outcome</li>
+          <li>Comparison pages that fairly benchmark you against alternatives</li>
+          <li>"Best tools for X" content that positions you accurately in your category</li>
+        </ul>
+        <p>These pieces:</p>
+        <ul>
+          <li>Train models to associate you with specific problems and wins</li>
+          <li>Give assistants safe, evidence-backed reasons to recommend you</li>
+          <li>Insert you into conversations you'd otherwise miss entirely</li>
+        </ul>
+
+        <h2>When You Don't Need to Stress About AEO (Yet)</h2>
+        <p>Not every business needs to drop everything and build an AEO program tomorrow.</p>
+        <p>You can safely de-prioritize it if:</p>
+        <ul>
+          <li>Your sales are almost entirely offline and relationship-driven</li>
+          <li>Your buyers don't research online tools or services in your space</li>
+          <li>You operate in a hyper-local, word-of-mouth market where AI usage is minimal</li>
+        </ul>
+        <p>But even in those cases, it's worth:</p>
+        <ul>
+          <li>Keeping your positioning clear and up to date online</li>
+          <li>Answering a handful of core questions clearly on your site</li>
+          <li>Avoiding vague, slogan-only homepages</li>
+        </ul>
+        <p>That way, when usage inevitably creeps into your market, you're not starting from zero.</p>
+
+        <h2>The Bottom Line: AEO Is About Being the Obvious Answer</h2>
+        <p>At a strategic level, AEO comes down to a simple question:</p>
+        <p>
+          <em>"For which specific questions and problems do we want to be the obvious answer — and does the AI ecosystem actually see us that way?"</em>
+        </p>
+        <p>If you:</p>
+        <ul>
+          <li>Serve customers who research and decide online</li>
+          <li>Compete in categories where AI assistants are already giving recommendations</li>
+          <li>Care about being on the shortlist when someone asks "What should I use for this?"</li>
+        </ul>
+        <p>
+          …then AEO isn't a nice-to-have. It's a natural extension of how you design your brand, your content, and your proof so both humans and machines can confidently say:
+        </p>
+        <p>
+          <em>"In this situation, this is one of the best options."</em>
+        </p>
+      </>
+    ),
+  },
   "how-ai-chooses-brands": {
     title: "How AI Assistants Choose Which Brands to Recommend",
     date: "28 January 2026",

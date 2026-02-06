@@ -7,6 +7,15 @@ import { Link } from "wouter";
 const posts = [
   {
     id: 1,
+    slug: "why-businesses-need-aeo",
+    title: "Why Businesses Need to Consider Answer Engine Optimization (AEO)",
+    excerpt: "AI assistants are becoming the front door to the internet. Find out why AEO matters now, who it's really for, and what it looks like in practice.",
+    date: "6 February 2026",
+    readTime: "14 min read",
+    category: "Strategy",
+  },
+  {
+    id: 2,
     slug: "what-is-aeo",
     title: "What is Answer Engine Optimization (AEO)?",
     excerpt: "Learn how AEO differs from traditional SEO and why it matters for your brand's visibility in AI-powered search.",
@@ -15,7 +24,7 @@ const posts = [
     category: "Getting Started",
   },
   {
-    id: 2,
+    id: 3,
     slug: "how-ai-chooses-brands",
     title: "How AI Assistants Choose Which Brands to Recommend",
     excerpt: "Understanding the factors that influence whether ChatGPT, Claude, and other AI tools mention your brand.",
@@ -24,7 +33,7 @@ const posts = [
     category: "AI Insights",
   },
   {
-    id: 3,
+    id: 4,
     slug: "content-strategies-ai-visibility",
     title: "5 Content Strategies to Improve Your AI Visibility",
     excerpt: "Practical tips for creating content that may help improve how AI assistants perceive and recommend your brand.",
