@@ -30,6 +30,9 @@ export function Header() {
             <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-resources">
               Resources
             </Link>
+            <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-contact">
+              Contact
+            </Link>
           </nav>
           
           <div className="hidden md:flex items-center gap-3">
@@ -70,6 +73,9 @@ export function Header() {
               </Link>
               <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-resources">
                 Resources
+              </Link>
+              <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-contact">
+                Contact
               </Link>
               <div className="flex gap-2 pt-4 border-t">
                 <Link href="/dashboard" className="flex-1">
