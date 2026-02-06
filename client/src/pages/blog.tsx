@@ -7,6 +7,15 @@ import { Link } from "wouter";
 const posts = [
   {
     id: 1,
+    slug: "is-aeo-a-myth",
+    title: "Is AEO a Myth?",
+    excerpt: "AEO isn't a myth, but a lot of the hype around it is. Here's how answer engine optimization actually works and where the real opportunity lies.",
+    date: "6 February 2026",
+    readTime: "8 min read",
+    category: "AI Insights",
+  },
+  {
+    id: 2,
     slug: "why-businesses-need-aeo",
     title: "Why Businesses Need to Consider Answer Engine Optimization (AEO)",
     excerpt: "AI assistants are becoming the front door to the internet. Find out why AEO matters now, who it's really for, and what it looks like in practice.",

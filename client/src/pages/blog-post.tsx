@@ -160,6 +160,173 @@ const posts: Record<string, {
       </>
     ),
   },
+  "is-aeo-a-myth": {
+    title: "Is AEO a Myth?",
+    date: "6 February 2026",
+    readTime: "8 min read",
+    category: "AI Insights",
+    content: (
+      <>
+        <p>
+          AEO isn't a myth, but a lot of the hype around it is. It's a real shift in how AI systems surface brands and answers, and it works in more structured, mechanical ways than most people realize.
+        </p>
+
+        <h2>Is AEO Just Hype?</h2>
+        <p>AEO (Answer Engine Optimization) sounds like yet another buzzword because:</p>
+        <ul>
+          <li>It arrived right as AI assistants blew up.</li>
+          <li>Agencies rushed to re-label old SEO tactics with a new acronym.</li>
+          <li>Most people can't see inside AI systems, so it feels hand-wavey.</li>
+        </ul>
+        <p>But under the surface, three concrete changes make AEO real:</p>
+        <ul>
+          <li>Users now ask questions, not just type keywords.</li>
+          <li>AI systems synthesize an answer, often naming a few brands instead of listing ten links.</li>
+          <li>Those systems lean heavily on structured, clear, trustworthy content and on how well a brand is associated with a specific problem.</li>
+        </ul>
+        <p>
+          So AEO isn't magic. It's the discipline of aligning your content and brand so AI systems can confidently pick you as part of the answer.
+        </p>
+
+        <h2>How AEO Actually Works (In Plain English)</h2>
+        <p>Think of AI-driven "answer engines" as a three-stage process:</p>
+
+        <h3>1. Understanding the question</h3>
+        <p>
+          When someone asks "What's the best tool to pre-check VAT invoices before sending them to Xero?" the system:
+        </p>
+        <ul>
+          <li>Interprets intent ("recommend tools," "VAT checking," "Xero," likely UK context).</li>
+          <li>Splits it into sub-tasks (what tools exist, which are for this use case, pros/cons).</li>
+        </ul>
+        <p>If your content never clearly states that you:</p>
+        <ul>
+          <li>Work with Xero,</li>
+          <li>Focus on VAT,</li>
+          <li>Serve that specific segment,</li>
+        </ul>
+        <p>you're unlikely to be considered, even if you technically do.</p>
+
+        <h3>2. Retrieving and ranking content</h3>
+        <p>The system then pulls in candidate pages and sources:</p>
+        <ul>
+          <li>Product pages, docs, blogs, reviews, comparison posts.</li>
+          <li>It ranks them by relevance, authority, freshness, and clarity.</li>
+        </ul>
+        <p>Content that tends to win here:</p>
+        <ul>
+          <li>Has question-like headings ("How do I...?", "Best tools for...?", "[Product] vs [Product]").</li>
+          <li>States the who/what/for whom clearly in the first few lines.</li>
+          <li>Uses clean structure (headings, bullets, tables) and sometimes schema.</li>
+        </ul>
+        <p>
+          If you're not in this retrieved "shortlist," the AI can't recommend you. AEO is largely about getting into this candidate set more often.
+        </p>
+
+        <h3>3. Generating the answer and choosing brands</h3>
+        <p>The AI reads the shortlisted content and:</p>
+        <ul>
+          <li>Extracts definitions, features, and use cases.</li>
+          <li>Picks a small set of brands that look like a safe, accurate fit.</li>
+          <li>Phrases a recommendation ("For X, consider A, B, and C...").</li>
+        </ul>
+        <p>Signals that help you get picked:</p>
+        <ul>
+          <li>Repeated, consistent positioning around a specific niche ("pre-flight VAT checker for UK businesses on Xero").</li>
+          <li>Evidence and proof (case studies, outcomes, reviews).</li>
+          <li>Clean, machine-readable snippets it can lift without risk of being wrong.</li>
+        </ul>
+        <p>
+          In other words: AEO is about making your brand the obvious, low-risk candidate when the AI has to name names.
+        </p>
+
+        <h2>Where the "Myth" Part Comes From</h2>
+        <p>There are myths worth calling out:</p>
+        <p>
+          <strong>"AEO is a secret hack to control AI answers."</strong><br />
+          No. You're influencing probabilities, not dictating outputs.
+        </p>
+        <p>
+          <strong>"You just sprinkle some schema and you're done."</strong><br />
+          Schema helps, but if your positioning and content are vague, it won't save you.
+        </p>
+        <p>
+          <strong>"You can set and forget AEO."</strong><br />
+          AI systems, ranking signals, and user behavior are shifting constantly. This is an ongoing optimization problem, not a one-off checklist.
+        </p>
+        <p>
+          <strong>"Only big brands can win at AEO."</strong><br />
+          Big brands have an advantage, but focused, niche-specific brands can win on long-tail, high-intent questions where the big players are generic.
+        </p>
+
+        <h2>What AEO Looks Like in Practice</h2>
+        <p>If you strip away the jargon, AEO boils down to a few practical moves:</p>
+
+        <h3>1. Tight, unambiguous positioning</h3>
+        <p>Your site should answer, in the first few lines:</p>
+        <ul>
+          <li>What are you? (category)</li>
+          <li>Who are you for? (segment)</li>
+          <li>What jobs do you help them do? (use cases)</li>
+          <li>Where/with what do you work? (regions, integrations, platforms)</li>
+        </ul>
+        <p>If the AI can't answer those questions confidently about you, it won't recommend you.</p>
+
+        <h3>2. Question-driven content</h3>
+        <p>You build content around the questions your buyers actually ask, like:</p>
+        <ul>
+          <li>"How can I reduce VAT invoice errors before Xero?"</li>
+          <li>"What tools are best for agencies under 20 staff?"</li>
+          <li>"Alternatives to [Big Competitor] for [niche use case]?"</li>
+        </ul>
+        <p>Each key question gets:</p>
+        <ul>
+          <li>A heading that mirrors the query.</li>
+          <li>A concise answer near the top.</li>
+          <li>Supporting explanation and examples underneath.</li>
+        </ul>
+        <p>This gives AI systems safe, atomic chunks to reuse.</p>
+
+        <h3>3. Comparisons and alternatives</h3>
+        <p>You deliberately insert yourself into the conversations buyers and AIs already have:</p>
+        <ul>
+          <li>"[Your Product] vs [Competitor] for [use case]"</li>
+          <li>"Best tools for [niche]" where you honestly list multiple options.</li>
+        </ul>
+        <p>Done well, this:</p>
+        <ul>
+          <li>Anchors you in the right category cluster.</li>
+          <li>Tells the AI exactly who you are best for, not just that you exist.</li>
+        </ul>
+
+        <h3>4. Structured proof</h3>
+        <p>You publish proof that ties:</p>
+        <ul>
+          <li>A specific type of customer,</li>
+          <li>A specific problem,</li>
+          <li>And a concrete outcome,</li>
+        </ul>
+        <p>directly to your brand.</p>
+        <p>
+          Case studies, testimonials, and niche stories become training material for models to see you as a safe, effective answer in that scenario.
+        </p>
+
+        <h2>So... Is AEO a Myth?</h2>
+        <p>
+          The branding around AEO can be overblown. There's no magic switch, and no one has direct control over model internals.
+        </p>
+        <p>But the underlying idea is very real:</p>
+        <ul>
+          <li>AI systems are increasingly the first (and sometimes only) touchpoint in discovery.</li>
+          <li>They rely on structured, clear, trustworthy content and consistent brand signals.</li>
+          <li>You can meaningfully increase your chances of being recommended by designing your content and positioning for that reality.</li>
+        </ul>
+        <p>
+          AEO is not a myth. It's simply the name we're giving to doing content, positioning, and proof in a way that works for humans, search engines, and AI answer systems at the same time.
+        </p>
+      </>
+    ),
+  },
   "why-businesses-need-aeo": {
     title: "Why Businesses Need to Consider Answer Engine Optimization (AEO)",
     date: "6 February 2026",
