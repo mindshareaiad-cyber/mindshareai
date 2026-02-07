@@ -10,6 +10,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
 - **Database**: In-memory storage (MemStorage)
 - **AI**: OpenAI via Replit AI Integrations (gpt-4o-mini)
 - **Auth**: Supabase Authentication with custom login/signup pages
+- **Email**: Resend (via Replit integration) for transactional emails
 
 ## Key Features
 1. **Landing Page** - ClickUp-inspired marketing site with hero, solutions, features, ROI, and pricing sections
@@ -44,7 +45,10 @@ client/src/
 server/
 ├── routes.ts          # API endpoints
 ├── storage.ts         # In-memory data storage
-└── llm-client.ts      # OpenAI integration for answer generation and visibility scoring
+├── llm-client.ts      # OpenAI integration for answer generation and visibility scoring
+├── email-service.ts   # Transactional email templates and send functions (Resend)
+├── resend-client.ts   # Resend client with Replit integration credentials
+└── webhookHandlers.ts # Stripe webhook handlers (subscription emails triggered here)
 
 shared/
 └── schema.ts          # Data models: Project, PromptSet, Prompt, Scan, ScanResult
@@ -136,6 +140,21 @@ Set your own API keys - the app will automatically detect and use them:
 
 The code checks for direct API keys first, then falls back to Replit AI Integrations.
 On startup, the console logs which mode each engine is using.
+
+## Transactional Emails (Resend)
+Uses Resend via Replit integration for automated emails. All emails are fire-and-forget (non-blocking).
+
+**Email Types:**
+- **Welcome** - Sent when a new user profile is created (signup)
+- **Subscription Activated** - Sent after successful Stripe payment verification
+- **Plan Changed** - Sent via webhook when user upgrades/downgrades (price ID changes)
+- **Cancellation** - Sent via webhook when subscription status becomes "canceled"
+- **Payment Failed** - Sent via webhook when subscription status becomes "past_due"
+
+**Architecture:**
+- `server/resend-client.ts` - Fetches credentials from Replit connector, creates Resend client
+- `server/email-service.ts` - HTML templates + send functions for each email type
+- Emails triggered from: `server/routes.ts` (welcome, subscription activated) and `server/webhookHandlers.ts` (plan change, cancellation, payment failed)
 
 ## Running the App
 The app runs on port 5000 with `npm run dev`. The frontend is served via Vite with Express backend.

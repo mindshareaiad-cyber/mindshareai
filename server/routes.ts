@@ -8,6 +8,7 @@ import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { getPlan, getPlanByPriceId, canCreateProject, canAddPrompts, canRunScan, canUseEngine, getPromptsForMultiEngine, ENGINE_TIERS, type PlanId } from "./plans";
+import { sendWelcomeEmail, sendSubscriptionActivatedEmail } from "./email-service";
 
 // Helper to determine subscription tier from status and price
 function getUserPlanId(subscriptionStatus: string | null | undefined, stripePriceId?: string | null): PlanId {
@@ -73,6 +74,7 @@ export async function registerRoutes(
           lastName,
           companyName,
         });
+        sendWelcomeEmail(email, firstName || null).catch(() => {});
       }
       
       res.json(profile);
@@ -170,7 +172,6 @@ export async function registerRoutes(
       });
       
       if (session.payment_status === 'paid' && session.subscription) {
-        // Extract price ID from line items
         const priceId = session.line_items?.data?.[0]?.price?.id;
         
         const updateData: Record<string, unknown> = {
@@ -178,12 +179,18 @@ export async function registerRoutes(
           subscriptionStatus: 'active',
         };
         
-        // Store price ID for plan tier detection
         if (priceId) {
           updateData.stripePriceId = priceId;
         }
         
         await storage.updateUserProfile(userId, updateData);
+
+        const profile = await storage.getUserProfile(userId);
+        if (profile?.email) {
+          const planId = getPlanByPriceId(priceId || null);
+          sendSubscriptionActivatedEmail(profile.email, profile.firstName || null, planId).catch(() => {});
+        }
+
         res.json({ success: true });
       } else {
         res.json({ success: false });
