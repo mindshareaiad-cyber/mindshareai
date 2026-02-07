@@ -30,6 +30,9 @@ export function Header() {
             <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-resources">
               Resources
             </Link>
+            <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-blog">
+              Blog
+            </Link>
             <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-contact">
               Contact
             </Link>
@@ -37,12 +40,12 @@ export function Header() {
           
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle testId="button-theme-toggle-desktop" />
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button variant="outline" size="sm" data-testid="button-header-login">
                 Log In
               </Button>
             </Link>
-            <Link href="/dashboard">
+            <Link href="/signup">
               <Button size="sm" data-testid="button-header-signup">
                 Get Started
               </Button>
@@ -78,10 +81,10 @@ export function Header() {
                 Contact
               </Link>
               <div className="flex gap-2 pt-4 border-t">
-                <Link href="/dashboard" className="flex-1">
+                <Link href="/login" className="flex-1">
                   <Button variant="outline" className="w-full" data-testid="button-mobile-login">Log In</Button>
                 </Link>
-                <Link href="/dashboard" className="flex-1">
+                <Link href="/signup" className="flex-1">
                   <Button className="w-full" data-testid="button-mobile-signup">Get Started</Button>
                 </Link>
               </div>

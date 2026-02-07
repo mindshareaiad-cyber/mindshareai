@@ -57,12 +57,12 @@ export default function PaymentPage() {
   };
 
   const features = [
-    "Unlimited AI visibility scans",
-    "Track up to 10 competitors",
+    "AI visibility scans across multiple engines",
+    "Track competitor share of voice",
     "Gap analysis & AEO recommendations",
-    "Multiple prompt sets per project",
-    "Priority support",
-    "Weekly visibility reports",
+    "Organize prompts by persona and funnel stage",
+    "SEO readiness assessment",
+    "14-day free trial included",
   ];
 
   return (
@@ -86,11 +86,14 @@ export default function PaymentPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-center">
+              <div className="text-lg font-semibold text-muted-foreground">
+                Plans from
+              </div>
               <div className="text-4xl font-bold">
-                $49<span className="text-lg font-normal text-muted-foreground">/month</span>
+                $29<span className="text-lg font-normal text-muted-foreground">/month</span>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Cancel anytime
+                14-day free trial &middot; Cancel anytime
               </p>
             </div>
 
@@ -159,9 +162,9 @@ export default function PaymentPage() {
 
         <p className="text-xs text-center text-muted-foreground mt-6">
           By subscribing, you agree to our{" "}
-          <a href="#" className="text-foreground hover:underline" data-testid="link-terms">Terms of Service</a>
+          <Link href="/terms" className="text-foreground hover:underline" data-testid="link-terms">Terms of Service</Link>
           {" "}and{" "}
-          <a href="#" className="text-foreground hover:underline" data-testid="link-privacy">Privacy Policy</a>
+          <Link href="/privacy" className="text-foreground hover:underline" data-testid="link-privacy">Privacy Policy</Link>
         </p>
       </div>
     </div>

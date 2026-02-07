@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/auth-context";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +65,30 @@ export default function LoginPage() {
         variant: "destructive",
       });
       setGoogleLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const email = form.getValues("email");
+    if (!email || !z.string().email().safeParse(email).success) {
+      toast({
+        title: "Enter your email first",
+        description: "Please enter your email address above, then click Forgot password.",
+      });
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Reset link sent",
+        description: "Check your email for a password reset link.",
+      });
     }
   };
 
@@ -149,13 +174,14 @@ export default function LoginPage() {
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel>Password</FormLabel>
-                        <a 
-                          href="#" 
+                        <button 
+                          type="button"
+                          onClick={handleForgotPassword}
                           className="text-sm text-muted-foreground hover:text-foreground hover:underline"
                           data-testid="link-forgot-password"
                         >
                           Forgot password?
-                        </a>
+                        </button>
                       </div>
                       <FormControl>
                         <div className="relative">
