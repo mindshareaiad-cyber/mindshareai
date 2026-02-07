@@ -147,7 +147,7 @@ Set these environment variables when hosting outside Replit:
 | Variable | Description | Get From |
 |----------|------------|----------|
 | `RESEND_API_KEY` | Resend API key | resend.com/api-keys |
-| `RESEND_FROM_EMAIL` | Verified sender address | resend.com/domains (defaults to noreply@mindshare.ai) |
+| `RESEND_FROM_EMAIL` | Verified sender address | resend.com/domains (defaults to noreply@mindshare-ai.com) |
 
 On Replit, the Resend integration handles credentials automatically. Outside Replit, the app detects `RESEND_API_KEY` and uses it directly.
 

@@ -46,7 +46,7 @@ export default function ContactPage() {
     } catch {
       toast({
         title: "Something went wrong",
-        description: "Please try again or email us directly at support@mindshare.ai.",
+        description: "Please try again or email us directly at support@mindshare-ai.com.",
         variant: "destructive",
       });
     } finally {
@@ -157,8 +157,8 @@ export default function ContactPage() {
                 <div className="mt-8 pt-6 border-t text-center">
                   <p className="text-sm text-muted-foreground">
                     You can also email us directly at{" "}
-                    <a href="mailto:support@mindshare.ai" className="text-primary hover:underline" data-testid="link-contact-email">
-                      support@mindshare.ai
+                    <a href="mailto:support@mindshare-ai.com" className="text-primary hover:underline" data-testid="link-contact-email">
+                      support@mindshare-ai.com
                     </a>
                   </p>
                 </div>

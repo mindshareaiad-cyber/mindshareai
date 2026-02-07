@@ -261,7 +261,7 @@ export default function TermsPage() {
                   If you have any questions about these Terms, please contact us at:
                 </p>
                 <p className="text-muted-foreground">
-                  Email: support@mindshare.ai
+                  Email: support@mindshare-ai.com
                 </p>
               </section>
             </div>

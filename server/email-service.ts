@@ -2,7 +2,7 @@ import { getUncachableResendClient } from './resend-client';
 import { getPlan, type PlanId } from './plans';
 
 const APP_NAME = 'Mindshare AI';
-const SUPPORT_EMAIL = 'support@mindshare.ai';
+const SUPPORT_EMAIL = 'support@mindshare-ai.com';
 
 function baseLayout(content: string, preheader: string = '') {
   return `<!DOCTYPE html>
@@ -166,7 +166,7 @@ function paymentFailedEmail(firstName: string | null): string {
 async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
   try {
     const { client, fromEmail } = await getUncachableResendClient();
-    const from = fromEmail || `${APP_NAME} <noreply@mindshare.ai>`;
+    const from = fromEmail || `${APP_NAME} <noreply@mindshare-ai.com>`;
     
     await client.emails.send({
       from,

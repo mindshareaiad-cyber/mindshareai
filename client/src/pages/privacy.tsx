@@ -35,7 +35,7 @@ export default function PrivacyPage() {
                   If you have questions or requests about this Privacy Policy or your personal data, you can contact us at:
                 </p>
                 <p className="text-muted-foreground">
-                  Email: privacy@mindshare.ai
+                  Email: privacy@mindshare-ai.com
                 </p>
               </section>
 
@@ -264,7 +264,7 @@ export default function PrivacyPage() {
                   <li><strong>Withdraw consent:</strong> Where processing is based on consent, withdraw it at any time (this does not affect prior lawful processing).</li>
                 </ul>
                 <p className="text-muted-foreground mb-4">
-                  To exercise these rights, contact us at privacy@mindshare.ai. We may need to verify your identity before responding.
+                  To exercise these rights, contact us at privacy@mindshare-ai.com. We may need to verify your identity before responding.
                 </p>
                 <p className="text-muted-foreground">
                   If you are in the EEA/UK, you also have the right to lodge a complaint with your local data protection authority.
@@ -287,7 +287,7 @@ export default function PrivacyPage() {
                   <li>Correction of inaccurate information.</li>
                 </ul>
                 <p className="text-muted-foreground">
-                  You may exercise these rights by contacting us at privacy@mindshare.ai.
+                  You may exercise these rights by contacting us at privacy@mindshare-ai.com.
                 </p>
               </section>
 
@@ -330,7 +330,7 @@ export default function PrivacyPage() {
                 </p>
                 <p className="text-muted-foreground">
                   Mindshare AI<br />
-                  Email: privacy@mindshare.ai
+                  Email: privacy@mindshare-ai.com
                 </p>
               </section>
             </div>

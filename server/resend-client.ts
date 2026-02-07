@@ -35,7 +35,7 @@ export async function getUncachableResendClient() {
   if (process.env.RESEND_API_KEY) {
     return {
       client: new Resend(process.env.RESEND_API_KEY),
-      fromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@mindshare.ai',
+      fromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@mindshare-ai.com',
     };
   }
 
