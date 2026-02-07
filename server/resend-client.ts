@@ -1,9 +1,6 @@
-// Resend email client - uses Replit Resend integration for credential management
 import { Resend } from 'resend';
 
-let connectionSettings: any;
-
-async function getCredentials() {
+async function getReplitCredentials() {
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY
     ? 'repl ' + process.env.REPL_IDENTITY
@@ -15,7 +12,7 @@ async function getCredentials() {
     throw new Error('X_REPLIT_TOKEN not found for repl/depl');
   }
 
-  connectionSettings = await fetch(
+  const connectionSettings = await fetch(
     'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
     {
       headers: {
@@ -34,9 +31,15 @@ async function getCredentials() {
   };
 }
 
-// WARNING: Never cache this client - access tokens expire
 export async function getUncachableResendClient() {
-  const { apiKey, fromEmail } = await getCredentials();
+  if (process.env.RESEND_API_KEY) {
+    return {
+      client: new Resend(process.env.RESEND_API_KEY),
+      fromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@mindshare.ai',
+    };
+  }
+
+  const { apiKey, fromEmail } = await getReplitCredentials();
   return {
     client: new Resend(apiKey),
     fromEmail,
