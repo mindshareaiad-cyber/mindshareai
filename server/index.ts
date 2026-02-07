@@ -10,7 +10,12 @@ import { WebhookHandlers } from './webhookHandlers';
 const app = express();
 const httpServer = createServer(app);
 
-// Security headers - protect against common web vulnerabilities
+const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
+const connectSrcDirectives: string[] = ["'self'", "https://api.stripe.com", "https://*.supabase.co", "wss:", "ws:"];
+if (supabaseUrl) {
+  connectSrcDirectives.push(supabaseUrl);
+}
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -19,7 +24,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api.stripe.com", "wss:", "ws:"],
+      connectSrc: connectSrcDirectives,
       frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
     },
   },
