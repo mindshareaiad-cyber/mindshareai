@@ -9,8 +9,14 @@ import { fromError } from "zod-validation-error";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { getPlan, getPlanByPriceId, canCreateProject, canAddPrompts, canRunScan, canUseEngine, getPromptsForMultiEngine, ENGINE_TIERS, type PlanId } from "./plans";
 import { sendWelcomeEmail, sendSubscriptionActivatedEmail } from "./email-service";
+import { requireAuth, requireOwnership } from "./auth-middleware";
 
-// Helper to determine subscription tier from status and price
+function sanitizeProfile(profile: any) {
+  if (!profile) return profile;
+  const { stripeCustomerId, stripeSubscriptionId, stripePriceId, ...safe } = profile;
+  return safe;
+}
+
 function getUserPlanId(subscriptionStatus: string | null | undefined, stripePriceId?: string | null): PlanId {
   if (!subscriptionStatus || subscriptionStatus !== 'active') {
     return 'starter';
@@ -44,23 +50,26 @@ export async function registerRoutes(
   // ============= User Profiles =============
 
   // Get user profile
-  app.get("/api/user-profile/:userId", async (req, res) => {
+  app.get("/api/user-profile/:userId", requireAuth, requireOwnership("userId"), async (req, res) => {
     try {
       const profile = await storage.getUserProfile(req.params.userId);
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
-      res.json(profile);
+      res.json(sanitizeProfile(profile));
     } catch (error) {
       console.error("Error getting user profile:", error);
       res.status(500).json({ error: "Failed to get user profile" });
     }
   });
 
-  // Create or update user profile
-  app.post("/api/user-profile", async (req, res) => {
+  app.post("/api/user-profile", requireAuth, async (req, res) => {
     try {
       const { id, email, firstName, lastName, companyName } = req.body;
+      
+      if (id !== req.userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
       
       let profile = await storage.getUserProfile(id);
       
@@ -77,7 +86,7 @@ export async function registerRoutes(
         sendWelcomeEmail(email, firstName || null).catch(() => {});
       }
       
-      res.json(profile);
+      res.json(sanitizeProfile(profile));
     } catch (error) {
       console.error("Error creating/updating user profile:", error);
       res.status(500).json({ error: "Failed to save user profile" });
@@ -85,7 +94,7 @@ export async function registerRoutes(
   });
 
   // Update onboarding info
-  app.post("/api/user-profile/:userId/onboarding", async (req, res) => {
+  app.post("/api/user-profile/:userId/onboarding", requireAuth, requireOwnership("userId"), async (req, res) => {
     try {
       const parsed = updateUserProfileSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -101,7 +110,7 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      res.json(profile);
+      res.json(sanitizeProfile(profile));
     } catch (error) {
       console.error("Error updating onboarding:", error);
       res.status(500).json({ error: "Failed to update onboarding" });
@@ -121,8 +130,7 @@ export async function registerRoutes(
     }
   });
 
-  // Create checkout session
-  app.post("/api/stripe/create-checkout-session", async (req, res) => {
+  app.post("/api/stripe/create-checkout-session", requireAuth, async (req, res) => {
     try {
       const { userId, email, priceId } = req.body;
       const stripe = await getUncachableStripeClient();
@@ -161,8 +169,7 @@ export async function registerRoutes(
     }
   });
 
-  // Verify payment success
-  app.post("/api/stripe/verify-payment", async (req, res) => {
+  app.post("/api/stripe/verify-payment", requireAuth, async (req, res) => {
     try {
       const { sessionId, userId } = req.body;
       const stripe = await getUncachableStripeClient();
@@ -201,8 +208,7 @@ export async function registerRoutes(
     }
   });
 
-  // Get subscription status
-  app.get("/api/stripe/subscription/:userId", async (req, res) => {
+  app.get("/api/stripe/subscription/:userId", requireAuth, requireOwnership("userId"), async (req, res) => {
     try {
       const profile = await storage.getUserProfile(req.params.userId);
       if (!profile) {
@@ -221,8 +227,7 @@ export async function registerRoutes(
     }
   });
 
-  // Create customer portal session
-  app.post("/api/stripe/customer-portal", async (req, res) => {
+  app.post("/api/stripe/customer-portal", requireAuth, async (req, res) => {
     try {
       const { userId } = req.body;
       const stripe = await getUncachableStripeClient();
@@ -249,8 +254,7 @@ export async function registerRoutes(
 
   // ============= Projects =============
   
-  // Get all projects
-  app.get("/api/projects", async (req, res) => {
+  app.get("/api/projects", requireAuth, async (req, res) => {
     try {
       const projects = await storage.getProjects();
       res.json(projects);
@@ -260,8 +264,7 @@ export async function registerRoutes(
     }
   });
 
-  // Get single project
-  app.get("/api/projects/:projectId", async (req, res) => {
+  app.get("/api/projects/:projectId", requireAuth, async (req, res) => {
     try {
       const project = await storage.getProject(req.params.projectId);
       if (!project) {
@@ -274,8 +277,7 @@ export async function registerRoutes(
     }
   });
 
-  // Create project
-  app.post("/api/projects", async (req, res) => {
+  app.post("/api/projects", requireAuth, async (req, res) => {
     try {
       const parsed = insertProjectSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -305,8 +307,7 @@ export async function registerRoutes(
     }
   });
 
-  // Delete project
-  app.delete("/api/projects/:projectId", async (req, res) => {
+  app.delete("/api/projects/:projectId", requireAuth, async (req, res) => {
     try {
       await storage.deleteProject(req.params.projectId);
       res.status(204).send();
@@ -319,7 +320,7 @@ export async function registerRoutes(
   // ============= Prompt Sets =============
   
   // Get prompt sets for a project (with prompts)
-  app.get("/api/projects/:projectId/prompt-sets", async (req, res) => {
+  app.get("/api/projects/:projectId/prompt-sets", requireAuth, async (req, res) => {
     try {
       const promptSets = await storage.getPromptSets(req.params.projectId);
       const setsWithPrompts = await Promise.all(
@@ -336,7 +337,7 @@ export async function registerRoutes(
   });
 
   // Create prompt set
-  app.post("/api/projects/:projectId/prompt-sets", async (req, res) => {
+  app.post("/api/projects/:projectId/prompt-sets", requireAuth, async (req, res) => {
     try {
       const parsed = insertPromptSetSchema.safeParse({
         ...req.body,
@@ -354,7 +355,7 @@ export async function registerRoutes(
   });
 
   // Delete prompt set
-  app.delete("/api/prompt-sets/:promptSetId", async (req, res) => {
+  app.delete("/api/prompt-sets/:promptSetId", requireAuth, async (req, res) => {
     try {
       await storage.deletePromptSet(req.params.promptSetId);
       res.status(204).send();
@@ -367,7 +368,7 @@ export async function registerRoutes(
   // ============= Prompts =============
   
   // Add prompt to a set
-  app.post("/api/prompt-sets/:promptSetId/prompts", async (req, res) => {
+  app.post("/api/prompt-sets/:promptSetId/prompts", requireAuth, async (req, res) => {
     try {
       const parsed = insertPromptSchema.safeParse({
         ...req.body,
@@ -409,7 +410,7 @@ export async function registerRoutes(
   });
 
   // Delete prompt
-  app.delete("/api/prompts/:promptId", async (req, res) => {
+  app.delete("/api/prompts/:promptId", requireAuth, async (req, res) => {
     try {
       await storage.deletePrompt(req.params.promptId);
       res.status(204).send();
@@ -422,7 +423,7 @@ export async function registerRoutes(
   // ============= Plans =============
   
   // Get plan info for a user
-  app.get("/api/plans/:userId", async (req, res) => {
+  app.get("/api/plans/:userId", requireAuth, requireOwnership("userId"), async (req, res) => {
     try {
       const profile = await storage.getUserProfile(req.params.userId);
       const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId);
@@ -477,7 +478,7 @@ export async function registerRoutes(
   });
 
   // Get engines available for a specific user based on their subscription
-  app.get("/api/engines/:userId", async (req, res) => {
+  app.get("/api/engines/:userId", requireAuth, requireOwnership("userId"), async (req, res) => {
     try {
       const profile = await storage.getUserProfile(req.params.userId);
       const tier = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId) as SubscriptionTier;
@@ -498,7 +499,7 @@ export async function registerRoutes(
   // ============= Scans =============
   
   // Run a scan
-  app.post("/api/projects/:projectId/scans", async (req, res) => {
+  app.post("/api/projects/:projectId/scans", requireAuth, async (req, res) => {
     try {
       const scanInputSchema = z.object({
         userId: z.string().optional(),
@@ -620,7 +621,7 @@ export async function registerRoutes(
   });
 
   // Get latest scan with results
-  app.get("/api/projects/:projectId/scans/latest", async (req, res) => {
+  app.get("/api/projects/:projectId/scans/latest", requireAuth, async (req, res) => {
     try {
       const projectId = req.params.projectId;
       const project = await storage.getProject(projectId);
@@ -672,7 +673,7 @@ export async function registerRoutes(
   });
   
   // Update scan notes
-  app.patch("/api/scans/:scanId/notes", async (req, res) => {
+  app.patch("/api/scans/:scanId/notes", requireAuth, async (req, res) => {
     try {
       const { notes } = req.body;
       const scan = await storage.updateScanNotes(req.params.scanId, notes || "");
@@ -689,7 +690,7 @@ export async function registerRoutes(
   // ============= Gaps =============
   
   // Get gaps for a project (requires Growth or Pro plan)
-  app.get("/api/projects/:projectId/gaps", async (req, res) => {
+  app.get("/api/projects/:projectId/gaps", requireAuth, async (req, res) => {
     try {
       const { projectId } = req.params;
       
@@ -724,7 +725,7 @@ export async function registerRoutes(
   });
 
   // Generate suggestion for a gap (requires Growth or Pro plan)
-  app.post("/api/gaps/:promptId/suggest", async (req, res) => {
+  app.post("/api/gaps/:promptId/suggest", requireAuth, async (req, res) => {
     try {
       const promptId = req.params.promptId;
       const prompt = await storage.getPrompt(promptId);
@@ -779,7 +780,7 @@ export async function registerRoutes(
   // ============= SEO Readiness =============
 
   // Get SEO readiness assessment for a project
-  app.get("/api/projects/:projectId/seo-readiness", async (req, res) => {
+  app.get("/api/projects/:projectId/seo-readiness", requireAuth, async (req, res) => {
     try {
       const { projectId } = req.params;
       
@@ -819,7 +820,7 @@ export async function registerRoutes(
   });
 
   // Update SEO readiness assessment
-  app.patch("/api/projects/:projectId/seo-readiness", async (req, res) => {
+  app.patch("/api/projects/:projectId/seo-readiness", requireAuth, async (req, res) => {
     try {
       const { projectId } = req.params;
       
@@ -889,7 +890,7 @@ export async function registerRoutes(
   });
 
   // Get guidance messages based on current visibility score
-  app.get("/api/projects/:projectId/guidance", async (req, res) => {
+  app.get("/api/projects/:projectId/guidance", requireAuth, async (req, res) => {
     try {
       const { projectId } = req.params;
       

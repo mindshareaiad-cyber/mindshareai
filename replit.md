@@ -54,8 +54,14 @@ shared/
 └── schema.ts          # Data models: Project, PromptSet, Prompt, Scan, ScanResult
 ```
 
+## API Authentication
+All user-specific endpoints require a valid Supabase JWT token in the `Authorization: Bearer <token>` header. The backend verifies the token with Supabase and checks ownership (user can only access their own data). Sensitive fields (Stripe customer/subscription IDs) are stripped from all profile responses.
+
+**Public endpoints (no auth required):** `/api/plans`, `/api/engines`, `/api/stripe/publishable-key`, `/api/contact`
+**Protected endpoints (auth required):** All user profile, project, scan, prompt, gap, and subscription endpoints
+
 ## API Endpoints
-- `GET/POST /api/projects` - List/create projects
+- `GET/POST /api/projects` - List/create projects (auth required)
 - `GET /api/projects/:id/prompt-sets` - Get prompt sets with prompts
 - `POST /api/projects/:id/prompt-sets` - Create prompt set
 - `POST /api/prompt-sets/:id/prompts` - Add prompt to set
