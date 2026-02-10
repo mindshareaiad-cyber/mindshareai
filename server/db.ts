@@ -4,14 +4,15 @@ import * as schema from "@shared/schema";
 
 const { Pool } = pg;
 
-if (!process.env.DATABASE_URL) {
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
   console.error("FATAL: DATABASE_URL environment variable is not set");
-  console.error("Please set DATABASE_URL in your Render environment variables");
+  console.error("Available env vars:", Object.keys(process.env).filter(k => k.includes("DATA") || k.includes("PG") || k.includes("POSTGRES") || k.includes("DB")).join(", ") || "none matching");
   process.exit(1);
 }
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: databaseUrl,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 

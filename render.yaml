@@ -1,3 +1,9 @@
+databases:
+  - name: mindshare-ai-db
+    plan: starter
+    databaseName: mindshare_ai
+    user: mindshare_ai_user
+
 services:
   - type: web
     name: mindshare-ai
@@ -10,7 +16,9 @@ services:
       - key: NODE_VERSION
         value: "20"
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: mindshare-ai-db
+          property: connectionString
       - key: APP_URL
         sync: false
       - key: SESSION_SECRET
