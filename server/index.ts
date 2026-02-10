@@ -161,7 +161,13 @@ async function initDatabase() {
   }
 }
 
-await initDatabase();
+try {
+  await initDatabase();
+} catch (error: any) {
+  console.error('FATAL: Database initialization failed:', error.message);
+  console.error('Check your DATABASE_URL environment variable');
+  process.exit(1);
+}
 
 log('Stripe webhook configured - set STRIPE_WEBHOOK_SECRET and configure webhook URL in Stripe Dashboard', 'stripe');
 
