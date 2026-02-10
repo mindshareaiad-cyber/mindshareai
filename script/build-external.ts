@@ -5,7 +5,10 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 const allowlist = [
+  "@anthropic-ai/sdk",
+  "@google/genai",
   "@google/generative-ai",
+  "@supabase/supabase-js",
   "axios",
   "connect-pg-simple",
   "cors",
@@ -15,19 +18,16 @@ const allowlist = [
   "express",
   "express-rate-limit",
   "express-session",
-  "jsonwebtoken",
+  "helmet",
   "memorystore",
   "multer",
   "nanoid",
-  "nodemailer",
   "openai",
-  "passport",
-  "passport-local",
   "pg",
+  "resend",
   "stripe",
   "uuid",
   "ws",
-  "xlsx",
   "zod",
   "zod-validation-error",
 ];
@@ -35,7 +35,7 @@ const allowlist = [
 async function buildAll() {
   await rm("dist", { recursive: true, force: true });
 
-  console.log("building client (external mode)...");
+  console.log("building client...");
   await viteBuild({
     plugins: [react()],
     resolve: {
@@ -58,16 +58,7 @@ async function buildAll() {
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
   ];
-  const replitPackages = [
-    "stripe-replit-sync",
-    "@replit/vite-plugin-runtime-error-modal",
-    "@replit/vite-plugin-cartographer",
-    "@replit/vite-plugin-dev-banner",
-  ];
-  const externals = [
-    ...allDeps.filter((dep) => !allowlist.includes(dep)),
-    ...replitPackages,
-  ];
+  const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
     entryPoints: ["server/index.ts"],
@@ -85,6 +76,8 @@ async function buildAll() {
       js: 'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
     },
   });
+
+  console.log("build complete!");
 }
 
 buildAll().catch((err) => {

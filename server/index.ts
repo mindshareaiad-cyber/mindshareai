@@ -3,7 +3,6 @@ import helmet from "helmet";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { getStripeSync } from './stripeClient';
 import { WebhookHandlers } from './webhookHandlers';
 import { pool } from './db';
 
@@ -32,7 +31,6 @@ app.use(helmet({
   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
 }));
 
-// Prevent information leakage
 app.disable('x-powered-by');
 
 declare module "http" {
@@ -163,63 +161,10 @@ async function initDatabase() {
   }
 }
 
-async function initStripe() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    console.warn('DATABASE_URL not set, skipping Stripe initialization');
-    return;
-  }
-
-  const isReplit = !!process.env.REPL_ID;
-
-  try {
-    if (isReplit) {
-      const { runMigrations } = await import('stripe-replit-sync');
-      log('Initializing Stripe schema...', 'stripe');
-      await runMigrations({ databaseUrl });
-      log('Stripe schema ready', 'stripe');
-
-      const stripeSync = await getStripeSync();
-
-      log('Setting up managed webhook...', 'stripe');
-      const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
-      if (domains.length > 0 && domains[0]) {
-        try {
-          const webhookBaseUrl = `https://${domains[0]}`;
-          const result = await stripeSync.findOrCreateManagedWebhook(
-            `${webhookBaseUrl}/api/stripe/webhook`
-          );
-          if (result?.webhook?.url) {
-            log(`Webhook configured: ${result.webhook.url}`, 'stripe');
-          } else {
-            log('Webhook endpoint registered', 'stripe');
-          }
-        } catch (webhookError) {
-          log('Webhook setup skipped (may work via dashboard)', 'stripe');
-        }
-      } else {
-        log('No domains configured, webhook setup skipped', 'stripe');
-      }
-
-      log('Syncing Stripe data...', 'stripe');
-      stripeSync.syncBackfill()
-        .then(() => log('Stripe data synced', 'stripe'))
-        .catch((err: any) => console.error('Error syncing Stripe data:', err));
-    } else {
-      log('Running outside Replit - Stripe webhook should be configured via Stripe Dashboard', 'stripe');
-    }
-  } catch (error) {
-    console.error('Failed to initialize Stripe:', error);
-  }
-}
-
-// Initialize database tables
 await initDatabase();
 
-// Initialize Stripe
-await initStripe();
+log('Stripe webhook configured - set STRIPE_WEBHOOK_SECRET and configure webhook URL in Stripe Dashboard', 'stripe');
 
-// Register Stripe webhook route BEFORE express.json()
 app.post(
   '/api/stripe/webhook',
   express.raw({ type: 'application/json' }),
@@ -247,7 +192,6 @@ app.post(
   }
 );
 
-// Now apply JSON middleware for all other routes
 app.use(
   express.json({
     verify: (req, _res, buf) => {
@@ -287,19 +231,16 @@ app.use((req, res, next) => {
 (async () => {
   await registerRoutes(httpServer, app);
 
-  // Global error handler - sanitizes errors in production to prevent info leakage
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const isProduction = process.env.NODE_ENV === "production";
     
-    // Log full error server-side (never exposed to client)
     console.error("Internal Server Error:", isProduction ? err.message : err);
 
     if (res.headersSent) {
       return next(err);
     }
 
-    // In production, never expose internal error details or stack traces
     const clientMessage = isProduction && status === 500 
       ? "An unexpected error occurred" 
       : (err.message || "Internal Server Error");
@@ -315,15 +256,8 @@ app.use((req, res, next) => {
   }
 
   const port = parseInt(process.env.PORT || "5000", 10);
-  const listenOptions: any = {
-    port,
-    host: "0.0.0.0",
-  };
-  if (process.env.REPL_ID) {
-    listenOptions.reusePort = true;
-  }
   httpServer.listen(
-    listenOptions,
+    { port, host: "0.0.0.0" },
     () => {
       log(`serving on port ${port}`);
     },

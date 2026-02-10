@@ -20,26 +20,3 @@ export async function getStripePublishableKey() {
   }
   return publishableKey;
 }
-
-// SECURITY: Secret key getter removed - secret keys should never be exposed or returned
-// The secret key is only used internally by getUncachableStripeClient() and getStripeSync()
-
-let stripeSync: any = null;
-
-export async function getStripeSync() {
-  if (!stripeSync) {
-    if (!process.env.REPL_ID) {
-      throw new Error('stripe-replit-sync is only available on Replit');
-    }
-    const { StripeSync } = await import('stripe-replit-sync');
-
-    stripeSync = new StripeSync({
-      poolConfig: {
-        connectionString: process.env.DATABASE_URL!,
-        max: 2,
-      },
-      stripeSecretKey: secretKey!,
-    });
-  }
-  return stripeSync;
-}

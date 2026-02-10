@@ -1,16 +1,18 @@
 # Mindshare AI - AI Visibility & Answer Engine Optimization
 
 ## Overview
-A full-stack SaaS application for tracking and improving brand visibility in AI-powered answers. The app helps businesses monitor how AI assistants like ChatGPT mention or recommend their brand compared to competitors.
+A full-stack SaaS application for tracking and improving brand visibility in AI-powered answers. The app helps businesses monitor how AI assistants like ChatGPT mention or recommend their brand compared to competitors. Deployed on Render with PostgreSQL.
 
 ## Tech Stack
 - **Frontend**: React + TypeScript + Vite
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **Backend**: Express.js + TypeScript
-- **Database**: In-memory storage (MemStorage)
-- **AI**: OpenAI via Replit AI Integrations (gpt-4o-mini)
+- **Database**: PostgreSQL (Render)
+- **AI**: OpenAI, Anthropic, Google Gemini, Perplexity, DeepSeek (direct API keys)
 - **Auth**: Supabase Authentication with custom login/signup pages
-- **Email**: Resend (via Replit integration) for transactional emails
+- **Email**: Resend for transactional emails
+- **Payments**: Stripe (webhooks via Stripe Dashboard)
+- **Hosting**: Render
 
 ## Key Features
 1. **Landing Page** - ClickUp-inspired marketing site with hero, solutions, features, ROI, and pricing sections
@@ -20,7 +22,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
    - **Results** - View scan results after running AI visibility scans
    - **Gap Analysis** - Identify where competitors are mentioned but you're not
    - **AEO Suggestions** - AI-generated recommendations for content improvement
-3. **AI Visibility Scans** - Run prompts through ChatGPT (GPT-4o-mini) or DeepSeek, score brand visibility (0-2)
+3. **AI Visibility Scans** - Run prompts through 5 AI engines, score brand visibility (0-2)
 4. **Competitor Share of Voice** - Compare your visibility against competitors
 5. **Prompt-Level Performance** - Per-prompt table with filters (Gaps, Winning, Mentioned, Invisible)
 
@@ -43,15 +45,25 @@ client/src/
 └── App.tsx            # Router setup with auth
 
 server/
+├── index.ts           # Server entry point with database auto-init
 ├── routes.ts          # API endpoints
-├── storage.ts         # In-memory data storage
-├── llm-client.ts      # OpenAI integration for answer generation and visibility scoring
-├── email-service.ts   # Transactional email templates and send functions (Resend)
-├── resend-client.ts   # Resend client with Replit integration credentials
-└── webhookHandlers.ts # Stripe webhook handlers (subscription emails triggered here)
+├── storage.ts         # PostgreSQL data storage via Drizzle ORM
+├── db.ts              # Database connection pool
+├── llm-client.ts      # Multi-engine AI client (OpenAI, Anthropic, Gemini, Perplexity, DeepSeek)
+├── email-service.ts   # Transactional email templates and send functions
+├── resend-client.ts   # Resend client (direct API key)
+├── stripeClient.ts    # Stripe client (direct API key)
+├── webhookHandlers.ts # Stripe webhook handlers with native Stripe event processing
+├── auth-middleware.ts # Supabase JWT verification middleware
+├── plans.ts           # Subscription plan limits and enforcement
+├── seo-readiness.ts   # SEO readiness scoring logic
+└── static.ts          # Production static file serving
 
 shared/
-└── schema.ts          # Data models: Project, PromptSet, Prompt, Scan, ScanResult
+└── schema.ts          # Drizzle ORM schema: UserProfile, Project, PromptSet, Prompt, Scan, ScanResult, SeoReadiness
+
+script/
+└── build-external.ts  # Production build script (Vite client + esbuild server)
 ```
 
 ## API Authentication
@@ -72,33 +84,6 @@ All user-specific endpoints require a valid Supabase JWT token in the `Authoriza
 - `GET /api/projects/:id/seo-readiness` - Get SEO readiness assessment
 - `PATCH /api/projects/:id/seo-readiness` - Update SEO readiness checklist
 
-## SEO Readiness Assessment
-Helps businesses understand if their SEO foundation is ready for AEO. Includes:
-
-**Checklist Items (weighted scoring):**
-- hasWebsite: 20 pts
-- hasBlogOrKnowledgeBase: 15 pts
-- hasFaqSection: 15 pts
-- hasMetaDescriptions: 10 pts
-- hasStructuredHeaders: 10 pts
-- hasSchemaMarkup: 10 pts
-- hasContactInfo: 10 pts
-- hasSocialProfiles: 10 pts
-
-**Recommendation Levels:**
-- not_ready: score < 30
-- needs_work: score 30-59
-- ready: score 60-84
-- excellent: score >= 85
-
-**AEO Ready Threshold:** score >= 60
-
-**UI Behavior:**
-- Shows full checklist when not ready
-- Collapses to compact card with toggle when ready
-- Loading skeleton during data fetch
-- Guidance messages provide actionable recommendations
-
 ## AI Visibility Scoring
 - **2** = Clearly recommended or strongly endorsed
 - **1** = Mentioned but not the main recommendation
@@ -111,91 +96,56 @@ Helps businesses understand if their SEO foundation is ready for AEO. Includes:
 
 Plan limits are enforced server-side via `server/plans.ts`. Stripe price ID is stored in user profile during checkout verification for accurate tier detection.
 
+## AI Engines
+- **ChatGPT** - GPT-4o-mini via OpenAI (`OPENAI_API_KEY`)
+- **Claude** - Claude Sonnet 4.5 via Anthropic (`ANTHROPIC_API_KEY`)
+- **Gemini** - Gemini 2.5 Flash via Google (`GOOGLE_API_KEY`)
+- **Perplexity** - Llama 3.1 Sonar with web search (`PERPLEXITY_API_KEY`)
+- **DeepSeek** - DeepSeek Chat (`DEEPSEEK_API_KEY`)
+
 ## AI Engines by Subscription Tier
-- **Starter**: ChatGPT only (primary/cheapest engine)
-- **Growth**: ChatGPT + Gemini (2 engines)
-- **Pro**: ChatGPT, Claude, Gemini, Perplexity, DeepSeek (all 5 engines)
-
-## AI Engine Details
-- **ChatGPT** - GPT-4o-mini via OpenAI/Replit AI Integrations
-- **Claude** - Claude Sonnet 4.5 via Replit AI Integrations (no API key needed)
-- **Gemini** - Gemini 2.5 Flash via Replit AI Integrations (no API key needed)
-- **Perplexity** - Llama 3.1 Sonar with web search (requires API key)
-- **DeepSeek** - DeepSeek Chat (requires API key)
-
-## External Hosting Configuration
-The app supports two modes for AI engine configuration:
-
-### Development Mode (Replit)
-Uses Replit AI Integrations - no API keys needed for ChatGPT, Claude, Gemini.
-Environment variables are auto-configured:
-- `AI_INTEGRATIONS_OPENAI_API_KEY` / `AI_INTEGRATIONS_OPENAI_BASE_URL`
-- `AI_INTEGRATIONS_ANTHROPIC_API_KEY` / `AI_INTEGRATIONS_ANTHROPIC_BASE_URL`
-- `AI_INTEGRATIONS_GEMINI_API_KEY` / `AI_INTEGRATIONS_GEMINI_BASE_URL`
-
-### Production Mode (External Hosting - AWS, Vercel, etc.)
-Set your own API keys - the app will automatically detect and use them:
-
-| Engine | Environment Variable | Get Key From |
-|--------|---------------------|--------------|
-| ChatGPT | `OPENAI_API_KEY` | platform.openai.com |
-| Claude | `ANTHROPIC_API_KEY` | console.anthropic.com |
-| Gemini | `GOOGLE_API_KEY` | aistudio.google.com |
-| Perplexity | `PERPLEXITY_API_KEY` | perplexity.ai/settings/api |
-| DeepSeek | `DEEPSEEK_API_KEY` | platform.deepseek.com |
-
-The code checks for direct API keys first, then falls back to Replit AI Integrations.
-On startup, the console logs which mode each engine is using.
-
-### Resend (Email) - External Hosting
-Set these environment variables when hosting outside Replit:
-
-| Variable | Description | Get From |
-|----------|------------|----------|
-| `RESEND_API_KEY` | Resend API key | resend.com/api-keys |
-| `RESEND_FROM_EMAIL` | Verified sender address | resend.com/domains (defaults to noreply@mindshare-ai.com) |
-
-On Replit, the Resend integration handles credentials automatically. Outside Replit, the app detects `RESEND_API_KEY` and uses it directly.
+- **Starter**: ChatGPT only
+- **Growth**: ChatGPT + Gemini
+- **Pro**: All 5 engines
 
 ## Transactional Emails (Resend)
-Uses Resend via Replit integration for automated emails. All emails are fire-and-forget (non-blocking).
+Uses Resend for automated emails. All emails are fire-and-forget (non-blocking).
 
 **Email Types:**
 - **Welcome** - Sent when a new user profile is created (signup)
 - **Subscription Activated** - Sent after successful Stripe payment verification
-- **Plan Changed** - Sent via webhook when user upgrades/downgrades (price ID changes)
-- **Cancellation** - Sent via webhook when subscription status becomes "canceled"
-- **Payment Failed** - Sent via webhook when subscription status becomes "past_due"
+- **Plan Changed** - Sent via webhook when user upgrades/downgrades
+- **Cancellation** - Sent via webhook when subscription is canceled
+- **Payment Failed** - Sent via webhook when payment fails
 
-**Architecture:**
-- `server/resend-client.ts` - Fetches credentials from Replit connector, creates Resend client
-- `server/email-service.ts` - HTML templates + send functions for each email type
-- Emails triggered from: `server/routes.ts` (welcome, subscription activated) and `server/webhookHandlers.ts` (plan change, cancellation, payment failed)
+## Stripe Webhooks
+Webhooks are processed directly using Stripe's native event verification (no stripe-replit-sync). Configure your webhook endpoint in the Stripe Dashboard pointing to `https://your-domain/api/stripe/webhook`.
 
-## External Deployment (Render / Railway)
-The project supports external hosting with platform-specific configs:
-- `render.yaml` - Render blueprint for one-click deploy
-- `railway.json` - Railway build and deploy config
-- `script/build-external.ts` - Build script without Replit-specific plugins
-- `Procfile` - Process definition fallback
-- All Replit-specific code (stripe-replit-sync, Replit connectors) is conditionally loaded and skipped outside Replit
+Events handled:
+- `customer.subscription.created` / `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.payment_failed`
 
-**Render Setup:**
-- Build Command: `npm install && npx tsx script/build-external.ts`
-- Start Command: `NODE_ENV=production node dist/index.mjs`
-- Health Check Path: `/api/plans`
+## Render Deployment
+- **Build Command:** `npm install && npx tsx script/build-external.ts`
+- **Start Command:** `NODE_ENV=production node dist/index.mjs`
+- **Health Check Path:** `/api/plans`
+- Database tables are auto-created on first startup
 
-**Required Environment Variables (Render/Railway):**
-- `DATABASE_URL` - PostgreSQL connection string
-- `APP_URL` - Your app's public URL (e.g., https://mindshare-ai.onrender.com)
+**Required Environment Variables:**
+- `DATABASE_URL` - PostgreSQL connection string (Render internal URL)
+- `APP_URL` - Your Render URL (e.g., https://mindshare-ai.onrender.com)
 - `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` - Supabase auth
 - `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` - Stripe payments
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
 - `SESSION_SECRET` - Express session secret
 - `OPENAI_API_KEY` - ChatGPT engine
 - `ANTHROPIC_API_KEY` - Claude engine
 - `GOOGLE_API_KEY` - Gemini engine
-- `PERPLEXITY_API_KEY` / `DEEPSEEK_API_KEY` - Additional engines
-- `RESEND_API_KEY` / `RESEND_FROM_EMAIL` - Transactional emails
+- `PERPLEXITY_API_KEY` - Perplexity engine
+- `DEEPSEEK_API_KEY` - DeepSeek engine
+- `RESEND_API_KEY` - Transactional emails
+- `RESEND_FROM_EMAIL` - Sender address (default: noreply@mindshare-ai.com)
 
 ## Running the App
 The app runs on port 5000 with `npm run dev`. The frontend is served via Vite with Express backend.

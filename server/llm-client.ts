@@ -2,85 +2,34 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 
-// ============================================================================
-// AI CLIENT CONFIGURATION
-// ============================================================================
-// Supports two modes:
-// 1. REPLIT MODE (development): Uses Replit AI Integrations with managed keys
-// 2. DIRECT MODE (production): Uses your own API keys for external hosting
-//
-// Environment variables for DIRECT MODE (external hosting):
-// - OPENAI_API_KEY: Your OpenAI API key
-// - ANTHROPIC_API_KEY: Your Anthropic API key  
-// - GOOGLE_API_KEY: Your Google AI (Gemini) API key
-// - PERPLEXITY_API_KEY: Your Perplexity API key
-// - DEEPSEEK_API_KEY: Your DeepSeek API key
-//
-// If direct keys are not set, falls back to Replit AI Integrations
-// ============================================================================
-
-// Check if we're using direct API keys (external hosting mode)
-const useDirectOpenAI = !!process.env.OPENAI_API_KEY;
-const useDirectAnthropic = !!process.env.ANTHROPIC_API_KEY;
-const useDirectGemini = !!process.env.GOOGLE_API_KEY;
-
-// DeepSeek client (Pro only) - always uses direct API key
 const deepseekClient = new OpenAI({
   apiKey: process.env.DEEPSEEK_API_KEY || "sk-placeholder",
   baseURL: "https://api.deepseek.com",
 });
 
-// OpenAI/ChatGPT client (All tiers)
-// Priority: Direct API key > Replit AI Integrations
 const openaiClient = new OpenAI({
-  apiKey: useDirectOpenAI 
-    ? process.env.OPENAI_API_KEY 
-    : process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: useDirectOpenAI 
-    ? undefined  // Use default OpenAI endpoint
-    : process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey: process.env.OPENAI_API_KEY || "sk-placeholder",
 });
 
-// Anthropic/Claude client (Growth + Pro)
-// Priority: Direct API key > Replit AI Integrations
 const anthropicClient = new Anthropic({
-  apiKey: useDirectAnthropic
-    ? process.env.ANTHROPIC_API_KEY!
-    : (process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || "placeholder"),
-  baseURL: useDirectAnthropic
-    ? undefined  // Use default Anthropic endpoint
-    : process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+  apiKey: process.env.ANTHROPIC_API_KEY || "placeholder",
 });
 
-// Gemini client (Growth + Pro)
-// Priority: Direct API key > Replit AI Integrations
 const geminiClient = new GoogleGenAI({
-  apiKey: useDirectGemini
-    ? process.env.GOOGLE_API_KEY!
-    : (process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "placeholder"),
-  httpOptions: useDirectGemini
-    ? undefined  // Use default Gemini endpoint
-    : {
-        apiVersion: "",
-        baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
-      },
+  apiKey: process.env.GOOGLE_API_KEY || "placeholder",
 });
 
-// Log which mode we're using (only in development for debugging)
-if (process.env.NODE_ENV === "development") {
-  console.log("[AI Engines] Configuration:", {
-    openai: useDirectOpenAI ? "Direct API Key" : "Replit AI Integration",
-    anthropic: useDirectAnthropic ? "Direct API Key" : "Replit AI Integration", 
-    gemini: useDirectGemini ? "Direct API Key" : "Replit AI Integration",
-    perplexity: process.env.PERPLEXITY_API_KEY ? "Configured" : "Not configured",
-    deepseek: process.env.DEEPSEEK_API_KEY ? "Configured" : "Not configured",
-  });
-}
+console.log("[AI Engines] Configuration:", {
+  openai: process.env.OPENAI_API_KEY ? "Configured" : "Not configured",
+  anthropic: process.env.ANTHROPIC_API_KEY ? "Configured" : "Not configured",
+  gemini: process.env.GOOGLE_API_KEY ? "Configured" : "Not configured",
+  perplexity: process.env.PERPLEXITY_API_KEY ? "Configured" : "Not configured",
+  deepseek: process.env.DEEPSEEK_API_KEY ? "Configured" : "Not configured",
+});
 
 export type LLMEngine = "chatgpt" | "claude" | "gemini" | "perplexity" | "deepseek";
 export type SubscriptionTier = "starter" | "growth" | "pro";
 
-// Engine availability by subscription tier
 const ENGINE_TIERS: Record<SubscriptionTier, LLMEngine[]> = {
   starter: ["chatgpt"],
   growth: ["chatgpt", "claude", "gemini"],
@@ -96,6 +45,9 @@ export function isEngineAvailableForTier(engine: LLMEngine, tier: SubscriptionTi
 }
 
 async function callChatGPT(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not configured");
+  }
   const response = await openaiClient.chat.completions.create({
     model: "gpt-4o-mini",
     messages: messages as any,
@@ -106,6 +58,9 @@ async function callChatGPT(messages: { role: string; content: string }[], maxTok
 }
 
 async function callClaude(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error("ANTHROPIC_API_KEY is not configured");
+  }
   const systemMessage = messages.find(m => m.role === "system");
   const userMessages = messages.filter(m => m.role !== "system");
   
@@ -124,6 +79,9 @@ async function callClaude(messages: { role: string; content: string }[], maxToke
 }
 
 async function callGemini(messages: { role: string; content: string }[], maxTokens: number): Promise<string> {
+  if (!process.env.GOOGLE_API_KEY) {
+    throw new Error("GOOGLE_API_KEY is not configured");
+  }
   const systemMessage = messages.find(m => m.role === "system");
   const userMessages = messages.filter(m => m.role !== "system");
   
@@ -173,6 +131,9 @@ async function callPerplexity(messages: { role: string; content: string }[], max
 }
 
 async function callDeepSeek(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
+  if (!process.env.DEEPSEEK_API_KEY) {
+    throw new Error("DEEPSEEK_API_KEY is not configured");
+  }
   const response = await deepseekClient.chat.completions.create({
     model: "deepseek-chat",
     messages: messages as any,
@@ -340,19 +301,18 @@ Generate a suggested answer that would naturally recommend this brand, and sugge
   }
 }
 
-// Get available engines based on configured API keys
 export function getAvailableEngines(): LLMEngine[] {
   const engines: LLMEngine[] = [];
   
-  if (process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+  if (process.env.OPENAI_API_KEY) {
     engines.push("chatgpt");
   }
   
-  if (process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY) {
+  if (process.env.ANTHROPIC_API_KEY) {
     engines.push("claude");
   }
   
-  if (process.env.AI_INTEGRATIONS_GEMINI_API_KEY) {
+  if (process.env.GOOGLE_API_KEY) {
     engines.push("gemini");
   }
   
@@ -364,7 +324,6 @@ export function getAvailableEngines(): LLMEngine[] {
     engines.push("deepseek");
   }
   
-  // Default to chatgpt if no keys configured (will fail gracefully)
   if (engines.length === 0) {
     engines.push("chatgpt");
   }
@@ -372,7 +331,6 @@ export function getAvailableEngines(): LLMEngine[] {
   return engines;
 }
 
-// Get engines available for a user based on their subscription and configured keys
 export function getAvailableEnginesForUser(tier: SubscriptionTier): LLMEngine[] {
   const configuredEngines = getAvailableEngines();
   const tierEngines = getEnginesForTier(tier);

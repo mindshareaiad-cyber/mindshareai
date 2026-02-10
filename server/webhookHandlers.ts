@@ -1,4 +1,4 @@
-import { getStripeSync } from './stripeClient';
+import { getUncachableStripeClient } from './stripeClient';
 import { db } from './db';
 import { userProfiles } from '@shared/schema';
 import { eq } from 'drizzle-orm';
@@ -16,8 +16,41 @@ export class WebhookHandlers {
       );
     }
 
-    const sync = await getStripeSync();
-    await sync.processWebhook(payload, signature);
+    const stripe = await getUncachableStripeClient();
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      throw new Error('STRIPE_WEBHOOK_SECRET is required for webhook processing');
+    }
+
+    const event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+
+    switch (event.type) {
+      case 'customer.subscription.updated':
+      case 'customer.subscription.created': {
+        const subscription = event.data.object as any;
+        const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
+        const priceId = subscription.items?.data?.[0]?.price?.id;
+        await WebhookHandlers.handleSubscriptionUpdate(customerId, subscription.id, subscription.status, priceId);
+        break;
+      }
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as any;
+        const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
+        await WebhookHandlers.handleSubscriptionUpdate(customerId, subscription.id, 'canceled');
+        break;
+      }
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as any;
+        const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer.id;
+        const subscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
+        if (subscriptionId) {
+          await WebhookHandlers.handleSubscriptionUpdate(customerId, subscriptionId, 'past_due');
+        }
+        break;
+      }
+      default:
+        break;
+    }
   }
 
   static async handleSubscriptionUpdate(customerId: string, subscriptionId: string, status: string, priceId?: string) {
