@@ -5,6 +5,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import { getStripeSync } from './stripeClient';
 import { WebhookHandlers } from './webhookHandlers';
+import { pool } from './db';
 
 const app = express();
 const httpServer = createServer(app);
@@ -48,6 +49,118 @@ export function log(message: string, source = "express") {
     hour12: true,
   });
   console.log(`${formattedTime} [${source}] ${message}`);
+}
+
+async function initDatabase() {
+  if (!process.env.DATABASE_URL) {
+    console.warn('DATABASE_URL not set, skipping database initialization');
+    return;
+  }
+
+  try {
+    log('Checking database tables...', 'db');
+    const client = await pool.connect();
+    try {
+      const tableCheck = await client.query(
+        `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'user_profiles')`
+      );
+      if (!tableCheck.rows[0].exists) {
+        log('Creating database tables...', 'db');
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS user_profiles (
+            id VARCHAR PRIMARY KEY,
+            email TEXT NOT NULL,
+            first_name TEXT,
+            last_name TEXT,
+            company_name TEXT,
+            website_url TEXT,
+            industry TEXT,
+            company_size TEXT,
+            onboarding_completed BOOLEAN NOT NULL DEFAULT false,
+            stripe_customer_id TEXT,
+            stripe_subscription_id TEXT,
+            stripe_price_id TEXT,
+            subscription_status TEXT DEFAULT 'inactive',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE TABLE IF NOT EXISTS projects (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id VARCHAR REFERENCES user_profiles(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            brand_name TEXT NOT NULL,
+            brand_domain TEXT NOT NULL,
+            competitors TEXT[] NOT NULL DEFAULT ARRAY[]::text[],
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE TABLE IF NOT EXISTS prompt_sets (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            persona TEXT,
+            funnel_stage TEXT,
+            country TEXT,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE TABLE IF NOT EXISTS prompts (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            prompt_set_id VARCHAR NOT NULL REFERENCES prompt_sets(id) ON DELETE CASCADE,
+            text TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE TABLE IF NOT EXISTS scans (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            engines JSONB NOT NULL,
+            notes TEXT,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE TABLE IF NOT EXISTS scan_results (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            scan_id VARCHAR NOT NULL REFERENCES scans(id) ON DELETE CASCADE,
+            prompt_id VARCHAR NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
+            engine TEXT NOT NULL,
+            answer TEXT NOT NULL,
+            brand_score INTEGER NOT NULL DEFAULT 0,
+            competitor_scores JSONB NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE TABLE IF NOT EXISTS seo_readiness_assessments (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            overall_score INTEGER NOT NULL DEFAULT 0,
+            has_website BOOLEAN DEFAULT false,
+            has_meta_descriptions BOOLEAN DEFAULT false,
+            has_structured_headers BOOLEAN DEFAULT false,
+            has_blog_or_knowledge_base BOOLEAN DEFAULT false,
+            has_schema_markup BOOLEAN DEFAULT false,
+            has_faq_section BOOLEAN DEFAULT false,
+            has_contact_info BOOLEAN DEFAULT false,
+            has_social_profiles BOOLEAN DEFAULT false,
+            content_depth_score INTEGER DEFAULT 0,
+            technical_seo_score INTEGER DEFAULT 0,
+            recommendation_level TEXT DEFAULT 'not_ready',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
+        log('Database tables created successfully', 'db');
+      } else {
+        log('Database tables already exist', 'db');
+      }
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    throw error;
+  }
 }
 
 async function initStripe() {
@@ -99,6 +212,9 @@ async function initStripe() {
     console.error('Failed to initialize Stripe:', error);
   }
 }
+
+// Initialize database tables
+await initDatabase();
 
 // Initialize Stripe
 await initStripe();
