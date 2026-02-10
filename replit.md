@@ -172,17 +172,22 @@ Uses Resend via Replit integration for automated emails. All emails are fire-and
 - `server/email-service.ts` - HTML templates + send functions for each email type
 - Emails triggered from: `server/routes.ts` (welcome, subscription activated) and `server/webhookHandlers.ts` (plan change, cancellation, payment failed)
 
-## Railway Deployment
-The project includes Railway-specific configuration for external hosting:
-- `railway.json` - Build and deploy config using `script/build-external.ts`
+## External Deployment (Render / Railway)
+The project supports external hosting with platform-specific configs:
+- `render.yaml` - Render blueprint for one-click deploy
+- `railway.json` - Railway build and deploy config
 - `script/build-external.ts` - Build script without Replit-specific plugins
-- `Procfile` - Process definition for Railway
+- `Procfile` - Process definition fallback
 - All Replit-specific code (stripe-replit-sync, Replit connectors) is conditionally loaded and skipped outside Replit
-- Set `APP_URL` env var (e.g., `https://yourdomain.com`) for Stripe redirects and email links
 
-**Required Railway Environment Variables:**
+**Render Setup:**
+- Build Command: `npm install && npx tsx script/build-external.ts`
+- Start Command: `NODE_ENV=production node dist/index.mjs`
+- Health Check Path: `/api/plans`
+
+**Required Environment Variables (Render/Railway):**
 - `DATABASE_URL` - PostgreSQL connection string
-- `APP_URL` - Your app's public URL (e.g., https://app.mindshare-ai.com)
+- `APP_URL` - Your app's public URL (e.g., https://mindshare-ai.onrender.com)
 - `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` - Supabase auth
 - `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` - Stripe payments
 - `SESSION_SECRET` - Express session secret
