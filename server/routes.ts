@@ -148,9 +148,8 @@ export async function registerRoutes(
         await storage.updateUserProfile(userId, { stripeCustomerId: customerId });
       }
 
-      // Get the base URL
       const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
-      const baseUrl = domains.length > 0 ? `https://${domains[0]}` : 'http://localhost:5000';
+      const baseUrl = process.env.APP_URL || (domains.length > 0 ? `https://${domains[0]}` : 'http://localhost:5000');
 
       // Create checkout session
       const session = await stripe.checkout.sessions.create({
@@ -238,7 +237,7 @@ export async function registerRoutes(
       }
 
       const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
-      const baseUrl = domains.length > 0 ? `https://${domains[0]}` : 'http://localhost:5000';
+      const baseUrl = process.env.APP_URL || (domains.length > 0 ? `https://${domains[0]}` : 'http://localhost:5000');
 
       const session = await stripe.billingPortal.sessions.create({
         customer: profile.stripeCustomerId,

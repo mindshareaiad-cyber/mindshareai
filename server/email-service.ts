@@ -54,6 +54,7 @@ function baseLayout(content: string, preheader: string = '') {
 }
 
 function getAppUrl(): string {
+  if (process.env.APP_URL) return process.env.APP_URL;
   const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
   return domains.length > 0 ? `https://${domains[0]}` : 'http://localhost:5000';
 }

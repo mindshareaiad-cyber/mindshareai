@@ -172,6 +172,26 @@ Uses Resend via Replit integration for automated emails. All emails are fire-and
 - `server/email-service.ts` - HTML templates + send functions for each email type
 - Emails triggered from: `server/routes.ts` (welcome, subscription activated) and `server/webhookHandlers.ts` (plan change, cancellation, payment failed)
 
+## Railway Deployment
+The project includes Railway-specific configuration for external hosting:
+- `railway.json` - Build and deploy config using `script/build-external.ts`
+- `script/build-external.ts` - Build script without Replit-specific plugins
+- `Procfile` - Process definition for Railway
+- All Replit-specific code (stripe-replit-sync, Replit connectors) is conditionally loaded and skipped outside Replit
+- Set `APP_URL` env var (e.g., `https://yourdomain.com`) for Stripe redirects and email links
+
+**Required Railway Environment Variables:**
+- `DATABASE_URL` - PostgreSQL connection string
+- `APP_URL` - Your app's public URL (e.g., https://app.mindshare-ai.com)
+- `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` - Supabase auth
+- `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` - Stripe payments
+- `SESSION_SECRET` - Express session secret
+- `OPENAI_API_KEY` - ChatGPT engine
+- `ANTHROPIC_API_KEY` - Claude engine
+- `GOOGLE_API_KEY` - Gemini engine
+- `PERPLEXITY_API_KEY` / `DEEPSEEK_API_KEY` - Additional engines
+- `RESEND_API_KEY` / `RESEND_FROM_EMAIL` - Transactional emails
+
 ## Running the App
 The app runs on port 5000 with `npm run dev`. The frontend is served via Vite with Express backend.
 

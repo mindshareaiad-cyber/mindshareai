@@ -3,7 +3,6 @@ import helmet from "helmet";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { runMigrations } from 'stripe-replit-sync';
 import { getStripeSync } from './stripeClient';
 import { WebhookHandlers } from './webhookHandlers';
 
@@ -58,37 +57,44 @@ async function initStripe() {
     return;
   }
 
+  const isReplit = !!process.env.REPL_ID;
+
   try {
-    log('Initializing Stripe schema...', 'stripe');
-    await runMigrations({ databaseUrl });
-    log('Stripe schema ready', 'stripe');
+    if (isReplit) {
+      const { runMigrations } = await import('stripe-replit-sync');
+      log('Initializing Stripe schema...', 'stripe');
+      await runMigrations({ databaseUrl });
+      log('Stripe schema ready', 'stripe');
 
-    const stripeSync = await getStripeSync();
+      const stripeSync = await getStripeSync();
 
-    log('Setting up managed webhook...', 'stripe');
-    const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
-    if (domains.length > 0 && domains[0]) {
-      try {
-        const webhookBaseUrl = `https://${domains[0]}`;
-        const result = await stripeSync.findOrCreateManagedWebhook(
-          `${webhookBaseUrl}/api/stripe/webhook`
-        );
-        if (result?.webhook?.url) {
-          log(`Webhook configured: ${result.webhook.url}`, 'stripe');
-        } else {
-          log('Webhook endpoint registered', 'stripe');
+      log('Setting up managed webhook...', 'stripe');
+      const domains = process.env.REPLIT_DOMAINS?.split(',') || [];
+      if (domains.length > 0 && domains[0]) {
+        try {
+          const webhookBaseUrl = `https://${domains[0]}`;
+          const result = await stripeSync.findOrCreateManagedWebhook(
+            `${webhookBaseUrl}/api/stripe/webhook`
+          );
+          if (result?.webhook?.url) {
+            log(`Webhook configured: ${result.webhook.url}`, 'stripe');
+          } else {
+            log('Webhook endpoint registered', 'stripe');
+          }
+        } catch (webhookError) {
+          log('Webhook setup skipped (may work via dashboard)', 'stripe');
         }
-      } catch (webhookError) {
-        log('Webhook setup skipped (may work via dashboard)', 'stripe');
+      } else {
+        log('No domains configured, webhook setup skipped', 'stripe');
       }
-    } else {
-      log('No domains configured, webhook setup skipped', 'stripe');
-    }
 
-    log('Syncing Stripe data...', 'stripe');
-    stripeSync.syncBackfill()
-      .then(() => log('Stripe data synced', 'stripe'))
-      .catch((err: any) => console.error('Error syncing Stripe data:', err));
+      log('Syncing Stripe data...', 'stripe');
+      stripeSync.syncBackfill()
+        .then(() => log('Stripe data synced', 'stripe'))
+        .catch((err: any) => console.error('Error syncing Stripe data:', err));
+    } else {
+      log('Running outside Replit - Stripe webhook should be configured via Stripe Dashboard', 'stripe');
+    }
   } catch (error) {
     console.error('Failed to initialize Stripe:', error);
   }
