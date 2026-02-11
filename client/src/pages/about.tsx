@@ -132,8 +132,8 @@ export default function AboutPage() {
                 Get Started Free
               </Button>
             </Link>
-            <Link href="/resources">
-              <Button size="lg" variant="outline" data-testid="button-about-resources">
+            <Link href="/blog">
+              <Button size="lg" variant="outline" data-testid="button-about-blog">
                 Learn More
               </Button>
             </Link>

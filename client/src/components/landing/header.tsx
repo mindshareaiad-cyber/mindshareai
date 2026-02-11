@@ -27,9 +27,6 @@ export function Header() {
             <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-pricing">
               Pricing
             </Link>
-            <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-resources">
-              Resources
-            </Link>
             <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-blog">
               Blog
             </Link>
@@ -73,9 +70,6 @@ export function Header() {
               </Link>
               <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-pricing">
                 Pricing
-              </Link>
-              <Link href="/resources" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-resources">
-                Resources
               </Link>
               <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-contact">
                 Contact
