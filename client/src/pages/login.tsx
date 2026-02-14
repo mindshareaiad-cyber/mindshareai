@@ -78,7 +78,9 @@ export default function LoginPage() {
       });
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    });
     if (error) {
       toast({
         title: "Error",

@@ -22,6 +22,7 @@ import BlogPostPage from "@/pages/blog-post";
 import ContactPage from "@/pages/contact";
 import AuthCallbackPage from "@/pages/auth-callback";
 import VerifyEmailPage from "@/pages/verify-email";
+import ResetPasswordPage from "@/pages/reset-password";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -164,6 +165,7 @@ function Router() {
       <Route path="/contact" component={ContactPage} />
       <Route path="/auth/callback" component={AuthCallbackPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={SignUpPage} />
       <Route path="/onboarding">

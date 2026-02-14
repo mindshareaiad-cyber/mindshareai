@@ -39,8 +39,8 @@ export default function AuthCallbackPage() {
           } else if (type === "recovery") {
             setStatus("success");
             setMessage("Identity verified!");
-            setSubtitle("Redirecting you to reset your password...");
-            setTimeout(() => setLocation("/dashboard"), 2000);
+            setSubtitle("Redirecting you to set a new password...");
+            setTimeout(() => setLocation("/reset-password"), 1500);
           } else {
             const { data: { user: currentUser } } = await supabase.auth.getUser();
             if (currentUser && !currentUser.email_confirmed_at) {
