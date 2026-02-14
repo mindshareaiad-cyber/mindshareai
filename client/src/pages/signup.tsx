@@ -61,17 +61,9 @@ export default function SignUpPage() {
         variant: "destructive",
       });
     } else if (session) {
-      toast({
-        title: "Account created!",
-        description: "Let's set up your business profile.",
-      });
-      setLocation("/onboarding");
+      setLocation("/verify-email");
     } else {
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account, then sign in.",
-      });
-      setLocation("/login");
+      setLocation("/verify-email");
     }
   };
 

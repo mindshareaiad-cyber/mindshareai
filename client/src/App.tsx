@@ -21,6 +21,7 @@ import BlogPage from "@/pages/blog";
 import BlogPostPage from "@/pages/blog-post";
 import ContactPage from "@/pages/contact";
 import AuthCallbackPage from "@/pages/auth-callback";
+import VerifyEmailPage from "@/pages/verify-email";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -45,14 +46,17 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
       return;
     }
 
+    if (user && !user.email_confirmed_at) {
+      setLocation("/verify-email");
+      return;
+    }
+
     if (user && !subscriptionLoading && subscriptionData) {
-      // If onboarding not completed, redirect to onboarding
       if (!subscriptionData.onboardingCompleted) {
         setLocation("/onboarding");
         return;
       }
       
-      // If no active subscription, redirect to payment
       if (!subscriptionData.hasActiveSubscription) {
         setLocation("/payment");
         return;
@@ -87,6 +91,11 @@ function OnboardingRoute({ component: Component }: { component: React.ComponentT
   useEffect(() => {
     if (!loading && !user) {
       setLocation("/login");
+      return;
+    }
+    if (user && !user.email_confirmed_at) {
+      setLocation("/verify-email");
+      return;
     }
   }, [user, loading, setLocation]);
 
@@ -154,6 +163,7 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPostPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/auth/callback" component={AuthCallbackPage} />
+      <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/signup" component={SignUpPage} />
       <Route path="/onboarding">

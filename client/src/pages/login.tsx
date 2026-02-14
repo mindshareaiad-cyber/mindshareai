@@ -47,11 +47,12 @@ export default function LoginPage() {
         variant: "destructive",
       });
     } else {
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in.",
-      });
-      setLocation("/dashboard");
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      if (freshUser && !freshUser.email_confirmed_at) {
+        setLocation("/verify-email");
+      } else {
+        setLocation("/dashboard");
+      }
     }
   };
 

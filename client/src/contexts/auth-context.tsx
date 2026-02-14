@@ -75,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           last_name: metadata?.lastName,
           company_name: metadata?.companyName,
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
     return { error, session: data?.session ?? null };
