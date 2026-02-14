@@ -11,13 +11,23 @@ import { getPlan, getPlanByPriceId, canCreateProject, canAddPrompts, canRunScan,
 import { sendWelcomeEmail, sendSubscriptionActivatedEmail } from "./email-service";
 import { requireAuth, requireOwnership } from "./auth-middleware";
 
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'mindshareai@gmail.com').split(',').map(e => e.trim().toLowerCase());
+
+function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
 function sanitizeProfile(profile: any) {
   if (!profile) return profile;
   const { stripeCustomerId, stripeSubscriptionId, stripePriceId, ...safe } = profile;
   return safe;
 }
 
-function getUserPlanId(subscriptionStatus: string | null | undefined, stripePriceId?: string | null): PlanId {
+function getUserPlanId(subscriptionStatus: string | null | undefined, stripePriceId?: string | null, email?: string | null): PlanId {
+  if (isAdminEmail(email)) {
+    return 'pro';
+  }
   if (!subscriptionStatus || subscriptionStatus !== 'active') {
     return 'starter';
   }
@@ -213,6 +223,14 @@ export async function registerRoutes(
         return res.json({ hasActiveSubscription: false });
       }
 
+      if (isAdminEmail(profile.email)) {
+        return res.json({
+          hasActiveSubscription: true,
+          subscriptionStatus: 'active',
+          onboardingCompleted: profile.onboardingCompleted,
+        });
+      }
+
       const hasActiveSubscription = profile.subscriptionStatus === 'active';
       res.json({
         hasActiveSubscription,
@@ -285,7 +303,7 @@ export async function registerRoutes(
       const userId = parsed.data.userId;
       if (userId) {
         const profile = await storage.getUserProfile(userId);
-        const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId);
+        const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
         const projectCount = await storage.countProjectsByUser(userId);
         
         if (!canCreateProject(planId, projectCount)) {
@@ -387,7 +405,7 @@ export async function registerRoutes(
       // Enforce prompt limit based on user's plan
       if (userId) {
         const profile = await storage.getUserProfile(userId);
-        const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId);
+        const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
         const promptCount = await storage.countPromptsByUser(userId);
         
         if (!canAddPrompts(planId, promptCount, 1)) {
@@ -423,7 +441,7 @@ export async function registerRoutes(
   app.get("/api/plans/:userId", requireAuth, requireOwnership("userId"), async (req, res) => {
     try {
       const profile = await storage.getUserProfile(req.params.userId);
-      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
       const plan = getPlan(planId);
       
       // Get current usage
@@ -478,7 +496,7 @@ export async function registerRoutes(
   app.get("/api/engines/:userId", requireAuth, requireOwnership("userId"), async (req, res) => {
     try {
       const profile = await storage.getUserProfile(req.params.userId);
-      const tier = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId) as SubscriptionTier;
+      const tier = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email) as SubscriptionTier;
       const allTierEngines = getEnginesForTier(tier);
       const availableEngines = getAvailableEnginesForUser(tier);
       
@@ -522,7 +540,7 @@ export async function registerRoutes(
       
       if (effectiveUserId) {
         const profile = await storage.getUserProfile(effectiveUserId);
-        planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId);
+        planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
         
         // Check scan limit
         const scansThisMonth = await storage.countScansThisMonth(effectiveUserId);
