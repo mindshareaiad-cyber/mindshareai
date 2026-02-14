@@ -93,6 +93,10 @@ export function getPlan(planId: PlanId): PlanConfig {
 export function getPlanByPriceId(stripePriceId: string | null): PlanId {
   if (!stripePriceId) return "starter";
   
+  if (stripePriceId === process.env.STRIPE_PRO_PRICE_ID) return "pro";
+  if (stripePriceId === process.env.STRIPE_GROWTH_PRICE_ID) return "growth";
+  if (stripePriceId === process.env.STRIPE_STARTER_PRICE_ID) return "starter";
+
   const priceIdLower = stripePriceId.toLowerCase();
   if (priceIdLower.includes("pro") || priceIdLower.includes("199")) {
     return "pro";

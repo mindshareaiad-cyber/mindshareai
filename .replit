@@ -44,4 +44,6 @@ integrations = ["javascript_openai_ai_integrations:2.0.0", "stripe:2.0.0", "java
 [userenv]
 
 [userenv.shared]
-STRIPE_STARTER_PRICE_ID = "price_1SqzGDB7Z6HEJr4F7lSh2lcU"
+STRIPE_STARTER_PRICE_ID = "price_1StWaEBnmZBOqR9J6Y8wISiS"
+STRIPE_GROWTH_PRICE_ID = "price_1StWaXBnmZBOqR9Jbg92c6UA"
+STRIPE_PRO_PRICE_ID = "price_1StWakBnmZBOqR9JhCksKxO8"

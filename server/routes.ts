@@ -32,8 +32,16 @@ function getUserPlanId(subscriptionStatus: string | null | undefined, stripePric
     return 'starter';
   }
   
-  // Check price ID for tier determination
   if (stripePriceId) {
+    if (stripePriceId === process.env.STRIPE_PRO_PRICE_ID) {
+      return "pro";
+    }
+    if (stripePriceId === process.env.STRIPE_GROWTH_PRICE_ID) {
+      return "growth";
+    }
+    if (stripePriceId === process.env.STRIPE_STARTER_PRICE_ID) {
+      return "starter";
+    }
     const priceLower = stripePriceId.toLowerCase();
     if (priceLower.includes("pro") || priceLower.includes("199")) {
       return "pro";
@@ -43,7 +51,6 @@ function getUserPlanId(subscriptionStatus: string | null | undefined, stripePric
     }
   }
   
-  // Default active subscribers to starter unless higher tier detected
   return 'starter';
 }
 
