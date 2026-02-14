@@ -39,6 +39,16 @@ export class WebhookHandlers {
         await WebhookHandlers.handleSubscriptionUpdate(customerId, subscription.id, 'canceled');
         break;
       }
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as any;
+        const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer.id;
+        const subscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id;
+        if (subscriptionId) {
+          const priceId = invoice.lines?.data?.[0]?.price?.id;
+          await WebhookHandlers.handleSubscriptionUpdate(customerId, subscriptionId, 'active', priceId);
+        }
+        break;
+      }
       case 'invoice.payment_failed': {
         const invoice = event.data.object as any;
         const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer.id;
