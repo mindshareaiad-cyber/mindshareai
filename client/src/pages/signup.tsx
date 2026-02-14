@@ -48,7 +48,7 @@ export default function SignUpPage() {
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (data: SignupFormData) => {
-    const { error } = await signUp(data.email, data.password, {
+    const { error, session } = await signUp(data.email, data.password, {
       firstName: data.firstName,
       lastName: data.lastName,
       companyName: data.companyName,
@@ -60,10 +60,16 @@ export default function SignUpPage() {
         description: error.message,
         variant: "destructive",
       });
+    } else if (session) {
+      toast({
+        title: "Account created!",
+        description: "Let's set up your business profile.",
+      });
+      setLocation("/onboarding");
     } else {
       toast({
         title: "Account created!",
-        description: "Please check your email to verify your account.",
+        description: "Please check your email to verify your account, then sign in.",
       });
       setLocation("/login");
     }
