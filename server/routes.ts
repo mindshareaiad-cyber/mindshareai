@@ -129,6 +129,14 @@ export async function registerRoutes(
 
   // ============= Stripe Endpoints =============
 
+  app.get("/api/stripe/price-ids", async (req, res) => {
+    res.json({
+      starter: process.env.STRIPE_STARTER_PRICE_ID || null,
+      growth: process.env.STRIPE_GROWTH_PRICE_ID || null,
+      pro: process.env.STRIPE_PRO_PRICE_ID || null,
+    });
+  });
+
   // Get Stripe publishable key
   app.get("/api/stripe/publishable-key", async (req, res) => {
     try {
