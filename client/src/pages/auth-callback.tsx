@@ -48,11 +48,54 @@ export default function AuthCallbackPage() {
               setMessage("Please verify your email");
               setSubtitle("Redirecting...");
               setTimeout(() => setLocation("/verify-email"), 1500);
+            } else if (currentUser) {
+              try {
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
+                const headers: Record<string, string> = { "Content-Type": "application/json" };
+                if (currentSession?.access_token) {
+                  headers["Authorization"] = `Bearer ${currentSession.access_token}`;
+                }
+                const metadata = currentUser.user_metadata || {};
+                await fetch("/api/user-profile", {
+                  method: "POST",
+                  headers,
+                  body: JSON.stringify({
+                    id: currentUser.id,
+                    email: currentUser.email,
+                    firstName: metadata.first_name || metadata.given_name || null,
+                    lastName: metadata.last_name || metadata.family_name || null,
+                    companyName: metadata.company_name || null,
+                  }),
+                });
+
+                const subRes = await fetch(`/api/stripe/subscription/${currentUser.id}`, { headers });
+                const subData = await subRes.json();
+
+                setStatus("success");
+                if (!subData.onboardingCompleted) {
+                  setMessage("Welcome!");
+                  setSubtitle("Redirecting to get you set up...");
+                  setTimeout(() => setLocation("/onboarding"), 1500);
+                } else if (!subData.hasActiveSubscription) {
+                  setMessage("Welcome back!");
+                  setSubtitle("Redirecting...");
+                  setTimeout(() => setLocation("/payment"), 1500);
+                } else {
+                  setMessage("Signed in!");
+                  setSubtitle("Redirecting...");
+                  setTimeout(() => setLocation("/dashboard"), 1500);
+                }
+              } catch (err) {
+                console.error("Profile setup error:", err);
+                setStatus("success");
+                setMessage("Signed in!");
+                setSubtitle("Redirecting...");
+                setTimeout(() => setLocation("/onboarding"), 1500);
+              }
             } else {
-              setStatus("success");
-              setMessage("Signed in!");
-              setSubtitle("Redirecting...");
-              setTimeout(() => setLocation("/dashboard"), 1500);
+              setStatus("error");
+              setMessage("Something went wrong");
+              setSubtitle("Please try signing in again.");
             }
           }
         } else {
@@ -61,6 +104,38 @@ export default function AuthCallbackPage() {
             const { data: { user: currentUser } } = await supabase.auth.getUser();
             if (currentUser && !currentUser.email_confirmed_at) {
               setLocation("/verify-email");
+            } else if (currentUser) {
+              try {
+                const headers: Record<string, string> = { "Content-Type": "application/json" };
+                if (session.access_token) {
+                  headers["Authorization"] = `Bearer ${session.access_token}`;
+                }
+                const metadata = currentUser.user_metadata || {};
+                await fetch("/api/user-profile", {
+                  method: "POST",
+                  headers,
+                  body: JSON.stringify({
+                    id: currentUser.id,
+                    email: currentUser.email,
+                    firstName: metadata.first_name || metadata.given_name || null,
+                    lastName: metadata.last_name || metadata.family_name || null,
+                    companyName: metadata.company_name || null,
+                  }),
+                });
+
+                const subRes = await fetch(`/api/stripe/subscription/${currentUser.id}`, { headers });
+                const subData = await subRes.json();
+
+                if (!subData.onboardingCompleted) {
+                  setLocation("/onboarding");
+                } else if (!subData.hasActiveSubscription) {
+                  setLocation("/payment");
+                } else {
+                  setLocation("/dashboard");
+                }
+              } catch {
+                setLocation("/onboarding");
+              }
             } else {
               setLocation("/dashboard");
             }
