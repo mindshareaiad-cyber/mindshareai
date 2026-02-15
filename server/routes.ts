@@ -187,10 +187,14 @@ export async function registerRoutes(
 
       res.json({ url: session.url });
     } catch (error: any) {
-      console.error("Error creating checkout session:", error?.message || error);
-      const message = error?.type === 'StripeInvalidRequestError' 
-        ? error.message 
-        : "Failed to create checkout session";
+      console.error("Error creating checkout session:", JSON.stringify({
+        message: error?.message,
+        type: error?.type,
+        code: error?.code,
+        statusCode: error?.statusCode,
+        raw: error?.raw?.message,
+      }));
+      const message = error?.message || "Failed to create checkout session";
       res.status(500).json({ error: message });
     }
   });
