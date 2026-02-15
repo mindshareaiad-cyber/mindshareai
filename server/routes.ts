@@ -173,9 +173,8 @@ export async function registerRoutes(
         await storage.updateUserProfile(userId, { stripeCustomerId: customerId });
       }
 
-      const baseUrl = process.env.APP_URL || 'http://localhost:5000';
+      const baseUrl = (process.env.APP_URL || 'http://localhost:5000').replace(/\/+$/, '');
 
-      // Create checkout session
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
         payment_method_types: ['card'],
