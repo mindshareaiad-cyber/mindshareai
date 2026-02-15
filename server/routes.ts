@@ -186,9 +186,12 @@ export async function registerRoutes(
       });
 
       res.json({ url: session.url });
-    } catch (error) {
-      console.error("Error creating checkout session:", error);
-      res.status(500).json({ error: "Failed to create checkout session" });
+    } catch (error: any) {
+      console.error("Error creating checkout session:", error?.message || error);
+      const message = error?.type === 'StripeInvalidRequestError' 
+        ? error.message 
+        : "Failed to create checkout session";
+      res.status(500).json({ error: message });
     }
   });
 

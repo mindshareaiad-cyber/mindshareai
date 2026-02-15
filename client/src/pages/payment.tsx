@@ -108,11 +108,18 @@ export default function PaymentPage() {
       } else {
         throw new Error("No checkout URL received");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating checkout:", error);
+      let description = "Failed to start checkout. Please try again.";
+      try {
+        if (error?.message) {
+          const parsed = JSON.parse(error.message.replace(/^[0-9]+:\s*/, ''));
+          if (parsed?.error) description = parsed.error;
+        }
+      } catch {}
       toast({
-        title: "Error",
-        description: "Failed to start checkout. Please try again.",
+        title: "Checkout Error",
+        description,
         variant: "destructive",
       });
       setLoadingPlan(null);
