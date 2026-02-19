@@ -1036,5 +1036,50 @@ export async function registerRoutes(
     }
   });
 
+  // ============= Sitemap & Robots =============
+
+  app.get("/sitemap.xml", (_req, res) => {
+    const baseUrl = (process.env.APP_URL || "https://mindshare-ai.com").replace(/\/$/, "");
+    const pages = [
+      { loc: "/", priority: "1.0", changefreq: "weekly" },
+      { loc: "/features", priority: "0.8", changefreq: "monthly" },
+      { loc: "/pricing", priority: "0.8", changefreq: "monthly" },
+      { loc: "/about", priority: "0.6", changefreq: "monthly" },
+      { loc: "/blog", priority: "0.7", changefreq: "weekly" },
+      { loc: "/contact", priority: "0.5", changefreq: "monthly" },
+      { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
+      { loc: "/terms", priority: "0.3", changefreq: "yearly" },
+    ];
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pages.map(p => `  <url>
+    <loc>${baseUrl}${p.loc}</loc>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`).join("\n")}
+</urlset>`;
+
+    res.set("Content-Type", "application/xml");
+    res.send(xml);
+  });
+
+  app.get("/robots.txt", (_req, res) => {
+    const baseUrl = (process.env.APP_URL || "https://mindshare-ai.com").replace(/\/$/, "");
+    res.set("Content-Type", "text/plain");
+    res.send(`User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /onboarding
+Disallow: /payment
+Disallow: /auth/
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /api/
+
+Sitemap: ${baseUrl}/sitemap.xml
+`);
+  });
+
   return httpServer;
 }
