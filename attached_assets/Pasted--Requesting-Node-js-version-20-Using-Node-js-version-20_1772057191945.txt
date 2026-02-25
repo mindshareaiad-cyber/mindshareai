@@ -1,0 +1,80 @@
+==> Requesting Node.js version 20
+==> Using Node.js version 20.20.0 via environment variable NODE_VERSION
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install && npx tsx script/build-external.ts'...
+up to date, audited 583 packages in 2s
+98 packages are looking for funding
+  run `npm fund` for details
+7 vulnerabilities (1 low, 1 moderate, 5 high)
+To address all issues, run:
+  npm audit fix
+Run `npm audit` for details.
+building client...
+vite v7.3.0 building client environment for production...
+transforming...
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 1817 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                   2.61 kB │ gzip:   1.02 kB
+../dist/public/assets/index-DRV9KUaA.css   96.54 kB │ gzip:  15.25 kB
+../dist/public/assets/index-DK27HULH.js   837.14 kB │ gzip: 236.82 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 6.09s
+building server...
+▲ [WARNING] Duplicate member "getStripeProduct" in class body [duplicate-class-member]
+    server/storage.ts:429:8:
+      429 │   async getStripeProduct(productId: string): Promise<any> {
+          ╵         ~~~~~~~~~~~~~~~~
+  The original member "getStripeProduct" is here:
+    server/storage.ts:150:8:
+      150 │   async getStripeProduct(productId: string): Promise<any> {
+          ╵         ~~~~~~~~~~~~~~~~
+▲ [WARNING] Duplicate member "listStripeProducts" in class body [duplicate-class-member]
+    server/storage.ts:433:8:
+      433 │   async listStripeProducts(): Promise<any[]> {
+          ╵         ~~~~~~~~~~~~~~~~~~
+  The original member "listStripeProducts" is here:
+    server/storage.ts:161:8:
+      161 │   async listStripeProducts(): Promise<any[]> {
+          ╵         ~~~~~~~~~~~~~~~~~~
+▲ [WARNING] Duplicate member "getStripeSubscription" in class body [duplicate-class-member]
+    server/storage.ts:437:8:
+      437 │   async getStripeSubscription(subscriptionId: string): Promise<an...
+          ╵         ~~~~~~~~~~~~~~~~~~~~~
+  The original member "getStripeSubscription" is here:
+    server/storage.ts:175:8:
+      175 │   async getStripeSubscription(subscriptionId: string): Promise<an...
+          ╵         ~~~~~~~~~~~~~~~~~~~~~
+3 warnings
+  dist/index.mjs  2.3mb ⚠️
+⚡ Done in 468ms
+build complete!
+==> Uploading build...
+==> Uploaded in 5.1s. Compression took 4.4s
+==> Build successful 🎉
+==> Deploying...
+==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+==> Running 'NODE_ENV=production node dist/index.mjs'
+[AI Engines] Configuration: {
+  openai: 'Configured',
+  anthropic: 'Configured',
+  gemini: 'Configured',
+  perplexity: 'Configured',
+Menu
+  deepseek: 'Configured'
+}
+10:04:46 PM [db] Checking database tables...
+10:04:46 PM [db] Database tables already exist
+10:04:46 PM [stripe] Stripe webhook configured - set STRIPE_WEBHOOK_SECRET and configure webhook URL in Stripe Dashboard
+10:04:46 PM [express] serving on port 10000
+==> Your service is live 🎉
+==> 
+==> ///////////////////////////////////////////////////////////
+==> 
+==> Available at your primary URL https://mindshare-ai.com + 2 more domains
+==> 
+==> ///////////////////////////////////////////////////////////
