@@ -25,7 +25,6 @@ const ENGINE_DISPLAY: Record<string, { label: string; color: string }> = {
   claude: { label: "Claude", color: "bg-orange-500/10 text-orange-600" },
   gemini: { label: "Gemini", color: "bg-blue-500/10 text-blue-600" },
   perplexity: { label: "Perplexity", color: "bg-purple-500/10 text-purple-600" },
-  deepseek: { label: "DeepSeek", color: "bg-cyan-500/10 text-cyan-600" },
 };
 
 const SCORING_CRITERIA = [

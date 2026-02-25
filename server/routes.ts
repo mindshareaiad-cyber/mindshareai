@@ -539,7 +539,7 @@ export async function registerRoutes(
     try {
       const scanInputSchema = z.object({
         userId: z.string().optional(),
-        engines: z.array(z.enum(["chatgpt", "claude", "gemini", "perplexity", "deepseek"])).optional(),
+        engines: z.array(z.enum(["chatgpt", "claude", "gemini", "perplexity"])).optional(),
         multiEngine: z.boolean().default(false),
         notes: z.string().optional(), // User annotation: "site update", "launch", "PR", etc.
       });

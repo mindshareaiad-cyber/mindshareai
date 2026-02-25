@@ -67,13 +67,12 @@ const features = [
     icon: Bot,
     title: "Multi-Engine Support",
     description:
-      "Test your visibility across all major AI assistants including ChatGPT, Claude, Gemini, Perplexity, and DeepSeek.",
+      "Test your visibility across all major AI assistants including ChatGPT, Claude, Gemini, and Perplexity.",
     details: [
       "ChatGPT (GPT-4o-mini)",
       "Claude (Sonnet 4.5)",
       "Gemini (2.5 Flash)",
       "Perplexity (Llama Sonar)",
-      "DeepSeek Chat",
     ],
   },
   {

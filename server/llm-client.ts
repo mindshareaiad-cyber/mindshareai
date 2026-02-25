@@ -2,11 +2,6 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 
-const deepseekClient = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY || "sk-placeholder",
-  baseURL: "https://api.deepseek.com",
-});
-
 const openaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "sk-placeholder",
 });
@@ -24,16 +19,15 @@ console.log("[AI Engines] Configuration:", {
   anthropic: process.env.ANTHROPIC_API_KEY ? "Configured" : "Not configured",
   gemini: process.env.GOOGLE_API_KEY ? "Configured" : "Not configured",
   perplexity: process.env.PERPLEXITY_API_KEY ? "Configured" : "Not configured",
-  deepseek: process.env.DEEPSEEK_API_KEY ? "Configured" : "Not configured",
 });
 
-export type LLMEngine = "chatgpt" | "claude" | "gemini" | "perplexity" | "deepseek";
+export type LLMEngine = "chatgpt" | "claude" | "gemini" | "perplexity";
 export type SubscriptionTier = "starter" | "growth" | "pro";
 
 const ENGINE_TIERS: Record<SubscriptionTier, LLMEngine[]> = {
   starter: ["chatgpt"],
   growth: ["chatgpt", "claude", "gemini"],
-  pro: ["chatgpt", "claude", "gemini", "perplexity", "deepseek"],
+  pro: ["chatgpt", "claude", "gemini", "perplexity"],
 };
 
 export function getEnginesForTier(tier: SubscriptionTier): LLMEngine[] {
@@ -130,19 +124,6 @@ async function callPerplexity(messages: { role: string; content: string }[], max
   return data.choices?.[0]?.message?.content?.trim() || "";
 }
 
-async function callDeepSeek(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
-  if (!process.env.DEEPSEEK_API_KEY) {
-    throw new Error("DEEPSEEK_API_KEY is not configured");
-  }
-  const response = await deepseekClient.chat.completions.create({
-    model: "deepseek-chat",
-    messages: messages as any,
-    max_tokens: maxTokens,
-    temperature,
-  });
-  return response.choices[0]?.message?.content?.trim() || "";
-}
-
 async function callEngine(
   engine: LLMEngine,
   messages: { role: string; content: string }[],
@@ -158,8 +139,6 @@ async function callEngine(
       return callGemini(messages, maxTokens);
     case "perplexity":
       return callPerplexity(messages, maxTokens, temperature);
-    case "deepseek":
-      return callDeepSeek(messages, maxTokens, temperature);
     default:
       throw new Error(`Unknown engine: ${engine}`);
   }
@@ -318,10 +297,6 @@ export function getAvailableEngines(): LLMEngine[] {
   
   if (process.env.PERPLEXITY_API_KEY) {
     engines.push("perplexity");
-  }
-  
-  if (process.env.DEEPSEEK_API_KEY) {
-    engines.push("deepseek");
   }
   
   if (engines.length === 0) {

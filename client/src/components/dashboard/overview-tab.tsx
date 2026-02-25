@@ -374,7 +374,7 @@ export function OverviewTab({
         <MetricCard
           title="Engines Tested"
           value={engineCount}
-          subtitle="ChatGPT, DeepSeek"
+          subtitle="AI engines used"
           icon={Cpu}
         />
         <MetricCard

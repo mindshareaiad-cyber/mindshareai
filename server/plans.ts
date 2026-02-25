@@ -23,7 +23,7 @@ export interface PlanConfig {
 export const ENGINE_TIERS = {
   primary: "chatgpt",
   secondary: "gemini",
-  all: ["chatgpt", "gemini", "claude", "perplexity", "deepseek"],
+  all: ["chatgpt", "gemini", "claude", "perplexity"],
 } as const;
 
 export const PLANS: Record<PlanId, PlanConfig> = {
@@ -71,7 +71,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     priceMonthly: 199,
     maxProjects: 50,
     maxPrompts: 1000,
-    maxEngines: 5,
+    maxEngines: 4,
     allowedEngines: [...ENGINE_TIERS.all],
     maxScansPerMonth: 500,
     features: {

@@ -8,7 +8,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
 - **Styling**: Tailwind CSS + shadcn/ui components
 - **Backend**: Express.js + TypeScript
 - **Database**: PostgreSQL (Render)
-- **AI**: OpenAI, Anthropic, Google Gemini, Perplexity, DeepSeek (direct API keys)
+- **AI**: OpenAI, Anthropic, Google Gemini, Perplexity (direct API keys)
 - **Auth**: Supabase Authentication with custom login/signup pages
 - **Email**: Resend for transactional emails
 - **Payments**: Stripe (webhooks via Stripe Dashboard)
@@ -22,7 +22,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
    - **Results** - View scan results after running AI visibility scans
    - **Gap Analysis** - Identify where competitors are mentioned but you're not
    - **AEO Suggestions** - AI-generated recommendations for content improvement
-3. **AI Visibility Scans** - Run prompts through 5 AI engines, score brand visibility (0-2)
+3. **AI Visibility Scans** - Run prompts through 4 AI engines, score brand visibility (0-2)
 4. **Competitor Share of Voice** - Compare your visibility against competitors
 5. **Prompt-Level Performance** - Per-prompt table with filters (Gaps, Winning, Mentioned, Invisible)
 
@@ -49,7 +49,7 @@ server/
 ├── routes.ts          # API endpoints
 ├── storage.ts         # PostgreSQL data storage via Drizzle ORM
 ├── db.ts              # Database connection pool
-├── llm-client.ts      # Multi-engine AI client (OpenAI, Anthropic, Gemini, Perplexity, DeepSeek)
+├── llm-client.ts      # Multi-engine AI client (OpenAI, Anthropic, Gemini, Perplexity)
 ├── email-service.ts   # Transactional email templates and send functions
 ├── resend-client.ts   # Resend client (direct API key)
 ├── stripeClient.ts    # Stripe client (direct API key)
@@ -92,7 +92,7 @@ All user-specific endpoints require a valid Supabase JWT token in the `Authoriza
 ## Subscription Plans (with Backend Enforcement)
 - **Starter ($29/mo)**: 1 project, 50 prompts, 1 engine (ChatGPT), 10 scans/month
 - **Growth ($79/mo)**: 5 projects, 200 prompts, 2 engines (ChatGPT + Gemini), 50 scans/month, gap analysis, AEO suggestions
-- **Pro ($199/mo)**: 50 projects, 1000 prompts, all 5 engines, 500 scans/month, all Growth features, priority support
+- **Pro ($199/mo)**: 50 projects, 1000 prompts, all 4 engines, 500 scans/month, all Growth features, priority support
 
 Plan limits are enforced server-side via `server/plans.ts`. Stripe price ID is stored in user profile during checkout verification for accurate tier detection.
 
@@ -101,12 +101,11 @@ Plan limits are enforced server-side via `server/plans.ts`. Stripe price ID is s
 - **Claude** - Claude Sonnet 4.5 via Anthropic (`ANTHROPIC_API_KEY`)
 - **Gemini** - Gemini 2.5 Flash via Google (`GOOGLE_API_KEY`)
 - **Perplexity** - Llama 3.1 Sonar with web search (`PERPLEXITY_API_KEY`)
-- **DeepSeek** - DeepSeek Chat (`DEEPSEEK_API_KEY`)
 
 ## AI Engines by Subscription Tier
 - **Starter**: ChatGPT only
-- **Growth**: ChatGPT + Gemini
-- **Pro**: All 5 engines
+- **Growth**: ChatGPT, Claude, Gemini
+- **Pro**: All 4 engines
 
 ## Transactional Emails (Resend)
 Uses Resend for automated emails. All emails are fire-and-forget (non-blocking).
@@ -143,7 +142,6 @@ Events handled:
 - `ANTHROPIC_API_KEY` - Claude engine
 - `GOOGLE_API_KEY` - Gemini engine
 - `PERPLEXITY_API_KEY` - Perplexity engine
-- `DEEPSEEK_API_KEY` - DeepSeek engine
 - `RESEND_API_KEY` - Transactional emails
 - `RESEND_FROM_EMAIL` - Sender address (default: noreply@mindshare-ai.com)
 

@@ -51,7 +51,7 @@ const plans = [
     features: [
       { text: "50 Projects", tooltip: "Manage an entire portfolio of brands" },
       { text: "1,000 Prompts", tooltip: "Comprehensive prompt coverage" },
-      { text: "All 5 Engines", tooltip: "ChatGPT, Claude, Gemini, Perplexity, DeepSeek" },
+      { text: "All 4 Engines", tooltip: "ChatGPT, Claude, Gemini, Perplexity" },
       { text: "500 Scans per month", tooltip: "High-volume visibility monitoring" },
       { text: "Advanced reports", tooltip: "Detailed analytics and trends" },
       { text: "Gap analysis", tooltip: "Find where competitors beat you" },
@@ -74,7 +74,7 @@ const faqs = [
   },
   {
     question: "What AI engines are included?",
-    answer: "Starter includes ChatGPT. Growth adds Gemini. Pro includes all 5: ChatGPT, Claude, Gemini, Perplexity, and DeepSeek.",
+    answer: "Starter includes ChatGPT. Growth adds Claude and Gemini. Pro includes all 4: ChatGPT, Claude, Gemini, and Perplexity.",
   },
   {
     question: "Is there a free trial?",
