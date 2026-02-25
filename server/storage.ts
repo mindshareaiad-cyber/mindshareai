@@ -425,19 +425,6 @@ export class MemStorage implements IStorage {
     this.gapSuggestions.set(promptId, { suggestedAnswer, suggestedPageType });
   }
 
-  // Stripe data queries (placeholder implementations for interface compliance)
-  async getStripeProduct(productId: string): Promise<any> {
-    return null;
-  }
-
-  async listStripeProducts(): Promise<any[]> {
-    return [];
-  }
-
-  async getStripeSubscription(subscriptionId: string): Promise<any> {
-    return null;
-  }
-
   // SEO Readiness
   private seoReadinessMap: Map<string, SeoReadiness> = new Map();
 
