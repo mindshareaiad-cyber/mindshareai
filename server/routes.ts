@@ -180,6 +180,9 @@ export async function registerRoutes(
         payment_method_types: ['card'],
         line_items: [{ price: priceId, quantity: 1 }],
         mode: 'subscription',
+        subscription_data: {
+          trial_period_days: 14,
+        },
         success_url: `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl}/payment`,
       });
@@ -207,12 +210,16 @@ export async function registerRoutes(
         expand: ['line_items.data.price'],
       });
       
-      if (session.payment_status === 'paid' && session.subscription) {
+      const isPaid = session.payment_status === 'paid';
+      const isTrial = session.payment_status === 'no_payment_required';
+      
+      if ((isPaid || isTrial) && session.subscription) {
         const priceId = session.line_items?.data?.[0]?.price?.id;
         
+        const subscriptionStatus = isTrial ? 'trialing' : 'active';
         const updateData: Record<string, unknown> = {
           stripeSubscriptionId: session.subscription as string,
-          subscriptionStatus: 'active',
+          subscriptionStatus,
         };
         
         if (priceId) {
@@ -252,7 +259,7 @@ export async function registerRoutes(
         });
       }
 
-      const hasActiveSubscription = profile.subscriptionStatus === 'active';
+      const hasActiveSubscription = profile.subscriptionStatus === 'active' || profile.subscriptionStatus === 'trialing';
       res.json({
         hasActiveSubscription,
         subscriptionStatus: profile.subscriptionStatus,
