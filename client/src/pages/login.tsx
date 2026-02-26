@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -22,10 +22,20 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { signIn, signInWithGoogle } = useAuth();
+  const { user, loading, signIn, signInWithGoogle } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    if (!loading && user) {
+      if (!user.email_confirmed_at) {
+        setLocation("/verify-email");
+      } else {
+        setLocation("/dashboard");
+      }
+    }
+  }, [user, loading, setLocation]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),

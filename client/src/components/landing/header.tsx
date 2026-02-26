@@ -3,9 +3,12 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Eye, Menu, X } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
+import { useAuth } from "@/contexts/auth-context";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, loading } = useAuth();
+  const isLoggedIn = !loading && !!user;
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b">
@@ -37,16 +40,26 @@ export function Header() {
           
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle testId="button-theme-toggle-desktop" />
-            <Link href="/login">
-              <Button variant="outline" size="sm" data-testid="button-header-login">
-                Log In
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm" data-testid="button-header-signup">
-                Get Started
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard">
+                <Button size="sm" data-testid="button-header-dashboard">
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="outline" size="sm" data-testid="button-header-login">
+                    Log In
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button size="sm" data-testid="button-header-signup">
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
           
           <div className="flex md:hidden items-center gap-2">
@@ -75,12 +88,20 @@ export function Header() {
                 Contact
               </Link>
               <div className="flex gap-2 pt-4 border-t">
-                <Link href="/login" className="flex-1">
-                  <Button variant="outline" className="w-full" data-testid="button-mobile-login">Log In</Button>
-                </Link>
-                <Link href="/signup" className="flex-1">
-                  <Button className="w-full" data-testid="button-mobile-signup">Get Started</Button>
-                </Link>
+                {isLoggedIn ? (
+                  <Link href="/dashboard" className="flex-1">
+                    <Button className="w-full" data-testid="button-mobile-dashboard">Dashboard</Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/login" className="flex-1">
+                      <Button variant="outline" className="w-full" data-testid="button-mobile-login">Log In</Button>
+                    </Link>
+                    <Link href="/signup" className="flex-1">
+                      <Button className="w-full" data-testid="button-mobile-signup">Get Started</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </div>
