@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { Eye, Loader2, CheckCircle2, XCircle } from "lucide-react";
@@ -10,14 +10,21 @@ export default function AuthCallbackPage() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("Verifying...");
   const [subtitle, setSubtitle] = useState("");
+  const handledRef = useRef(false);
 
   useEffect(() => {
+    if (handledRef.current) return;
+    handledRef.current = true;
+
     const handleAuthCallback = async () => {
       try {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get("access_token");
         const refreshToken = hashParams.get("refresh_token");
         const type = hashParams.get("type");
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get("code");
 
         if (accessToken && refreshToken) {
           const { error } = await supabase.auth.setSession({
@@ -36,120 +43,137 @@ export default function AuthCallbackPage() {
             setStatus("success");
             setMessage("Email verified!");
             setSubtitle("You can close this tab and return to the original window. It will automatically continue to the next step.");
+            return;
           } else if (type === "recovery") {
             setStatus("success");
             setMessage("Identity verified!");
             setSubtitle("Redirecting you to set a new password...");
             setTimeout(() => setLocation("/reset-password"), 1500);
-          } else {
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (currentUser && !currentUser.email_confirmed_at) {
-              setStatus("success");
-              setMessage("Please verify your email");
-              setSubtitle("Redirecting...");
-              setTimeout(() => setLocation("/verify-email"), 1500);
-            } else if (currentUser) {
-              try {
-                const { data: { session: currentSession } } = await supabase.auth.getSession();
-                const headers: Record<string, string> = { "Content-Type": "application/json" };
-                if (currentSession?.access_token) {
-                  headers["Authorization"] = `Bearer ${currentSession.access_token}`;
-                }
-                const metadata = currentUser.user_metadata || {};
-                await fetch("/api/user-profile", {
-                  method: "POST",
-                  headers,
-                  body: JSON.stringify({
-                    id: currentUser.id,
-                    email: currentUser.email,
-                    firstName: metadata.first_name || metadata.given_name || null,
-                    lastName: metadata.last_name || metadata.family_name || null,
-                    companyName: metadata.company_name || null,
-                  }),
-                });
-
-                const subRes = await fetch(`/api/stripe/subscription/${currentUser.id}`, { headers });
-                const subData = await subRes.json();
-
-                setStatus("success");
-                if (!subData.onboardingCompleted) {
-                  setMessage("Welcome!");
-                  setSubtitle("Redirecting to get you set up...");
-                  setTimeout(() => setLocation("/onboarding"), 1500);
-                } else if (!subData.hasActiveSubscription) {
-                  setMessage("Welcome back!");
-                  setSubtitle("Redirecting...");
-                  setTimeout(() => setLocation("/payment"), 1500);
-                } else {
-                  setMessage("Signed in!");
-                  setSubtitle("Redirecting...");
-                  setTimeout(() => setLocation("/dashboard"), 1500);
-                }
-              } catch (err) {
-                console.error("Profile setup error:", err);
-                setStatus("success");
-                setMessage("Signed in!");
-                setSubtitle("Redirecting...");
-                setTimeout(() => setLocation("/onboarding"), 1500);
-              }
-            } else {
-              setStatus("error");
-              setMessage("Something went wrong");
-              setSubtitle("Please try signing in again.");
-            }
+            return;
           }
-        } else {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (currentUser && !currentUser.email_confirmed_at) {
-              setLocation("/verify-email");
-            } else if (currentUser) {
-              try {
-                const headers: Record<string, string> = { "Content-Type": "application/json" };
-                if (session.access_token) {
-                  headers["Authorization"] = `Bearer ${session.access_token}`;
-                }
-                const metadata = currentUser.user_metadata || {};
-                await fetch("/api/user-profile", {
-                  method: "POST",
-                  headers,
-                  body: JSON.stringify({
-                    id: currentUser.id,
-                    email: currentUser.email,
-                    firstName: metadata.first_name || metadata.given_name || null,
-                    lastName: metadata.last_name || metadata.family_name || null,
-                    companyName: metadata.company_name || null,
-                  }),
-                });
 
-                const subRes = await fetch(`/api/stripe/subscription/${currentUser.id}`, { headers });
-                const subData = await subRes.json();
-
-                if (!subData.onboardingCompleted) {
-                  setLocation("/onboarding");
-                } else if (!subData.hasActiveSubscription) {
-                  setLocation("/payment");
-                } else {
-                  setLocation("/dashboard");
-                }
-              } catch {
-                setLocation("/onboarding");
-              }
-            } else {
-              setLocation("/dashboard");
-            }
-          } else {
+          await handlePostAuth();
+        } else if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error("Code exchange error:", error);
             setStatus("error");
-            setMessage("Invalid link");
-            setSubtitle("This link is invalid or has expired. Please try again.");
+            setMessage("Authentication failed");
+            setSubtitle("Please try signing in again.");
+            return;
           }
+          await handlePostAuth();
+        } else {
+          await waitForSession();
         }
       } catch (err) {
         console.error("Auth callback error:", err);
         setStatus("error");
         setMessage("Something went wrong");
         setSubtitle("Please try signing in again.");
+      }
+    };
+
+    const waitForSession = (): Promise<void> => {
+      return new Promise((resolve) => {
+        let resolved = false;
+
+        const timeout = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            supabase.auth.getSession().then(({ data: { session } }) => {
+              if (session) {
+                handlePostAuth().then(resolve);
+              } else {
+                setStatus("error");
+                setMessage("Invalid link");
+                setSubtitle("This link is invalid or has expired. Please try again.");
+                resolve();
+              }
+            });
+          }
+        }, 3000);
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (session && !resolved) {
+            resolved = true;
+            clearTimeout(timeout);
+            subscription.unsubscribe();
+            handlePostAuth().then(resolve);
+          }
+        });
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session && !resolved) {
+            resolved = true;
+            clearTimeout(timeout);
+            subscription.unsubscribe();
+            handlePostAuth().then(resolve);
+          }
+        });
+      });
+    };
+
+    const handlePostAuth = async () => {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        setStatus("error");
+        setMessage("Something went wrong");
+        setSubtitle("Please try signing in again.");
+        return;
+      }
+
+      if (!currentUser.email_confirmed_at) {
+        setStatus("success");
+        setMessage("Please verify your email");
+        setSubtitle("Redirecting...");
+        setTimeout(() => setLocation("/verify-email"), 1500);
+        return;
+      }
+
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (currentSession?.access_token) {
+          headers["Authorization"] = `Bearer ${currentSession.access_token}`;
+        }
+
+        const metadata = currentUser.user_metadata || {};
+        await fetch("/api/user-profile", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            id: currentUser.id,
+            email: currentUser.email,
+            firstName: metadata.first_name || metadata.given_name || null,
+            lastName: metadata.last_name || metadata.family_name || null,
+            companyName: metadata.company_name || null,
+          }),
+        });
+
+        const subRes = await fetch(`/api/stripe/subscription/${currentUser.id}`, { headers });
+        const subData = await subRes.json();
+
+        setStatus("success");
+        if (!subData.onboardingCompleted) {
+          setMessage("Welcome!");
+          setSubtitle("Redirecting to get you set up...");
+          setTimeout(() => setLocation("/onboarding"), 1500);
+        } else if (!subData.hasActiveSubscription) {
+          setMessage("Welcome back!");
+          setSubtitle("Redirecting...");
+          setTimeout(() => setLocation("/payment"), 1500);
+        } else {
+          setMessage("Signed in!");
+          setSubtitle("Redirecting...");
+          setTimeout(() => setLocation("/dashboard"), 1500);
+        }
+      } catch (err) {
+        console.error("Profile setup error:", err);
+        setStatus("success");
+        setMessage("Signed in!");
+        setSubtitle("Redirecting...");
+        setTimeout(() => setLocation("/onboarding"), 1500);
       }
     };
 
