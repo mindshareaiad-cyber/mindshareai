@@ -1,50 +1,95 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/contexts/auth-context";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Loader2, CheckCircle2, ArrowRight } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { Eye, Loader2, CheckCircle2 } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 
 export default function PaymentSuccessPage() {
-  const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const [verifying, setVerifying] = useState(true);
-  const [success, setSuccess] = useState(false);
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [message, setMessage] = useState("Verifying your payment...");
+  const processedRef = useRef(false);
 
   useEffect(() => {
-    const verifyPayment = async () => {
-      if (!user) return;
+    if (processedRef.current) return;
+    processedRef.current = true;
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const sessionId = urlParams.get("session_id");
-
-      if (!sessionId) {
-        setVerifying(false);
-        return;
-      }
-
+    const verifyAndRedirect = async () => {
       try {
-        const response = await apiRequest("POST", "/api/stripe/verify-payment", {
-          sessionId,
-          userId: user.id,
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+          let resolved = false;
+          await new Promise<void>((resolve) => {
+            const timeout = setTimeout(() => {
+              if (!resolved) { resolved = true; resolve(); }
+            }, 5000);
+
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+              if (s && !resolved) {
+                resolved = true;
+                clearTimeout(timeout);
+                subscription.unsubscribe();
+                resolve();
+              }
+            });
+          });
+        }
+
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!currentSession || !user) {
+          setStatus("error");
+          setMessage("Session expired. Please sign in to continue.");
+          return;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get("session_id");
+
+        if (!sessionId) {
+          setStatus("error");
+          setMessage("No payment session found.");
+          return;
+        }
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentSession.access_token}`,
+        };
+
+        const response = await fetch("/api/stripe/verify-payment", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ sessionId, userId: user.id }),
         });
 
         const data = await response.json();
-        setSuccess(data.success);
-      } catch (error) {
-        console.error("Error verifying payment:", error);
-      } finally {
-        setVerifying(false);
+
+        if (data.success) {
+          queryClient.invalidateQueries({ queryKey: ["/api/stripe/subscription"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/stripe/subscription", user.id] });
+
+          setStatus("success");
+          setMessage("Payment successful! Welcome to Mindshare AI.");
+
+          setTimeout(() => setLocation("/dashboard"), 2000);
+        } else {
+          setStatus("error");
+          setMessage("Payment verification failed. If you were charged, please contact support.");
+        }
+      } catch (err) {
+        console.error("Payment verification error:", err);
+        setStatus("error");
+        setMessage("Something went wrong verifying your payment.");
       }
     };
 
-    verifyPayment();
-  }, [user]);
-
-  const handleContinue = () => {
-    setLocation("/dashboard");
-  };
+    verifyAndRedirect();
+  }, [setLocation]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
@@ -60,59 +105,39 @@ export default function PaymentSuccessPage() {
 
         <Card className="border-2">
           <CardHeader className="space-y-1 text-center">
-            {verifying ? (
-              <>
-                <div className="flex justify-center mb-4">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <div className="flex justify-center mb-4">
+              {status === "loading" && (
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              )}
+              {status === "success" && (
+                <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
                 </div>
-                <CardTitle className="text-2xl font-bold">Verifying your payment...</CardTitle>
-                <CardDescription>
-                  Please wait while we confirm your subscription.
-                </CardDescription>
-              </>
-            ) : success ? (
-              <>
-                <div className="flex justify-center mb-4">
-                  <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
-                  </div>
+              )}
+              {status === "error" && (
+                <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-10 w-10 text-destructive" />
                 </div>
-                <CardTitle className="text-2xl font-bold">Payment successful!</CardTitle>
-                <CardDescription>
-                  Your subscription is now active. Welcome to Mindshare AI!
-                </CardDescription>
-              </>
-            ) : (
-              <>
-                <CardTitle className="text-2xl font-bold">Payment verification failed</CardTitle>
-                <CardDescription>
-                  We couldn't verify your payment. Please contact support if you were charged.
-                </CardDescription>
-              </>
-            )}
+              )}
+            </div>
+            <CardTitle className="text-2xl font-bold" data-testid="text-payment-title">
+              {status === "loading" ? "Verifying Payment" : status === "success" ? "Payment Successful!" : "Verification Issue"}
+            </CardTitle>
+            <CardDescription data-testid="text-payment-message">{message}</CardDescription>
           </CardHeader>
-          <CardContent>
-            {!verifying && success && (
-              <Button
-                onClick={handleContinue}
-                className="w-full"
-                size="lg"
-                data-testid="button-continue-dashboard"
-              >
-                Go to Dashboard
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+          <CardContent className="text-center space-y-3">
+            {status === "success" && (
+              <p className="text-sm text-muted-foreground">Redirecting to your dashboard...</p>
             )}
-            {!verifying && !success && (
-              <Button
-                onClick={() => setLocation("/payment")}
-                className="w-full"
-                size="lg"
-                variant="outline"
-                data-testid="button-try-again"
-              >
-                Try Again
-              </Button>
+            {status === "error" && (
+              <div className="flex flex-col gap-2">
+                <Button onClick={() => setLocation("/dashboard")} data-testid="button-go-dashboard">
+                  Go to Dashboard
+                </Button>
+                <Button variant="outline" onClick={() => setLocation("/login")} data-testid="button-go-login">
+                  Sign In Again
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

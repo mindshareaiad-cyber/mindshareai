@@ -39,6 +39,8 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   const { data: subscriptionData, isLoading: subscriptionLoading } = useQuery<SubscriptionStatus>({
     queryKey: ["/api/stripe/subscription", user?.id],
     enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   useEffect(() => {
@@ -174,9 +176,7 @@ function Router() {
       <Route path="/payment">
         <PaymentRoute component={PaymentPage} />
       </Route>
-      <Route path="/payment-success">
-        <OnboardingRoute component={PaymentSuccessPage} />
-      </Route>
+      <Route path="/payment-success" component={PaymentSuccessPage} />
       <Route path="/dashboard">
         <ProtectedRoute component={DashboardPage} />
       </Route>

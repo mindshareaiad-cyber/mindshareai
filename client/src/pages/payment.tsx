@@ -54,7 +54,7 @@ const plans = [
     features: [
       "50 projects",
       "1,000 prompts",
-      "All 5 AI engines",
+      "All 4 AI engines",
       "500 scans per month",
       "Gap analysis",
       "AEO suggestions",
