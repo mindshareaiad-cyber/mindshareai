@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -18,11 +18,28 @@ import type { Project, PromptSet, Prompt, ScanResult, GapAnalysis } from "@share
 
 export default function DashboardPage() {
   const { toast } = useToast();
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(() => {
+    return localStorage.getItem("mindshare_selected_project") || null;
+  });
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
   const [activeSection, setActiveSection] = useState<DashboardSection>("overview");
+
+  const handleSelectProject = useCallback((id: string | null) => {
+    setSelectedProjectId(id);
+    if (id) {
+      localStorage.setItem("mindshare_selected_project", id);
+    } else {
+      localStorage.removeItem("mindshare_selected_project");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedProjectId && projects.length > 0 && !projects.find((p) => p.id === selectedProjectId)) {
+      handleSelectProject(null);
+    }
+  }, [projects, selectedProjectId, handleSelectProject]);
 
   const sidebarStyle = {
     "--sidebar-width": "18rem",
@@ -244,7 +261,7 @@ export default function DashboardPage() {
         <AppSidebar
           projects={projects}
           selectedProjectId={selectedProjectId}
-          onSelectProject={setSelectedProjectId}
+          onSelectProject={handleSelectProject}
           onCreateProject={() => setCreateDialogOpen(true)}
           activeSection={activeSection}
           onSectionChange={setActiveSection}
