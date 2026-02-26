@@ -9,6 +9,7 @@ import { PromptsTab } from "@/components/dashboard/prompts-tab";
 import { ResultsTab } from "@/components/dashboard/results-tab";
 import { SuggestionsTab } from "@/components/dashboard/suggestions-tab";
 import { GapsTab } from "@/components/dashboard/gaps-tab";
+import { SettingsTab } from "@/components/dashboard/settings-tab";
 import { CreateProjectDialog } from "@/components/dashboard/create-project-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -230,6 +231,8 @@ export default function DashboardPage() {
             onGenerateSuggestion={generateSuggestion}
           />
         );
+      case "settings":
+        return <SettingsTab />;
       default:
         return null;
     }
@@ -256,7 +259,9 @@ export default function DashboardPage() {
           />
           
           <main className="flex-1 overflow-auto p-6">
-            {!selectedProject ? (
+            {activeSection === "settings" ? (
+              <SettingsTab />
+            ) : !selectedProject ? (
               <div className="h-full flex flex-col items-center justify-center text-center">
                 <div className="max-w-md">
                   <h2 className="text-2xl font-semibold mb-2" data-testid="text-welcome-title">Welcome to Mindshare AI</h2>

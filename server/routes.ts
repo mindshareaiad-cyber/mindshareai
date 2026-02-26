@@ -28,7 +28,7 @@ function getUserPlanId(subscriptionStatus: string | null | undefined, stripePric
   if (isAdminEmail(email)) {
     return 'pro';
   }
-  if (!subscriptionStatus || subscriptionStatus !== 'active') {
+  if (!subscriptionStatus || (subscriptionStatus !== 'active' && subscriptionStatus !== 'trialing')) {
     return 'starter';
   }
   
@@ -255,14 +255,17 @@ export async function registerRoutes(
         return res.json({
           hasActiveSubscription: true,
           subscriptionStatus: 'active',
+          planId: 'pro',
           onboardingCompleted: profile.onboardingCompleted,
         });
       }
 
       const hasActiveSubscription = profile.subscriptionStatus === 'active' || profile.subscriptionStatus === 'trialing';
+      const planId = getUserPlanId(profile.subscriptionStatus, profile.stripePriceId, profile.email);
       res.json({
         hasActiveSubscription,
         subscriptionStatus: profile.subscriptionStatus,
+        planId,
         onboardingCompleted: profile.onboardingCompleted,
       });
     } catch (error) {

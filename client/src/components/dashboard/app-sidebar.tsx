@@ -28,7 +28,7 @@ import {
 import { useState } from "react";
 import type { Project } from "@shared/schema";
 
-export type DashboardSection = "overview" | "prompts" | "results" | "gaps" | "suggestions";
+export type DashboardSection = "overview" | "prompts" | "results" | "gaps" | "suggestions" | "settings";
 
 interface AppSidebarProps {
   projects: Project[];
@@ -177,13 +177,20 @@ export function AppSidebar({
       <SidebarFooter className="border-t p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton data-testid="sidebar-settings">
+            <SidebarMenuButton
+              isActive={activeSection === "settings"}
+              onClick={() => onSectionChange("settings")}
+              data-testid="sidebar-settings"
+            >
               <Settings className="h-4 w-4" />
               <span>Settings</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton data-testid="sidebar-help">
+            <SidebarMenuButton
+              onClick={() => window.open("mailto:support@mindshare-ai.com", "_blank")}
+              data-testid="sidebar-help"
+            >
               <HelpCircle className="h-4 w-4" />
               <span>Help & Support</span>
             </SidebarMenuButton>
