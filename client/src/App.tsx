@@ -1,5 +1,5 @@
 import { Switch, Route, useLocation } from "wouter";
-import { queryClient } from "./lib/queryClient";
+import { queryClient, getQueryFn } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,6 +29,7 @@ import { useEffect } from "react";
 interface SubscriptionStatus {
   hasActiveSubscription: boolean;
   subscriptionStatus: string;
+  planId?: string;
   onboardingCompleted: boolean;
 }
 
@@ -36,11 +37,13 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
 
-  const { data: subscriptionData, isLoading: subscriptionLoading } = useQuery<SubscriptionStatus>({
+  const { data: subscriptionData, isLoading: subscriptionLoading, isError } = useQuery<SubscriptionStatus>({
     queryKey: ["/api/stripe/subscription", user?.id],
+    queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: !!user,
     staleTime: 0,
     refetchOnMount: "always",
+    retry: 1,
   });
 
   useEffect(() => {
@@ -67,7 +70,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     }
   }, [user, loading, subscriptionData, subscriptionLoading, setLocation]);
 
-  if (loading || subscriptionLoading) {
+  if (loading || (subscriptionLoading && !isError)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -79,7 +82,6 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     return null;
   }
 
-  // Only show dashboard if onboarding is complete and subscription is active
   if (!subscriptionData?.onboardingCompleted || !subscriptionData?.hasActiveSubscription) {
     return null;
   }

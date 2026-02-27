@@ -35,12 +35,6 @@ export default function DashboardPage() {
     }
   }, []);
 
-  useEffect(() => {
-    if (selectedProjectId && projects.length > 0 && !projects.find((p) => p.id === selectedProjectId)) {
-      handleSelectProject(null);
-    }
-  }, [projects, selectedProjectId, handleSelectProject]);
-
   const sidebarStyle = {
     "--sidebar-width": "18rem",
     "--sidebar-width-icon": "3rem",
@@ -51,6 +45,12 @@ export default function DashboardPage() {
   });
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
+
+  useEffect(() => {
+    if (selectedProjectId && projects.length > 0 && !projects.find((p) => p.id === selectedProjectId)) {
+      handleSelectProject(null);
+    }
+  }, [projects, selectedProjectId, handleSelectProject]);
 
   const { data: promptSetsData = [], isLoading: promptSetsLoading } = useQuery<
     (PromptSet & { prompts: Prompt[] })[]
