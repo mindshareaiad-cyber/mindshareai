@@ -192,6 +192,7 @@ function MetricCard({
   icon: Icon,
   trend,
   valueColor,
+  testId,
 }: {
   title: string;
   value: string | number;
@@ -199,6 +200,7 @@ function MetricCard({
   icon: React.ElementType;
   trend?: "up" | "down" | "neutral";
   valueColor?: string;
+  testId?: string;
 }) {
   const getDefaultColor = () => {
     if (typeof value !== "number") return "";
@@ -211,7 +213,7 @@ function MetricCard({
   };
 
   return (
-    <Card>
+    <Card data-testid={testId}>
       <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
@@ -326,12 +328,13 @@ export function OverviewTab({
       </div>
 
       {/* Core AI Visibility Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" data-testid="tour-metrics-grid">
         <MetricCard
           title="AI Visibility Score"
           value={visibilityScore !== null ? visibilityScore.toFixed(2) : "—"}
           subtitle="0-2 scale"
           icon={Eye}
+          testId="tour-card-visibility-score"
         />
         <MetricCard
           title="AI Mentions"
@@ -339,6 +342,7 @@ export function OverviewTab({
           subtitle={`of ${promptCount} prompts`}
           icon={MessageSquare}
           valueColor={mentionCount > 0 ? "text-success" : "text-muted-foreground"}
+          testId="tour-card-mentions"
         />
         <MetricCard
           title="Recommendations"
@@ -346,6 +350,7 @@ export function OverviewTab({
           subtitle="Strongly endorsed"
           icon={ThumbsUp}
           valueColor={recommendationCount > 0 ? "text-success" : "text-muted-foreground"}
+          testId="tour-card-recommendations"
         />
         <MetricCard
           title="Share of Voice"
@@ -353,6 +358,7 @@ export function OverviewTab({
           subtitle="vs competitors"
           icon={PieChart}
           valueColor={shareOfVoice >= 50 ? "text-success" : shareOfVoice >= 25 ? "text-warning" : "text-destructive"}
+          testId="tour-card-share-of-voice"
         />
         <MetricCard
           title="Gap Opportunities"
@@ -360,34 +366,38 @@ export function OverviewTab({
           subtitle="Content to create"
           icon={AlertTriangle}
           valueColor={gaps.length > 0 ? "text-warning" : "text-success"}
+          testId="tour-card-gap-opportunities"
         />
       </div>
 
       {/* Secondary metrics row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" data-testid="tour-secondary-metrics">
         <MetricCard
           title="Total Prompts"
           value={promptCount}
           subtitle="Questions tracked"
           icon={Target}
+          testId="tour-card-total-prompts"
         />
         <MetricCard
           title="Engines Tested"
           value={engineCount}
           subtitle="AI engines used"
           icon={Cpu}
+          testId="tour-card-engines-tested"
         />
         <MetricCard
           title="Last Scan"
           value={lastScanDate ? new Date(lastScanDate).toLocaleDateString() : "Never"}
           subtitle={lastScanDate ? new Date(lastScanDate).toLocaleTimeString() : "Run your first scan"}
           icon={Calendar}
+          testId="tour-card-last-scan"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Brand Performance */}
-        <Card>
+        <Card data-testid="tour-card-brand-performance">
           <CardHeader>
             <CardTitle className="text-lg">Your Brand Performance</CardTitle>
           </CardHeader>
@@ -415,7 +425,7 @@ export function OverviewTab({
         </Card>
 
         {/* Competitor Share of Voice */}
-        <Card>
+        <Card data-testid="tour-card-competitor-sov">
           <CardHeader>
             <CardTitle className="text-lg">Competitor Share of Voice</CardTitle>
           </CardHeader>

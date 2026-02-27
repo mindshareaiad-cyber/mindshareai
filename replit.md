@@ -22,6 +22,8 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
    - **Results** - View scan results after running AI visibility scans
    - **Gap Analysis** - Identify where competitors are mentioned but you're not
    - **AEO Suggestions** - AI-generated recommendations for content improvement
+   - **Settings** - Account info, subscription management (Stripe billing portal), sign out
+   - **Guided Tour** - First-time user onboarding tour explaining all dashboard metrics (localStorage-tracked, one-time only)
 3. **AI Visibility Scans** - Run prompts through 4 AI engines, score brand visibility (0-2)
 4. **Competitor Share of Voice** - Compare your visibility against competitors
 5. **Prompt-Level Performance** - Per-prompt table with filters (Gaps, Winning, Mentioned, Invisible)

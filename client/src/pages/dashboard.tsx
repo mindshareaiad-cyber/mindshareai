@@ -10,6 +10,7 @@ import { ResultsTab } from "@/components/dashboard/results-tab";
 import { SuggestionsTab } from "@/components/dashboard/suggestions-tab";
 import { GapsTab } from "@/components/dashboard/gaps-tab";
 import { SettingsTab } from "@/components/dashboard/settings-tab";
+import { DashboardTour } from "@/components/dashboard/dashboard-tour";
 import { CreateProjectDialog } from "@/components/dashboard/create-project-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -308,6 +309,8 @@ export default function DashboardPage() {
         onOpenChange={setCreateDialogOpen}
         onSubmit={(data) => createProjectMutation.mutate(data)}
       />
+
+      <DashboardTour enabled={!!selectedProject && activeSection === "overview"} />
     </SidebarProvider>
   );
 }
