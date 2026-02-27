@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { generateAnswer, scoreVisibility, generateSuggestedAnswer, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, type LLMEngine, type SubscriptionTier } from "./llm-client";
 import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema, updateSeoReadinessSchema } from "@shared/schema";
 import { calculateOverallScore, getRecommendationLevel, buildReadinessReport, createDefaultAssessment } from "./seo-readiness";
+import { analyzeWebsite, analysisToAssessment } from "./seo-analyzer";
 import { z } from "zod";
 import { fromError } from "zod-validation-error";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
@@ -932,6 +933,49 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating SEO readiness:", error);
       res.status(500).json({ error: "Failed to update SEO readiness" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/seo-readiness/analyze", requireAuth, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      if (!project.brandDomain) {
+        return res.status(400).json({ error: "Project has no brand domain set" });
+      }
+
+      console.log(`[SEO] Analyzing website: ${project.brandDomain}`);
+      const analysis = await analyzeWebsite(project.brandDomain);
+      const assessmentData = analysisToAssessment(analysis);
+
+      let assessment = await storage.getSeoReadiness(projectId);
+      if (!assessment) {
+        assessment = await storage.createSeoReadiness({
+          projectId,
+          ...assessmentData,
+        });
+      } else {
+        assessment = await storage.updateSeoReadiness(projectId, assessmentData);
+      }
+
+      if (!assessment) {
+        return res.status(500).json({ error: "Failed to save analysis" });
+      }
+
+      const report = buildReadinessReport(assessment, project.brandName);
+      res.json({
+        ...report,
+        analysisDetails: assessmentData.details,
+        analyzedDomain: project.brandDomain,
+      });
+    } catch (error) {
+      console.error("Error analyzing website:", error);
+      res.status(500).json({ error: "Failed to analyze website" });
     }
   });
 

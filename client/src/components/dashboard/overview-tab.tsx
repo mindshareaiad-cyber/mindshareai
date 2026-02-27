@@ -15,13 +15,17 @@ import {
   Target,
   Cpu,
   Filter,
-  ShieldCheck
+  ShieldCheck,
+  Globe,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  RefreshCw,
+  Sparkles,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Project, ScanResult, Prompt, GapAnalysis, SeoReadinessReport } from "@shared/schema";
-import { SeoReadinessChecklist } from "./seo-readiness-checklist";
-import { SeoReadinessScore } from "./seo-readiness-score";
 import { GuidanceMessages } from "./guidance-messages";
 
 type PromptFilter = "all" | "gaps" | "winning" | "mentioned" | "invisible";
@@ -281,27 +285,21 @@ export function OverviewTab({
   const sortedCompetitors = Object.entries(competitorScores)
     .sort(([, a], [, b]) => b - a);
 
-  const [showChecklist, setShowChecklist] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
-  // Fetch SEO readiness data
-  const { data: seoReadiness, isLoading: seoLoading } = useQuery<SeoReadinessReport>({
+  const { data: seoReadiness, isLoading: seoLoading } = useQuery<SeoReadinessReport & { analysisDetails?: Record<string, string> }>({
     queryKey: ["/api/projects", project.id, "seo-readiness"],
   });
 
-  // Mutation to update SEO readiness
-  const updateSeoReadiness = useMutation({
-    mutationFn: async (updates: Record<string, boolean>) => {
-      const res = await apiRequest("PATCH", `/api/projects/${project.id}/seo-readiness`, updates);
+  const analyzeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/projects/${project.id}/seo-readiness/analyze`);
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", project.id, "seo-readiness"] });
     },
   });
-
-  const handleChecklistChange = (key: string, checked: boolean) => {
-    updateSeoReadiness.mutate({ [key]: checked });
-  };
 
   // Calculate competitor share of voice
   const competitorShareOfVoice = sortedCompetitors.map(([name, score]) => {
@@ -498,104 +496,165 @@ export function OverviewTab({
         </Card>
       )}
 
-      {/* SEO Readiness Section - Loading State */}
-      {seoLoading && (
-        <Card>
-          <CardContent className="py-8">
-            <div className="flex items-center justify-center gap-3">
-              <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
-              <span className="text-muted-foreground">Loading SEO readiness...</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* SEO Readiness Section - Not Ready */}
-      {seoReadiness && !seoReadiness.aeoReady && (
-        <div className="space-y-4" data-testid="seo-readiness-section">
+      {/* SEO Readiness Section */}
+      <div className="space-y-4" data-testid="seo-readiness-section">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold">SEO Readiness Assessment</h3>
+            <h3 className="text-lg font-semibold">AEO Readiness Assessment</h3>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Complete this checklist to build a strong foundation for AI visibility. Brands with better SEO are more likely to be mentioned by AI assistants.
-          </p>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <SeoReadinessScore 
-                score={seoReadiness.assessment.overallScore} 
-                level={seoReadiness.assessment.recommendationLevel as "not_ready" | "needs_work" | "ready" | "excellent"}
-                aeoReady={seoReadiness.aeoReady}
-              />
-            </div>
-            <div className="lg:col-span-2">
-              <SeoReadinessChecklist 
-                items={seoReadiness.checklist}
-                onItemChange={handleChecklistChange}
-                isLoading={updateSeoReadiness.isPending}
-              />
-            </div>
-          </div>
-          {seoReadiness.guidance.length > 0 && (
-            <GuidanceMessages messages={seoReadiness.guidance} />
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => analyzeMutation.mutate()}
+            disabled={analyzeMutation.isPending}
+            data-testid="button-analyze-seo"
+          >
+            {analyzeMutation.isPending ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Analyzing...</>
+            ) : seoReadiness?.assessment?.overallScore ? (
+              <><RefreshCw className="h-4 w-4 mr-2" /> Re-analyze</>
+            ) : (
+              <><Globe className="h-4 w-4 mr-2" /> Analyze Website</>
+            )}
+          </Button>
         </div>
-      )}
+        <p className="text-sm text-muted-foreground">
+          We automatically scan your website to check if your SEO foundation is strong enough for AEO (Answer Engine Optimization).
+        </p>
 
-      {/* Collapsed SEO Readiness for AEO-ready projects - with toggle */}
-      {seoReadiness && seoReadiness.aeoReady && (
-        <div className="space-y-4" data-testid="seo-readiness-ready-section">
-          <Card className="bg-green-500/5 border-green-500/20">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-green-500/20">
-                    <ShieldCheck className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-green-700 dark:text-green-400">SEO Foundation Ready</p>
-                    <p className="text-sm text-muted-foreground">
-                      Score: {seoReadiness.assessment.overallScore}/100 — Ready for AEO optimization
-                    </p>
-                  </div>
+        {seoLoading && (
+          <Card>
+            <CardContent className="py-8">
+              <div className="flex items-center justify-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span className="text-muted-foreground">Loading assessment...</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {!seoLoading && (!seoReadiness || seoReadiness.assessment.overallScore === 0) && !analyzeMutation.isPending && (
+          <Card className="border-dashed">
+            <CardContent className="py-8">
+              <div className="text-center space-y-3">
+                <Globe className="h-10 w-10 mx-auto text-muted-foreground/40" />
+                <div>
+                  <p className="font-medium">No analysis run yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Click "Analyze Website" to scan <span className="font-medium">{project.brandDomain}</span> and check your SEO readiness for AEO.
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-green-500 text-white">
-                    {seoReadiness.assessment.recommendationLevel === "excellent" ? "Excellent" : "Ready"}
-                  </Badge>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setShowChecklist(!showChecklist)}
-                    data-testid="toggle-checklist-button"
-                  >
-                    {showChecklist ? "Hide Checklist" : "View Checklist"}
-                  </Button>
+                <Button
+                  onClick={() => analyzeMutation.mutate()}
+                  disabled={analyzeMutation.isPending}
+                  data-testid="button-analyze-seo-cta"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Run SEO Analysis
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {analyzeMutation.isPending && (
+          <Card>
+            <CardContent className="py-8">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <div className="text-center">
+                  <p className="font-medium">Analyzing {project.brandDomain}...</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Checking meta tags, structured data, headers, content, and more
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
-          {showChecklist && (
+        )}
+
+        {!seoLoading && seoReadiness && seoReadiness.assessment.overallScore > 0 && !analyzeMutation.isPending && (
+          <>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <SeoReadinessScore 
-                  score={seoReadiness.assessment.overallScore} 
-                  level={seoReadiness.assessment.recommendationLevel as "not_ready" | "needs_work" | "ready" | "excellent"}
-                  aeoReady={seoReadiness.aeoReady}
-                />
-              </div>
+              <Card className={seoReadiness.aeoReady ? "border-green-500/30 bg-green-500/5" : "border-amber-500/30 bg-amber-500/5"}>
+                <CardContent className="py-6">
+                  <div className="text-center space-y-3">
+                    <div className={`inline-flex p-3 rounded-full ${seoReadiness.aeoReady ? "bg-green-500/20" : "bg-amber-500/20"}`}>
+                      <ShieldCheck className={`h-8 w-8 ${seoReadiness.aeoReady ? "text-green-600" : "text-amber-600"}`} />
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold">{seoReadiness.assessment.overallScore}</div>
+                      <div className="text-sm text-muted-foreground">/100</div>
+                    </div>
+                    <Badge className={seoReadiness.aeoReady ? "bg-green-500 text-white" : "bg-amber-500 text-white"}>
+                      {seoReadiness.assessment.recommendationLevel === "excellent" ? "Excellent" 
+                        : seoReadiness.assessment.recommendationLevel === "ready" ? "AEO Ready" 
+                        : seoReadiness.assessment.recommendationLevel === "needs_work" ? "Needs Work" 
+                        : "Not Ready"}
+                    </Badge>
+                    <p className="text-xs text-muted-foreground">
+                      {seoReadiness.aeoReady 
+                        ? "Your site has a solid foundation for AI visibility" 
+                        : "Improve your SEO to unlock better AI visibility"}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="lg:col-span-2">
-                <SeoReadinessChecklist 
-                  items={seoReadiness.checklist}
-                  onItemChange={handleChecklistChange}
-                  isLoading={updateSeoReadiness.isPending}
-                />
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">SEO Checklist Results</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowDetails(!showDetails)}
+                        data-testid="toggle-seo-details"
+                      >
+                        {showDetails ? "Hide Details" : "Show Details"}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {seoReadiness.checklist.map((item) => (
+                        <div
+                          key={item.key}
+                          className="flex items-start gap-3 py-2 border-b last:border-0"
+                          data-testid={`seo-item-${item.key}`}
+                        >
+                          {item.checked ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{item.label}</span>
+                              <span className={`text-xs font-medium ${item.checked ? "text-green-600" : "text-muted-foreground"}`}>
+                                {item.checked ? `+${item.weight} pts` : `+${item.weight} pts`}
+                              </span>
+                            </div>
+                            {showDetails && (
+                              <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {seoReadiness.guidance.length > 0 && (
+              <GuidanceMessages messages={seoReadiness.guidance} />
+            )}
+          </>
+        )}
+      </div>
 
       {/* Prompt Performance Table */}
       {results.length > 0 && (
