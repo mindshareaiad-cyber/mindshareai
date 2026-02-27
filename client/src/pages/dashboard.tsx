@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient, apiRequest, getQueryFn } from "@/lib/queryClient";
+import { useAuth } from "@/contexts/auth-context";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar, type DashboardSection } from "@/components/dashboard/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -17,8 +18,16 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Project, PromptSet, Prompt, ScanResult, GapAnalysis } from "@shared/schema";
 
+interface SubscriptionInfo {
+  hasActiveSubscription: boolean;
+  subscriptionStatus: string;
+  planId?: string;
+  onboardingCompleted: boolean;
+}
+
 export default function DashboardPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(() => {
     return localStorage.getItem("mindshare_selected_project") || null;
   });
@@ -46,6 +55,14 @@ export default function DashboardPage() {
     retry: 2,
     retryDelay: 1000,
   });
+
+  const { data: subscription, isLoading: subscriptionLoading } = useQuery<SubscriptionInfo>({
+    queryKey: ["/api/stripe/subscription", user?.id],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    enabled: !!user,
+  });
+
+  const currentPlanId = subscriptionLoading ? undefined : (subscription?.planId || "starter");
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
 
@@ -241,6 +258,8 @@ export default function DashboardPage() {
             gaps={gaps}
             isGenerating={isGeneratingSuggestion}
             onGenerateSuggestion={generateSuggestion}
+            planId={currentPlanId}
+            userId={user?.id}
           />
         );
       case "suggestions":
@@ -249,6 +268,8 @@ export default function DashboardPage() {
             gaps={gaps}
             isGenerating={isGeneratingSuggestion}
             onGenerateSuggestion={generateSuggestion}
+            planId={currentPlanId}
+            userId={user?.id}
           />
         );
       case "settings":

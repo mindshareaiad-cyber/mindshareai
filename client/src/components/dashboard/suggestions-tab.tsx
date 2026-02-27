@@ -1,13 +1,17 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lightbulb, FileText, ExternalLink, Sparkles } from "lucide-react";
+import { Lightbulb, FileText, ExternalLink, Sparkles, Lock, ArrowUpRight, Loader2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 import type { GapAnalysis } from "@shared/schema";
 
 interface SuggestionsTabProps {
   gaps: GapAnalysis[];
   isGenerating: boolean;
   onGenerateSuggestion: (promptId: string) => void;
+  planId?: string;
+  userId?: string;
 }
 
 function PriorityBadge({ brandScore, competitorScores }: { brandScore: number; competitorScores: Record<string, number> }) {
@@ -22,7 +26,65 @@ function PriorityBadge({ brandScore, competitorScores }: { brandScore: number; c
   return <Badge variant="secondary" className="text-xs">Low Priority</Badge>;
 }
 
-export function SuggestionsTab({ gaps, isGenerating, onGenerateSuggestion }: SuggestionsTabProps) {
+function UpgradePrompt({ userId, feature }: { userId?: string; feature: string }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const res = await apiRequest("POST", "/api/stripe/customer-portal", { userId });
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch {
+      window.open("/payment", "_self");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardContent className="py-10 text-center">
+        <div className="inline-flex p-3 rounded-full bg-primary/10 mb-4">
+          <Lock className="h-8 w-8 text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold mb-2">{feature} is available on Growth and Pro plans</h3>
+        <p className="text-muted-foreground max-w-md mx-auto mb-6">
+          Upgrade your plan to unlock {feature.toLowerCase()}, additional AI engines, more prompts, and deeper insights into your AI visibility.
+        </p>
+        <Button
+          onClick={handleUpgrade}
+          disabled={loading}
+          size="lg"
+          data-testid="button-upgrade-plan-suggestions"
+        >
+          {loading ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening...</>
+          ) : (
+            <><ArrowUpRight className="h-4 w-4 mr-2" /> Upgrade Your Plan</>
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function SuggestionsTab({ gaps, isGenerating, onGenerateSuggestion, planId, userId }: SuggestionsTabProps) {
+  if (planId === "starter") {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold">AEO Suggestions</h2>
+          <p className="text-sm text-muted-foreground">AI-generated content recommendations to improve your visibility</p>
+        </div>
+        <UpgradePrompt userId={userId} feature="AEO Suggestions" />
+      </div>
+    );
+  }
+
   if (gaps.length === 0) {
     return (
       <Card>
