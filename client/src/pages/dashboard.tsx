@@ -40,17 +40,19 @@ export default function DashboardPage() {
     "--sidebar-width-icon": "3rem",
   };
 
-  const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
+  const { data: projects = [], isLoading: projectsLoading, isSuccess: projectsLoaded } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
+    retry: 2,
+    retryDelay: 1000,
   });
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
 
   useEffect(() => {
-    if (selectedProjectId && projects.length > 0 && !projects.find((p) => p.id === selectedProjectId)) {
+    if (projectsLoaded && selectedProjectId && projects.length > 0 && !projects.find((p) => p.id === selectedProjectId)) {
       handleSelectProject(null);
     }
-  }, [projects, selectedProjectId, handleSelectProject]);
+  }, [projectsLoaded, projects, selectedProjectId, handleSelectProject]);
 
   const { data: promptSetsData = [], isLoading: promptSetsLoading } = useQuery<
     (PromptSet & { prompts: Prompt[] })[]
