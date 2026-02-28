@@ -22,11 +22,13 @@ import {
   Loader2,
   RefreshCw,
   Sparkles,
+  ChevronRight,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Project, ScanResult, Prompt, GapAnalysis, SeoReadinessReport } from "@shared/schema";
 import { GuidanceMessages } from "./guidance-messages";
+import { MetricDetailView, type MetricDetailType } from "./metric-detail-views";
 
 type PromptFilter = "all" | "gaps" | "winning" | "mentioned" | "invisible";
 
@@ -197,6 +199,7 @@ function MetricCard({
   trend,
   valueColor,
   testId,
+  onClick,
 }: {
   title: string;
   value: string | number;
@@ -205,6 +208,7 @@ function MetricCard({
   trend?: "up" | "down" | "neutral";
   valueColor?: string;
   testId?: string;
+  onClick?: () => void;
 }) {
   const getDefaultColor = () => {
     if (typeof value !== "number") return "";
@@ -217,12 +221,19 @@ function MetricCard({
   };
 
   return (
-    <Card data-testid={testId}>
+    <Card
+      data-testid={testId}
+      className={onClick ? "cursor-pointer transition-all hover:shadow-md hover:border-primary/30 group" : ""}
+      onClick={onClick}
+    >
       <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-1">
+          <Icon className="h-4 w-4 text-muted-foreground" />
+          {onClick && <ChevronRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-baseline gap-2">
@@ -286,6 +297,24 @@ export function OverviewTab({
     .sort(([, a], [, b]) => b - a);
 
   const [showDetails, setShowDetails] = useState(false);
+  const [activeDetail, setActiveDetail] = useState<MetricDetailType | null>(null);
+
+  if (activeDetail) {
+    return (
+      <MetricDetailView
+        type={activeDetail}
+        project={project}
+        results={results}
+        gaps={gaps}
+        visibilityScore={visibilityScore}
+        mentionCount={mentionCount}
+        recommendationCount={recommendationCount}
+        shareOfVoice={shareOfVoice}
+        competitorScores={competitorScores}
+        onBack={() => setActiveDetail(null)}
+      />
+    );
+  }
 
   const { data: seoReadiness, isLoading: seoLoading } = useQuery<SeoReadinessReport & { analysisDetails?: Record<string, string> }>({
     queryKey: ["/api/projects", project.id, "seo-readiness"],
@@ -333,6 +362,7 @@ export function OverviewTab({
           subtitle="0-2 scale"
           icon={Eye}
           testId="tour-card-visibility-score"
+          onClick={() => setActiveDetail("visibility")}
         />
         <MetricCard
           title="AI Mentions"
@@ -341,6 +371,7 @@ export function OverviewTab({
           icon={MessageSquare}
           valueColor={mentionCount > 0 ? "text-success" : "text-muted-foreground"}
           testId="tour-card-mentions"
+          onClick={() => setActiveDetail("mentions")}
         />
         <MetricCard
           title="Recommendations"
@@ -349,6 +380,7 @@ export function OverviewTab({
           icon={ThumbsUp}
           valueColor={recommendationCount > 0 ? "text-success" : "text-muted-foreground"}
           testId="tour-card-recommendations"
+          onClick={() => setActiveDetail("recommendations")}
         />
         <MetricCard
           title="Share of Voice"
@@ -357,6 +389,7 @@ export function OverviewTab({
           icon={PieChart}
           valueColor={shareOfVoice >= 50 ? "text-success" : shareOfVoice >= 25 ? "text-warning" : "text-destructive"}
           testId="tour-card-share-of-voice"
+          onClick={() => setActiveDetail("share-of-voice")}
         />
         <MetricCard
           title="Gap Opportunities"
@@ -365,6 +398,7 @@ export function OverviewTab({
           icon={AlertTriangle}
           valueColor={gaps.length > 0 ? "text-warning" : "text-success"}
           testId="tour-card-gap-opportunities"
+          onClick={() => setActiveDetail("gaps")}
         />
       </div>
 

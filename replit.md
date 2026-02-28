@@ -17,7 +17,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
 ## Key Features
 1. **Landing Page** - ClickUp-inspired marketing site with hero, solutions, features, ROI, and pricing sections
 2. **Dashboard** - Project management with left sidebar navigation showing:
-   - **Overview** - Core AI visibility metrics (Score, Mentions, Recommendations, Share of Voice, Gap Opportunities)
+   - **Overview** - Core AI visibility metrics (Score, Mentions, Recommendations, Share of Voice, Gap Opportunities) with clickable drill-down detail views showing engine breakdowns, competitor comparisons, prompt-level data, and priority-sorted lists
    - **Prompts** - Organize buyer-intent questions by persona, funnel stage, country
    - **Results** - View scan results after running AI visibility scans
    - **Gap Analysis** - Identify where competitors are mentioned but you're not
@@ -33,7 +33,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
 client/src/
 ├── components/
 │   ├── landing/       # Hero, Solutions, Features, ROI, Pricing, Header, Footer
-│   ├── dashboard/     # AppSidebar, DashboardHeader, Tabs (Overview, Prompts, Results, Suggestions)
+│   ├── dashboard/     # AppSidebar, DashboardHeader, Tabs (Overview, Prompts, Results, Suggestions), MetricDetailViews
 │   └── ui/            # shadcn components
 ├── contexts/
 │   └── auth-context.tsx  # Supabase auth context provider
