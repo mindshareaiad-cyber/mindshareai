@@ -52,6 +52,7 @@ export default function DashboardPage() {
 
   const { data: projects = [], isLoading: projectsLoading, isSuccess: projectsLoaded } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
+    enabled: !!user,
     retry: 2,
     retryDelay: 1000,
   });
@@ -201,7 +202,7 @@ export default function DashboardPage() {
     return totalMentions > 0 ? Math.round((brandMentions / totalMentions) * 100) : 0;
   };
 
-  if (projectsLoading) {
+  if (projectsLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
