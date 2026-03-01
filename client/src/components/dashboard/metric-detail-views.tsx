@@ -80,7 +80,33 @@ function DetailHeader({ title, subtitle, icon: Icon, onBack }: {
   );
 }
 
+function NoScanDataMessage({ onBack }: { onBack: () => void }) {
+  return (
+    <Card>
+      <CardContent className="py-12 text-center">
+        <Eye className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        <h3 className="text-lg font-semibold mb-2">No Scan Data Yet</h3>
+        <p className="text-muted-foreground max-w-md mx-auto mb-4">
+          Run your first AI visibility scan to see detailed metrics here. Add prompts in the Prompts tab, then click Run Scan.
+        </p>
+        <Button variant="outline" onClick={onBack} data-testid="button-back-no-data">
+          Back to Overview
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 function VisibilityScoreDetail({ project, results, visibilityScore, onBack }: MetricDetailProps) {
+  if (results.length === 0) {
+    return (
+      <div className="space-y-6">
+        <DetailHeader title="AI Visibility Score" subtitle={`Detailed breakdown for ${project.brandName}`} icon={Eye} onBack={onBack} />
+        <NoScanDataMessage onBack={onBack} />
+      </div>
+    );
+  }
+
   const engines = [...new Set(results.map(r => r.engine))];
   const engineBreakdown = engines.map(engine => {
     const engineResults = results.filter(r => r.engine === engine);
@@ -278,6 +304,15 @@ function VisibilityScoreDetail({ project, results, visibilityScore, onBack }: Me
 }
 
 function MentionsDetail({ project, results, mentionCount, onBack }: MetricDetailProps) {
+  if (results.length === 0) {
+    return (
+      <div className="space-y-6">
+        <DetailHeader title="AI Mentions" subtitle={`Where ${project.brandName} appears in AI responses`} icon={MessageSquare} onBack={onBack} />
+        <NoScanDataMessage onBack={onBack} />
+      </div>
+    );
+  }
+
   const mentionedResults = results.filter(r => r.brandScore >= 1);
   const notMentionedResults = results.filter(r => r.brandScore === 0);
 
@@ -415,6 +450,15 @@ function MentionsDetail({ project, results, mentionCount, onBack }: MetricDetail
 }
 
 function RecommendationsDetail({ project, results, recommendationCount, onBack }: MetricDetailProps) {
+  if (results.length === 0) {
+    return (
+      <div className="space-y-6">
+        <DetailHeader title="Recommendations" subtitle={`When AI strongly endorses ${project.brandName}`} icon={ThumbsUp} onBack={onBack} />
+        <NoScanDataMessage onBack={onBack} />
+      </div>
+    );
+  }
+
   const recommendedResults = results.filter(r => r.brandScore === 2);
   const mentionedOnlyResults = results.filter(r => r.brandScore === 1);
   const totalPrompts = results.length;
@@ -534,6 +578,15 @@ function RecommendationsDetail({ project, results, recommendationCount, onBack }
 }
 
 function ShareOfVoiceDetail({ project, results, shareOfVoice, mentionCount, competitorScores, onBack }: MetricDetailProps) {
+  if (results.length === 0) {
+    return (
+      <div className="space-y-6">
+        <DetailHeader title="Share of Voice" subtitle={`${project.brandName} vs competitors in AI responses`} icon={PieChart} onBack={onBack} />
+        <NoScanDataMessage onBack={onBack} />
+      </div>
+    );
+  }
+
   const competitors = Object.keys(competitorScores);
 
   const promptComparison = [...new Set(results.map(r => r.prompt.text))].map(promptText => {
@@ -745,6 +798,15 @@ function ShareOfVoiceDetail({ project, results, shareOfVoice, mentionCount, comp
 }
 
 function GapOpportunitiesDetail({ project, results, gaps, onBack }: MetricDetailProps) {
+  if (results.length === 0 && gaps.length === 0) {
+    return (
+      <div className="space-y-6">
+        <DetailHeader title="Gap Opportunities" subtitle={`Where ${project.brandName} is missing from AI responses`} icon={AlertTriangle} onBack={onBack} />
+        <NoScanDataMessage onBack={onBack} />
+      </div>
+    );
+  }
+
   const highPriority = gaps.filter(g => {
     const maxComp = Math.max(...Object.values(g.competitorScores), 0);
     return maxComp >= 2;
