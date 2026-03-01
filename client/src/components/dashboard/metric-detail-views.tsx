@@ -97,7 +97,7 @@ function NoScanDataMessage({ onBack }: { onBack: () => void }) {
   );
 }
 
-function VisibilityScoreDetail({ project, results, visibilityScore, onBack }: MetricDetailProps) {
+function VisibilityScoreDetail({ project, results, visibilityScore, competitorScores, onBack }: MetricDetailProps) {
   if (results.length === 0) {
     return (
       <div className="space-y-6">
