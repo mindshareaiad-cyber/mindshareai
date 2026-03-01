@@ -20,6 +20,7 @@ import {
   Building2,
   Crown,
   Zap,
+  ArrowUpRight,
 } from "lucide-react";
 
 interface SubscriptionInfo {
@@ -210,6 +211,13 @@ export function SettingsTab() {
           <Separator />
 
           <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              onClick={() => window.location.href = "/payment"}
+              data-testid="button-upgrade-plan"
+            >
+              <ArrowUpRight className="mr-2 h-4 w-4" />
+              Upgrade Plan
+            </Button>
             <Button
               variant="outline"
               onClick={handleManageSubscription}

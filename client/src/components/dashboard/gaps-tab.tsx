@@ -14,25 +14,7 @@ interface GapsTabProps {
   userId?: string;
 }
 
-function UpgradePrompt({ userId, feature }: { userId?: string; feature: string }) {
-  const [loading, setLoading] = useState(false);
-
-  const handleUpgrade = async () => {
-    if (!userId) return;
-    setLoading(true);
-    try {
-      const res = await apiRequest("POST", "/api/stripe/customer-portal", {});
-      const data = await res.json();
-      if (data.url) {
-        window.open(data.url, "_blank");
-      }
-    } catch {
-      window.open("/payment", "_self");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+function UpgradePrompt({ feature }: { userId?: string; feature: string }) {
   return (
     <Card className="border-primary/20 bg-primary/5">
       <CardContent className="py-10 text-center">
@@ -44,16 +26,11 @@ function UpgradePrompt({ userId, feature }: { userId?: string; feature: string }
           Upgrade your plan to unlock {feature.toLowerCase()}, additional AI engines, more prompts, and deeper insights into your AI visibility.
         </p>
         <Button
-          onClick={handleUpgrade}
-          disabled={loading}
+          onClick={() => window.location.href = "/payment"}
           size="lg"
           data-testid="button-upgrade-plan"
         >
-          {loading ? (
-            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opening...</>
-          ) : (
-            <><ArrowUpRight className="h-4 w-4 mr-2" /> Upgrade Your Plan</>
-          )}
+          <ArrowUpRight className="h-4 w-4 mr-2" /> Upgrade Your Plan
         </Button>
       </CardContent>
     </Card>
