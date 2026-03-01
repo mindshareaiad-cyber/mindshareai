@@ -16,20 +16,22 @@ import {
   type SeoReadiness,
   type InsertSeoReadiness,
   userProfiles,
+  projects,
+  promptSets,
+  prompts,
+  scans,
+  scanResults,
   seoReadinessAssessments,
 } from "@shared/schema";
-import { randomUUID } from "crypto";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc, and, gte, inArray } from "drizzle-orm";
 
 export interface IStorage {
-  // User Profiles
   getUserProfile(id: string): Promise<UserProfile | undefined>;
   getUserProfileByEmail(email: string): Promise<UserProfile | undefined>;
   createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
   updateUserProfile(id: string, data: UpdateUserProfile): Promise<UserProfile | undefined>;
 
-  // Projects
   getProjects(): Promise<Project[]>;
   getProjectsByUser(userId: string): Promise<Project[]>;
   getProject(id: string): Promise<Project | undefined>;
@@ -37,13 +39,11 @@ export interface IStorage {
   deleteProject(id: string): Promise<void>;
   countProjectsByUser(userId: string): Promise<number>;
 
-  // Prompt Sets
   getPromptSets(projectId: string): Promise<PromptSet[]>;
   getPromptSet(id: string): Promise<PromptSet | undefined>;
   createPromptSet(promptSet: InsertPromptSet): Promise<PromptSet>;
   deletePromptSet(id: string): Promise<void>;
 
-  // Prompts
   getPrompts(promptSetId: string): Promise<Prompt[]>;
   getPromptsByProject(projectId: string): Promise<Prompt[]>;
   getPrompt(id: string): Promise<Prompt | undefined>;
@@ -51,102 +51,65 @@ export interface IStorage {
   deletePrompt(id: string): Promise<void>;
   countPromptsByUser(userId: string): Promise<number>;
 
-  // Scans
   getScans(projectId: string): Promise<Scan[]>;
+  getScan(id: string): Promise<Scan | undefined>;
   getLatestScan(projectId: string): Promise<Scan | undefined>;
   createScan(scan: InsertScan): Promise<Scan>;
   updateScanNotes(scanId: string, notes: string): Promise<Scan | null>;
   countScansThisMonth(userId: string): Promise<number>;
 
-  // Scan Results
   getScanResults(scanId: string): Promise<ScanResult[]>;
   createScanResult(result: InsertScanResult): Promise<ScanResult>;
 
-  // Gap Analysis
   getGaps(projectId: string): Promise<GapAnalysis[]>;
   updateGapSuggestion(promptId: string, suggestedAnswer: string, suggestedPageType: string): Promise<void>;
 
-  // Stripe data queries
   getStripeProduct(productId: string): Promise<any>;
   listStripeProducts(): Promise<any[]>;
   getStripeSubscription(subscriptionId: string): Promise<any>;
 
-  // SEO Readiness
   getSeoReadiness(projectId: string): Promise<SeoReadiness | undefined>;
   createSeoReadiness(assessment: InsertSeoReadiness): Promise<SeoReadiness>;
   updateSeoReadiness(projectId: string, data: Partial<InsertSeoReadiness>): Promise<SeoReadiness | undefined>;
 }
 
-export class MemStorage implements IStorage {
-  private userProfilesMap: Map<string, UserProfile> = new Map();
-  private projects: Map<string, Project> = new Map();
-  private promptSets: Map<string, PromptSet> = new Map();
-  private prompts: Map<string, Prompt> = new Map();
-  private scans: Map<string, Scan> = new Map();
-  private scanResults: Map<string, ScanResult> = new Map();
+export class DatabaseStorage implements IStorage {
   private gapSuggestions: Map<string, { suggestedAnswer: string; suggestedPageType: string }> = new Map();
 
-  // User Profiles
   async getUserProfile(id: string): Promise<UserProfile | undefined> {
-    try {
-      const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, id));
-      return profile;
-    } catch {
-      return this.userProfilesMap.get(id);
-    }
+    const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, id));
+    return profile;
   }
 
   async getUserProfileByEmail(email: string): Promise<UserProfile | undefined> {
-    try {
-      const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.email, email));
-      return profile;
-    } catch {
-      return Array.from(this.userProfilesMap.values()).find(p => p.email === email);
-    }
+    const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.email, email));
+    return profile;
   }
 
   async createUserProfile(profile: InsertUserProfile): Promise<UserProfile> {
-    try {
-      const [created] = await db.insert(userProfiles).values(profile).returning();
-      return created;
-    } catch {
-      const newProfile: UserProfile = {
-        ...profile,
-        firstName: profile.firstName || null,
-        lastName: profile.lastName || null,
-        companyName: profile.companyName || null,
-        websiteUrl: profile.websiteUrl || null,
-        industry: profile.industry || null,
-        companySize: profile.companySize || null,
-        onboardingCompleted: profile.onboardingCompleted ?? false,
-        stripeCustomerId: profile.stripeCustomerId || null,
-        stripeSubscriptionId: profile.stripeSubscriptionId || null,
-        subscriptionStatus: profile.subscriptionStatus || 'inactive',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      this.userProfilesMap.set(profile.id, newProfile);
-      return newProfile;
-    }
+    const [created] = await db.insert(userProfiles).values(profile)
+      .onConflictDoUpdate({
+        target: userProfiles.id,
+        set: {
+          email: profile.email,
+          firstName: profile.firstName || undefined,
+          lastName: profile.lastName || undefined,
+          companyName: profile.companyName || undefined,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return created;
   }
 
   async updateUserProfile(id: string, data: UpdateUserProfile): Promise<UserProfile | undefined> {
-    try {
-      const [updated] = await db.update(userProfiles)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(userProfiles.id, id))
-        .returning();
-      return updated;
-    } catch {
-      const existing = this.userProfilesMap.get(id);
-      if (!existing) return undefined;
-      const updated = { ...existing, ...data, updatedAt: new Date() };
-      this.userProfilesMap.set(id, updated);
-      return updated;
-    }
+    const [updated] = await db.update(userProfiles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(userProfiles.id, id))
+      .returning();
+    return updated;
   }
 
-  // Stripe queries
   async getStripeProduct(productId: string): Promise<any> {
     try {
       const result = await db.execute(
@@ -183,210 +146,157 @@ export class MemStorage implements IStorage {
     }
   }
 
-  // Projects
   async getProjects(): Promise<Project[]> {
-    return Array.from(this.projects.values()).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return db.select().from(projects).orderBy(desc(projects.createdAt));
   }
 
   async getProjectsByUser(userId: string): Promise<Project[]> {
-    return Array.from(this.projects.values())
-      .filter((p) => p.userId === userId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return db.select().from(projects)
+      .where(eq(projects.userId, userId))
+      .orderBy(desc(projects.createdAt));
   }
 
   async getProject(id: string): Promise<Project | undefined> {
-    return this.projects.get(id);
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project;
   }
 
   async countProjectsByUser(userId: string): Promise<number> {
-    return Array.from(this.projects.values()).filter((p) => p.userId === userId).length;
+    const result = await db.select({ count: sql<number>`count(*)::int` })
+      .from(projects)
+      .where(eq(projects.userId, userId));
+    return result[0]?.count || 0;
   }
 
   async createProject(insertProject: InsertProject): Promise<Project> {
-    const id = randomUUID();
-    const project: Project = {
-      ...insertProject,
-      id,
-      userId: insertProject.userId || null,
-      competitors: insertProject.competitors || [],
-      createdAt: new Date(),
-    };
-    this.projects.set(id, project);
+    const [project] = await db.insert(projects).values(insertProject).returning();
     return project;
   }
 
   async deleteProject(id: string): Promise<void> {
-    this.projects.delete(id);
-    for (const [setId, set] of this.promptSets) {
-      if (set.projectId === id) {
-        await this.deletePromptSet(setId);
-      }
-    }
-    for (const [scanId, scan] of this.scans) {
-      if (scan.projectId === id) {
-        this.scans.delete(scanId);
-        for (const [resultId, result] of this.scanResults) {
-          if (result.scanId === scanId) {
-            this.scanResults.delete(resultId);
-          }
-        }
-      }
-    }
+    await db.delete(projects).where(eq(projects.id, id));
   }
 
-  // Prompt Sets
   async getPromptSets(projectId: string): Promise<PromptSet[]> {
-    return Array.from(this.promptSets.values())
-      .filter((set) => set.projectId === projectId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return db.select().from(promptSets)
+      .where(eq(promptSets.projectId, projectId))
+      .orderBy(desc(promptSets.createdAt));
   }
 
   async getPromptSet(id: string): Promise<PromptSet | undefined> {
-    return this.promptSets.get(id);
+    const [set] = await db.select().from(promptSets).where(eq(promptSets.id, id));
+    return set;
   }
 
   async createPromptSet(insertPromptSet: InsertPromptSet): Promise<PromptSet> {
-    const id = randomUUID();
-    const promptSet: PromptSet = {
-      ...insertPromptSet,
-      id,
-      persona: insertPromptSet.persona || null,
-      funnelStage: insertPromptSet.funnelStage || null,
-      country: insertPromptSet.country || null,
-      createdAt: new Date(),
-    };
-    this.promptSets.set(id, promptSet);
-    return promptSet;
+    const [set] = await db.insert(promptSets).values(insertPromptSet).returning();
+    return set;
   }
 
   async deletePromptSet(id: string): Promise<void> {
-    this.promptSets.delete(id);
-    for (const [promptId, prompt] of this.prompts) {
-      if (prompt.promptSetId === id) {
-        this.prompts.delete(promptId);
-      }
-    }
+    await db.delete(promptSets).where(eq(promptSets.id, id));
   }
 
-  // Prompts
   async getPrompts(promptSetId: string): Promise<Prompt[]> {
-    return Array.from(this.prompts.values())
-      .filter((prompt) => prompt.promptSetId === promptSetId)
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    return db.select().from(prompts)
+      .where(eq(prompts.promptSetId, promptSetId))
+      .orderBy(prompts.createdAt);
   }
 
   async getPromptsByProject(projectId: string): Promise<Prompt[]> {
     const sets = await this.getPromptSets(projectId);
-    const setIds = new Set(sets.map((s) => s.id));
-    return Array.from(this.prompts.values()).filter((prompt) =>
-      setIds.has(prompt.promptSetId)
-    );
+    if (sets.length === 0) return [];
+    const setIds = sets.map(s => s.id);
+    return db.select().from(prompts)
+      .where(inArray(prompts.promptSetId, setIds))
+      .orderBy(prompts.createdAt);
   }
 
   async getPrompt(id: string): Promise<Prompt | undefined> {
-    return this.prompts.get(id);
+    const [prompt] = await db.select().from(prompts).where(eq(prompts.id, id));
+    return prompt;
   }
 
   async createPrompt(insertPrompt: InsertPrompt): Promise<Prompt> {
-    const id = randomUUID();
-    const prompt: Prompt = {
-      ...insertPrompt,
-      id,
-      createdAt: new Date(),
-    };
-    this.prompts.set(id, prompt);
+    const [prompt] = await db.insert(prompts).values(insertPrompt).returning();
     return prompt;
   }
 
   async deletePrompt(id: string): Promise<void> {
-    this.prompts.delete(id);
+    await db.delete(prompts).where(eq(prompts.id, id));
   }
 
   async countPromptsByUser(userId: string): Promise<number> {
-    const userProjects = Array.from(this.projects.values()).filter(
-      (p) => p.userId === userId
-    );
-    const projectIds = new Set(userProjects.map((p) => p.id));
-    
-    const userPromptSets = Array.from(this.promptSets.values()).filter(
-      (ps) => projectIds.has(ps.projectId)
-    );
-    const promptSetIds = new Set(userPromptSets.map((ps) => ps.id));
-    
-    return Array.from(this.prompts.values()).filter(
-      (p) => promptSetIds.has(p.promptSetId)
-    ).length;
+    const userProjects = await this.getProjectsByUser(userId);
+    if (userProjects.length === 0) return 0;
+    const projectIds = userProjects.map(p => p.id);
+    const userSets = await db.select().from(promptSets)
+      .where(inArray(promptSets.projectId, projectIds));
+    if (userSets.length === 0) return 0;
+    const setIds = userSets.map(s => s.id);
+    const result = await db.select({ count: sql<number>`count(*)::int` })
+      .from(prompts)
+      .where(inArray(prompts.promptSetId, setIds));
+    return result[0]?.count || 0;
   }
 
-  // Scans
   async getScans(projectId: string): Promise<Scan[]> {
-    return Array.from(this.scans.values())
-      .filter((scan) => scan.projectId === projectId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return db.select().from(scans)
+      .where(eq(scans.projectId, projectId))
+      .orderBy(desc(scans.createdAt));
+  }
+
+  async getScan(id: string): Promise<Scan | undefined> {
+    const [scan] = await db.select().from(scans).where(eq(scans.id, id));
+    return scan;
   }
 
   async getLatestScan(projectId: string): Promise<Scan | undefined> {
-    const scans = await this.getScans(projectId);
-    return scans[0];
+    const [scan] = await db.select().from(scans)
+      .where(eq(scans.projectId, projectId))
+      .orderBy(desc(scans.createdAt))
+      .limit(1);
+    return scan;
   }
 
   async createScan(insertScan: InsertScan): Promise<Scan> {
-    const id = randomUUID();
-    const scan: Scan = {
-      ...insertScan,
-      id,
-      notes: insertScan.notes || null,
-      createdAt: new Date(),
-    };
-    this.scans.set(id, scan);
+    const [scan] = await db.insert(scans).values(insertScan).returning();
     return scan;
   }
-  
+
   async updateScanNotes(scanId: string, notes: string): Promise<Scan | null> {
-    const scan = this.scans.get(scanId);
-    if (!scan) return null;
-    
-    const updated = { ...scan, notes };
-    this.scans.set(scanId, updated);
-    return updated;
+    const [updated] = await db.update(scans)
+      .set({ notes })
+      .where(eq(scans.id, scanId))
+      .returning();
+    return updated || null;
   }
 
   async countScansThisMonth(userId: string): Promise<number> {
-    const userProjects = Array.from(this.projects.values()).filter(
-      (p) => p.userId === userId
-    );
-    const projectIds = new Set(userProjects.map((p) => p.id));
-    
+    const userProjects = await this.getProjectsByUser(userId);
+    if (userProjects.length === 0) return 0;
+    const projectIds = userProjects.map(p => p.id);
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
-    return Array.from(this.scans.values()).filter(
-      (s) => projectIds.has(s.projectId) && new Date(s.createdAt) >= startOfMonth
-    ).length;
+    const result = await db.select({ count: sql<number>`count(*)::int` })
+      .from(scans)
+      .where(and(
+        inArray(scans.projectId, projectIds),
+        gte(scans.createdAt, startOfMonth)
+      ));
+    return result[0]?.count || 0;
   }
 
-  // Scan Results
   async getScanResults(scanId: string): Promise<ScanResult[]> {
-    return Array.from(this.scanResults.values()).filter(
-      (result) => result.scanId === scanId
-    );
+    return db.select().from(scanResults)
+      .where(eq(scanResults.scanId, scanId));
   }
 
   async createScanResult(insertResult: InsertScanResult): Promise<ScanResult> {
-    const id = randomUUID();
-    const result: ScanResult = {
-      ...insertResult,
-      id,
-      brandScore: insertResult.brandScore ?? 0,
-      createdAt: new Date(),
-    };
-    this.scanResults.set(id, result);
+    const [result] = await db.insert(scanResults).values(insertResult).returning();
     return result;
   }
 
-  // Gap Analysis
   async getGaps(projectId: string): Promise<GapAnalysis[]> {
     const latestScan = await this.getLatestScan(projectId);
     if (!latestScan) return [];
@@ -425,65 +335,24 @@ export class MemStorage implements IStorage {
     this.gapSuggestions.set(promptId, { suggestedAnswer, suggestedPageType });
   }
 
-  // SEO Readiness
-  private seoReadinessMap: Map<string, SeoReadiness> = new Map();
-
   async getSeoReadiness(projectId: string): Promise<SeoReadiness | undefined> {
-    try {
-      const [assessment] = await db.select().from(seoReadinessAssessments)
-        .where(eq(seoReadinessAssessments.projectId, projectId));
-      return assessment;
-    } catch {
-      return Array.from(this.seoReadinessMap.values()).find(a => a.projectId === projectId);
-    }
+    const [assessment] = await db.select().from(seoReadinessAssessments)
+      .where(eq(seoReadinessAssessments.projectId, projectId));
+    return assessment;
   }
 
   async createSeoReadiness(assessment: InsertSeoReadiness): Promise<SeoReadiness> {
-    try {
-      const [created] = await db.insert(seoReadinessAssessments).values(assessment).returning();
-      return created;
-    } catch {
-      const id = randomUUID();
-      const newAssessment: SeoReadiness = {
-        id,
-        projectId: assessment.projectId,
-        overallScore: assessment.overallScore ?? 0,
-        hasWebsite: assessment.hasWebsite ?? false,
-        hasMetaDescriptions: assessment.hasMetaDescriptions ?? false,
-        hasStructuredHeaders: assessment.hasStructuredHeaders ?? false,
-        hasBlogOrKnowledgeBase: assessment.hasBlogOrKnowledgeBase ?? false,
-        hasSchemaMarkup: assessment.hasSchemaMarkup ?? false,
-        hasFaqSection: assessment.hasFaqSection ?? false,
-        hasContactInfo: assessment.hasContactInfo ?? false,
-        hasSocialProfiles: assessment.hasSocialProfiles ?? false,
-        contentDepthScore: assessment.contentDepthScore ?? 0,
-        technicalSeoScore: assessment.technicalSeoScore ?? 0,
-        recommendationLevel: assessment.recommendationLevel ?? "not_ready",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      this.seoReadinessMap.set(id, newAssessment);
-      return newAssessment;
-    }
+    const [created] = await db.insert(seoReadinessAssessments).values(assessment).returning();
+    return created;
   }
 
   async updateSeoReadiness(projectId: string, data: Partial<InsertSeoReadiness>): Promise<SeoReadiness | undefined> {
-    try {
-      const [updated] = await db.update(seoReadinessAssessments)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(seoReadinessAssessments.projectId, projectId))
-        .returning();
-      return updated;
-    } catch {
-      const existing = Array.from(this.seoReadinessMap.values()).find(a => a.projectId === projectId);
-      if (existing) {
-        const updated = { ...existing, ...data, updatedAt: new Date() };
-        this.seoReadinessMap.set(existing.id, updated);
-        return updated;
-      }
-      return undefined;
-    }
+    const [updated] = await db.update(seoReadinessAssessments)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(seoReadinessAssessments.projectId, projectId))
+      .returning();
+    return updated;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

@@ -14,6 +14,13 @@ import { requireAuth, requireOwnership } from "./auth-middleware";
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'mindshareai@gmail.com').split(',').map(e => e.trim().toLowerCase());
 
+async function verifyProjectOwnership(projectId: string, userId: string): Promise<{ project: any; error?: string; status?: number }> {
+  const project = await storage.getProject(projectId);
+  if (!project) return { project: null, error: "Project not found", status: 404 };
+  if (project.userId !== userId) return { project: null, error: "Access denied", status: 403 };
+  return { project };
+}
+
 function isAdminEmail(email: string | null | undefined): boolean {
   if (!email) return false;
   return ADMIN_EMAILS.includes(email.toLowerCase());
@@ -303,8 +310,9 @@ export async function registerRoutes(
   
   app.get("/api/projects", requireAuth, async (req, res) => {
     try {
-      const projects = await storage.getProjects();
-      res.json(projects);
+      const userId = req.userId!;
+      const userProjects = await storage.getProjectsByUser(userId);
+      res.json(userProjects);
     } catch (error) {
       console.error("Error getting projects:", error);
       res.status(500).json({ error: "Failed to get projects" });
@@ -316,6 +324,9 @@ export async function registerRoutes(
       const project = await storage.getProject(req.params.projectId);
       if (!project) {
         return res.status(404).json({ error: "Project not found" });
+      }
+      if (project.userId !== req.userId) {
+        return res.status(403).json({ error: "Access denied" });
       }
       res.json(project);
     } catch (error) {
@@ -331,22 +342,19 @@ export async function registerRoutes(
         return res.status(400).json({ error: fromError(parsed.error).message });
       }
       
-      // Enforce project limit based on user's plan
-      const userId = parsed.data.userId;
-      if (userId) {
-        const profile = await storage.getUserProfile(userId);
-        const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
-        const projectCount = await storage.countProjectsByUser(userId);
-        
-        if (!canCreateProject(planId, projectCount)) {
-          const plan = getPlan(planId);
-          return res.status(403).json({ 
-            error: `You've reached the ${plan.maxProjects} project limit on your ${plan.name} plan. Upgrade to create more projects.` 
-          });
-        }
+      const userId = req.userId!;
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const projectCount = await storage.countProjectsByUser(userId);
+      
+      if (!canCreateProject(planId, projectCount)) {
+        const plan = getPlan(planId);
+        return res.status(403).json({ 
+          error: `You've reached the ${plan.maxProjects} project limit on your ${plan.name} plan. Upgrade to create more projects.` 
+        });
       }
       
-      const project = await storage.createProject(parsed.data);
+      const project = await storage.createProject({ ...parsed.data, userId });
       res.status(201).json(project);
     } catch (error) {
       console.error("Error creating project:", error);
@@ -356,6 +364,13 @@ export async function registerRoutes(
 
   app.delete("/api/projects/:projectId", requireAuth, async (req, res) => {
     try {
+      const project = await storage.getProject(req.params.projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      if (project.userId !== req.userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
       await storage.deleteProject(req.params.projectId);
       res.status(204).send();
     } catch (error) {
@@ -369,6 +384,9 @@ export async function registerRoutes(
   // Get prompt sets for a project (with prompts)
   app.get("/api/projects/:projectId/prompt-sets", requireAuth, async (req, res) => {
     try {
+      const { project, error, status } = await verifyProjectOwnership(req.params.projectId, req.userId!);
+      if (error) return res.status(status!).json({ error });
+
       const promptSets = await storage.getPromptSets(req.params.projectId);
       const setsWithPrompts = await Promise.all(
         promptSets.map(async (set) => ({
@@ -386,6 +404,9 @@ export async function registerRoutes(
   // Create prompt set
   app.post("/api/projects/:projectId/prompt-sets", requireAuth, async (req, res) => {
     try {
+      const { project, error, status } = await verifyProjectOwnership(req.params.projectId, req.userId!);
+      if (error) return res.status(status!).json({ error });
+
       const parsed = insertPromptSetSchema.safeParse({
         ...req.body,
         projectId: req.params.projectId,
@@ -404,6 +425,11 @@ export async function registerRoutes(
   // Delete prompt set
   app.delete("/api/prompt-sets/:promptSetId", requireAuth, async (req, res) => {
     try {
+      const promptSet = await storage.getPromptSet(req.params.promptSetId);
+      if (!promptSet) return res.status(404).json({ error: "Prompt set not found" });
+      const { error, status } = await verifyProjectOwnership(promptSet.projectId, req.userId!);
+      if (error) return res.status(status!).json({ error });
+
       await storage.deletePromptSet(req.params.promptSetId);
       res.status(204).send();
     } catch (error) {
@@ -425,27 +451,24 @@ export async function registerRoutes(
         return res.status(400).json({ error: fromError(parsed.error).message });
       }
       
-      // Get the prompt set to find the project and user
       const promptSet = await storage.getPromptSet(req.params.promptSetId);
       if (!promptSet) {
         return res.status(404).json({ error: "Prompt set not found" });
       }
       
-      const project = await storage.getProject(promptSet.projectId);
-      const userId = project?.userId;
+      const { project, error, status } = await verifyProjectOwnership(promptSet.projectId, req.userId!);
+      if (error) return res.status(status!).json({ error });
+
+      const userId = req.userId!;
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const promptCount = await storage.countPromptsByUser(userId);
       
-      // Enforce prompt limit based on user's plan
-      if (userId) {
-        const profile = await storage.getUserProfile(userId);
-        const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
-        const promptCount = await storage.countPromptsByUser(userId);
-        
-        if (!canAddPrompts(planId, promptCount, 1)) {
-          const plan = getPlan(planId);
-          return res.status(403).json({ 
-            error: `You've reached the ${plan.maxPrompts} prompt limit on your ${plan.name} plan. Upgrade to add more prompts.` 
-          });
-        }
+      if (!canAddPrompts(planId, promptCount, 1)) {
+        const plan = getPlan(planId);
+        return res.status(403).json({ 
+          error: `You've reached the ${plan.maxPrompts} prompt limit on your ${plan.name} plan. Upgrade to add more prompts.` 
+        });
       }
       
       const prompt = await storage.createPrompt(parsed.data);
@@ -459,6 +482,13 @@ export async function registerRoutes(
   // Delete prompt
   app.delete("/api/prompts/:promptId", requireAuth, async (req, res) => {
     try {
+      const prompt = await storage.getPrompt(req.params.promptId);
+      if (!prompt) return res.status(404).json({ error: "Prompt not found" });
+      const promptSet = await storage.getPromptSet(prompt.promptSetId);
+      if (!promptSet) return res.status(404).json({ error: "Prompt set not found" });
+      const { error, status } = await verifyProjectOwnership(promptSet.projectId, req.userId!);
+      if (error) return res.status(status!).json({ error });
+
       await storage.deletePrompt(req.params.promptId);
       res.status(204).send();
     } catch (error) {
@@ -549,28 +579,24 @@ export async function registerRoutes(
   app.post("/api/projects/:projectId/scans", requireAuth, async (req, res) => {
     try {
       const scanInputSchema = z.object({
-        userId: z.string().optional(),
         engines: z.array(z.enum(["chatgpt", "claude", "gemini", "perplexity"])).optional(),
         multiEngine: z.boolean().default(false),
-        notes: z.string().optional(), // User annotation: "site update", "launch", "PR", etc.
+        notes: z.string().optional(),
       });
       const parsed = scanInputSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ error: fromError(parsed.error).message });
       }
-      const { userId, multiEngine, notes } = parsed.data;
+      const { multiEngine, notes } = parsed.data;
       const projectId = req.params.projectId;
 
-      const project = await storage.getProject(projectId);
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
+      const { project, error: ownerError, status: ownerStatus } = await verifyProjectOwnership(projectId, req.userId!);
+      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
 
-      // Get user plan and check limits
-      const effectiveUserId = userId || project.userId;
+      const effectiveUserId = req.userId!;
       let planId: PlanId = "starter";
       
-      if (effectiveUserId) {
+      {
         const profile = await storage.getUserProfile(effectiveUserId);
         planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
         
@@ -671,10 +697,8 @@ export async function registerRoutes(
   app.get("/api/projects/:projectId/scans/latest", requireAuth, async (req, res) => {
     try {
       const projectId = req.params.projectId;
-      const project = await storage.getProject(projectId);
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
+      const { project, error: ownerError, status: ownerStatus } = await verifyProjectOwnership(projectId, req.userId!);
+      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
 
       const latestScan = await storage.getLatestScan(projectId);
       if (!latestScan) {
@@ -723,10 +747,12 @@ export async function registerRoutes(
   app.patch("/api/scans/:scanId/notes", requireAuth, async (req, res) => {
     try {
       const { notes } = req.body;
+      const existingScan = await storage.getScan(req.params.scanId);
+      if (!existingScan) return res.status(404).json({ error: "Scan not found" });
+      const { error: ownerError, status: ownerStatus } = await verifyProjectOwnership(existingScan.projectId, req.userId!);
+      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
+
       const scan = await storage.updateScanNotes(req.params.scanId, notes || "");
-      if (!scan) {
-        return res.status(404).json({ error: "Scan not found" });
-      }
       res.json(scan);
     } catch (error) {
       console.error("Error updating scan notes:", error);
@@ -741,18 +767,11 @@ export async function registerRoutes(
     try {
       const { projectId } = req.params;
       
-      // Get project to find user
-      const project = await storage.getProject(projectId);
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
+      const { project, error: ownerError, status: ownerStatus } = await verifyProjectOwnership(projectId, req.userId!);
+      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
 
-      // Check plan feature access - default to starter if no user
-      let planId: PlanId = "starter";
-      if (project.userId) {
-        const user = await storage.getUserProfile(project.userId);
-        planId = getPlanByPriceId(user?.stripePriceId || null);
-      }
+      const user = await storage.getUserProfile(req.userId!);
+      const planId = getUserPlanId(user?.subscriptionStatus, user?.stripePriceId, user?.email);
       const plan = getPlan(planId);
       
       if (!plan.features.gapAnalysis) {
@@ -786,17 +805,11 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Prompt set not found" });
       }
 
-      const project = await storage.getProject(promptSet.projectId);
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
+      const { project, error: ownerError, status: ownerStatus } = await verifyProjectOwnership(promptSet.projectId, req.userId!);
+      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
 
-      // Check plan feature access for AEO suggestions - default to starter if no user
-      let planId: PlanId = "starter";
-      if (project.userId) {
-        const user = await storage.getUserProfile(project.userId);
-        planId = getPlanByPriceId(user?.stripePriceId || null);
-      }
+      const user = await storage.getUserProfile(req.userId!);
+      const planId = getUserPlanId(user?.subscriptionStatus, user?.stripePriceId, user?.email);
       const plan = getPlan(planId);
       
       if (!plan.features.aeoSuggestions) {
@@ -831,10 +844,8 @@ export async function registerRoutes(
     try {
       const { projectId } = req.params;
       
-      const project = await storage.getProject(projectId);
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
+      const { project, error: ownerError, status: ownerStatus } = await verifyProjectOwnership(projectId, req.userId!);
+      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
 
       let assessment = await storage.getSeoReadiness(projectId);
       
@@ -871,12 +882,9 @@ export async function registerRoutes(
     try {
       const { projectId } = req.params;
       
-      const project = await storage.getProject(projectId);
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
+      const { project, error: ownerError, status: ownerStatus } = await verifyProjectOwnership(projectId, req.userId!);
+      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
 
-      // Validate request body using Zod schema
       const parseResult = updateSeoReadinessSchema.safeParse(req.body);
       if (!parseResult.success) {
         return res.status(400).json({ 
@@ -940,10 +948,8 @@ export async function registerRoutes(
     try {
       const { projectId } = req.params;
 
-      const project = await storage.getProject(projectId);
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
+      const { project, error: ownerError, status: ownerStatus } = await verifyProjectOwnership(projectId, req.userId!);
+      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
 
       if (!project.brandDomain) {
         return res.status(400).json({ error: "Project has no brand domain set" });
@@ -984,10 +990,8 @@ export async function registerRoutes(
     try {
       const { projectId } = req.params;
       
-      const project = await storage.getProject(projectId);
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
+      const { project, error: ownerError, status: ownerStatus } = await verifyProjectOwnership(projectId, req.userId!);
+      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
 
       // Get SEO readiness
       const seoAssessment = await storage.getSeoReadiness(projectId);
