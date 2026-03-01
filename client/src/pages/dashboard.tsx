@@ -160,8 +160,13 @@ export default function DashboardPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "scans", "latest"] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "gaps"] });
       toast({ title: "Scan completed successfully" });
-    } catch (error) {
-      toast({ title: "Scan failed", variant: "destructive" });
+    } catch (error: any) {
+      let message = "Scan failed. Please try again.";
+      try {
+        const parsed = JSON.parse(error?.message?.replace(/^\d+:\s*/, "") || "{}");
+        if (parsed.error) message = parsed.error;
+      } catch {}
+      toast({ title: message, variant: "destructive" });
     } finally {
       setIsScanning(false);
     }

@@ -631,7 +631,7 @@ export async function registerRoutes(
 
       const prompts = await storage.getPromptsByProject(projectId);
       if (prompts.length === 0) {
-        return res.status(400).json({ error: "No prompts to scan" });
+        return res.status(400).json({ error: "Please create some prompts before running a scan. Go to the Prompts tab to add questions you want to track." });
       }
 
       // For multi-engine, limit prompts to prevent excessive costs
