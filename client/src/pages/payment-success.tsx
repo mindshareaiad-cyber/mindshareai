@@ -64,7 +64,7 @@ export default function PaymentSuccessPage() {
         const response = await fetch("/api/stripe/verify-payment", {
           method: "POST",
           headers,
-          body: JSON.stringify({ sessionId, userId: user.id }),
+          body: JSON.stringify({ sessionId }),
         });
 
         const data = await response.json();

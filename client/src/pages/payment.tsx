@@ -96,8 +96,6 @@ export default function PaymentPage() {
     setLoadingPlan(planId);
     try {
       const response = await apiRequest("POST", "/api/stripe/create-checkout-session", {
-        userId: user.id,
-        email: user.email,
         priceId,
       });
 

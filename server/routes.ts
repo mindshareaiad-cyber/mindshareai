@@ -165,11 +165,16 @@ export async function registerRoutes(
 
   app.post("/api/stripe/create-checkout-session", requireAuth, async (req, res) => {
     try {
-      const { userId, email, priceId } = req.body;
+      const { priceId } = req.body;
+      const userId = req.userId!;
       const stripe = await getUncachableStripeClient();
 
       let profile = await storage.getUserProfile(userId);
-      let customerId = profile?.stripeCustomerId;
+      if (!profile) {
+        return res.status(404).json({ error: "User profile not found" });
+      }
+      const email = profile.email;
+      let customerId = profile.stripeCustomerId;
 
       // Create or get Stripe customer
       if (!customerId) {
@@ -211,7 +216,8 @@ export async function registerRoutes(
 
   app.post("/api/stripe/verify-payment", requireAuth, async (req, res) => {
     try {
-      const { sessionId, userId } = req.body;
+      const { sessionId } = req.body;
+      const userId = req.userId!;
       const stripe = await getUncachableStripeClient();
 
       const session = await stripe.checkout.sessions.retrieve(sessionId, {
@@ -284,7 +290,7 @@ export async function registerRoutes(
 
   app.post("/api/stripe/customer-portal", requireAuth, async (req, res) => {
     try {
-      const { userId } = req.body;
+      const userId = req.userId!;
       const stripe = await getUncachableStripeClient();
 
       const profile = await storage.getUserProfile(userId);

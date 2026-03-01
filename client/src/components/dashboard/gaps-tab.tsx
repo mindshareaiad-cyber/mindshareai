@@ -21,7 +21,7 @@ function UpgradePrompt({ userId, feature }: { userId?: string; feature: string }
     if (!userId) return;
     setLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/stripe/customer-portal", { userId });
+      const res = await apiRequest("POST", "/api/stripe/customer-portal", {});
       const data = await res.json();
       if (data.url) {
         window.open(data.url, "_blank");

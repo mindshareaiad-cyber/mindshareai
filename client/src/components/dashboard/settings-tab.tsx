@@ -81,9 +81,7 @@ export function SettingsTab() {
     if (!user) return;
     setPortalLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/stripe/customer-portal", {
-        userId: user.id,
-      });
+      const response = await apiRequest("POST", "/api/stripe/customer-portal", {});
       const data = await response.json();
       if (data.url) {
         window.open(data.url, "_blank");
