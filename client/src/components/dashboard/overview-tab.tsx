@@ -299,6 +299,20 @@ export function OverviewTab({
   const [showDetails, setShowDetails] = useState(false);
   const [activeDetail, setActiveDetail] = useState<MetricDetailType | null>(null);
 
+  const { data: seoReadiness, isLoading: seoLoading } = useQuery<SeoReadinessReport & { analysisDetails?: Record<string, string> }>({
+    queryKey: ["/api/projects", project.id, "seo-readiness"],
+  });
+
+  const analyzeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/projects/${project.id}/seo-readiness/analyze`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", project.id, "seo-readiness"] });
+    },
+  });
+
   if (activeDetail) {
     return (
       <MetricDetailView
@@ -315,20 +329,6 @@ export function OverviewTab({
       />
     );
   }
-
-  const { data: seoReadiness, isLoading: seoLoading } = useQuery<SeoReadinessReport & { analysisDetails?: Record<string, string> }>({
-    queryKey: ["/api/projects", project.id, "seo-readiness"],
-  });
-
-  const analyzeMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", `/api/projects/${project.id}/seo-readiness/analyze`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", project.id, "seo-readiness"] });
-    },
-  });
 
   // Calculate competitor share of voice
   const competitorShareOfVoice = sortedCompetitors.map(([name, score]) => {
