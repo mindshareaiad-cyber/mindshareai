@@ -18,8 +18,11 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, ChevronDown, ChevronRight, MessageSquare, Trash2 } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, MessageSquare, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/auth-context";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { PromptSet, Prompt } from "@shared/schema";
 
 interface PromptsTabProps {
@@ -75,6 +78,29 @@ export function PromptsTab({
   };
 
   const [addingPrompts, setAddingPrompts] = useState(false);
+  const [generatingPrompts, setGeneratingPrompts] = useState(false);
+  const { toast } = useToast();
+
+  const handleGeneratePrompts = async () => {
+    if (!selectedSetId) return;
+    setGeneratingPrompts(true);
+    try {
+      const response = await apiRequest("POST", `/api/prompt-sets/${selectedSetId}/generate-prompts`, { count: 10 });
+      const data = await response.json();
+      if (data.prompts && data.prompts.length > 0) {
+        const existing = newPromptText.trim();
+        const generated = data.prompts.join("\n");
+        setNewPromptText(existing ? existing + "\n" + generated : generated);
+        toast({ title: `Generated ${data.prompts.length} prompt suggestions` });
+      } else {
+        toast({ title: "No prompts generated", description: "Try again or add prompts manually", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Failed to generate prompts", description: "Please try again", variant: "destructive" });
+    } finally {
+      setGeneratingPrompts(false);
+    }
+  };
 
   const handleAddPrompt = async () => {
     if (!newPromptText.trim() || !selectedSetId) return;
@@ -291,9 +317,26 @@ export function PromptsTab({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="prompt-text">Prompt Questions</Label>
-              <p className="text-xs text-muted-foreground">
-                Enter one prompt per line. You can add multiple prompts at once.
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Enter one prompt per line. You can add multiple prompts at once.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGeneratePrompts}
+                  disabled={generatingPrompts || addingPrompts}
+                  className="gap-1.5 shrink-0"
+                  data-testid="button-generate-prompts"
+                >
+                  {generatingPrompts ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
+                  {generatingPrompts ? "Generating..." : "Auto-Generate"}
+                </Button>
+              </div>
               <Textarea
                 id="prompt-text"
                 value={newPromptText}

@@ -280,6 +280,65 @@ Generate a suggested answer that would naturally recommend this brand, and sugge
   }
 }
 
+export async function generatePromptSuggestions(
+  promptSetName: string,
+  persona: string | null,
+  funnelStage: string | null,
+  country: string | null,
+  brandName: string,
+  brandDomain: string,
+  competitors: string[],
+  existingPrompts: string[],
+  count: number = 10
+): Promise<string[]> {
+  try {
+    const contextParts: string[] = [];
+    if (persona) contextParts.push(`Target persona: ${persona}`);
+    if (funnelStage) contextParts.push(`Funnel stage: ${funnelStage}`);
+    if (country) contextParts.push(`Target country/region: ${country}`);
+    if (competitors.length > 0) contextParts.push(`Main competitors: ${competitors.join(", ")}`);
+    if (existingPrompts.length > 0) contextParts.push(`Already added prompts (do NOT repeat these):\n${existingPrompts.map(p => `- ${p}`).join("\n")}`);
+
+    const messages = [
+      {
+        role: "system",
+        content: `You are an expert in AI visibility and Answer Engine Optimization (AEO). Generate realistic search prompts that real users would type into AI assistants like ChatGPT, Claude, or Gemini when looking for products/services in this category.
+
+The prompts should be:
+- Natural, conversational questions people actually ask AI assistants
+- Focused on buyer intent and product discovery
+- Varied in style (comparison questions, "best of" lists, recommendations, how-to, use-case specific)
+- Relevant to the brand's industry and the prompt set context
+
+Output ONLY a JSON array of strings, no markdown, no explanation. Example:
+["What's the best tool for X?", "How does Y compare to Z?"]`,
+      },
+      {
+        role: "user",
+        content: `Generate ${count} AI search prompts for tracking brand visibility.
+
+Brand: ${brandName} (${brandDomain})
+Prompt set topic: "${promptSetName}"
+${contextParts.length > 0 ? "\n" + contextParts.join("\n") : ""}
+
+Generate ${count} unique, realistic prompts that potential customers might ask AI assistants.`,
+      },
+    ];
+
+    const content = await callEngine("chatgpt", messages, 1000, 0.8);
+    const jsonContent = content.replace(/```json\n?|\n?```/g, "").trim();
+    const parsed = JSON.parse(jsonContent);
+
+    if (Array.isArray(parsed)) {
+      return parsed.filter((p: unknown) => typeof p === "string" && p.trim().length > 0);
+    }
+    return [];
+  } catch (error) {
+    console.error("Error generating prompt suggestions:", error);
+    throw new Error("Failed to generate prompt suggestions");
+  }
+}
+
 export function getAvailableEngines(): LLMEngine[] {
   const engines: LLMEngine[] = [];
   

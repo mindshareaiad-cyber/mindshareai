@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generateAnswer, scoreVisibility, generateSuggestedAnswer, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, type LLMEngine, type SubscriptionTier } from "./llm-client";
+import { generateAnswer, scoreVisibility, generateSuggestedAnswer, generatePromptSuggestions, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, type LLMEngine, type SubscriptionTier } from "./llm-client";
 import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema, updateSeoReadinessSchema } from "@shared/schema";
 import { calculateOverallScore, getRecommendationLevel, buildReadinessReport, createDefaultAssessment } from "./seo-readiness";
 import { analyzeWebsite, analysisToAssessment } from "./seo-analyzer";
@@ -495,6 +495,47 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting prompt:", error);
       res.status(500).json({ error: "Failed to delete prompt" });
+    }
+  });
+
+  // Auto-generate prompt suggestions using AI
+  app.post("/api/prompt-sets/:promptSetId/generate-prompts", requireAuth, async (req, res) => {
+    try {
+      const promptSetId = req.params.promptSetId;
+      const promptSet = await storage.getPromptSet(promptSetId);
+      if (!promptSet) {
+        return res.status(404).json({ error: "Prompt set not found" });
+      }
+
+      const { error, status } = await verifyProjectOwnership(promptSet.projectId, req.userId!);
+      if (error) return res.status(status!).json({ error });
+
+      const project = await storage.getProject(promptSet.projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      const existingPrompts = await storage.getPrompts(promptSetId);
+      const existingTexts = existingPrompts.map(p => p.text);
+
+      const count = Math.min(Math.max(parseInt(req.body.count) || 10, 1), 20);
+
+      const suggestions = await generatePromptSuggestions(
+        promptSet.name,
+        promptSet.persona,
+        promptSet.funnelStage,
+        promptSet.country,
+        project.brandName,
+        project.brandDomain,
+        project.competitors,
+        existingTexts,
+        count
+      );
+
+      res.json({ prompts: suggestions });
+    } catch (error) {
+      console.error("Error generating prompt suggestions:", error);
+      res.status(500).json({ error: "Failed to generate prompt suggestions" });
     }
   });
 
