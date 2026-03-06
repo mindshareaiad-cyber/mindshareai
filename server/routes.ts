@@ -12,7 +12,7 @@ import { getPlan, getPlanByPriceId, canCreateProject, canAddPrompts, canRunScan,
 import { sendWelcomeEmail, sendSubscriptionActivatedEmail } from "./email-service";
 import { requireAuth, requireOwnership } from "./auth-middleware";
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'mindshareai@gmail.com').split(',').map(e => e.trim().toLowerCase());
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'mindshareai@gmail.com,mabz.miah93@gmail.com').split(',').map(e => e.trim().toLowerCase());
 
 async function verifyProjectOwnership(projectId: string, userId: string): Promise<{ project: any; error?: string; status?: number }> {
   const project = await storage.getProject(projectId);
