@@ -245,7 +245,7 @@ export default function DashboardPage() {
             promptSets={promptSetsData}
             onCreatePromptSet={(data) => createPromptSetMutation.mutate(data)}
             onAddPrompt={(promptSetId, text) =>
-              addPromptMutation.mutate({ promptSetId, text })
+              addPromptMutation.mutateAsync({ promptSetId, text })
             }
             onDeletePromptSet={(id) => deletePromptSetMutation.mutate(id)}
             onDeletePrompt={(id) => deletePromptMutation.mutate(id)}

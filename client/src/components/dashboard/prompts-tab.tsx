@@ -25,7 +25,7 @@ import type { PromptSet, Prompt } from "@shared/schema";
 interface PromptsTabProps {
   promptSets: (PromptSet & { prompts: Prompt[] })[];
   onCreatePromptSet: (data: { name: string; persona?: string; funnelStage?: string; country?: string }) => void;
-  onAddPrompt: (promptSetId: string, text: string) => void;
+  onAddPrompt: (promptSetId: string, text: string) => Promise<void> | void;
   onDeletePromptSet: (promptSetId: string) => void;
   onDeletePrompt: (promptId: string) => void;
 }
@@ -74,11 +74,24 @@ export function PromptsTab({
     }
   };
 
-  const handleAddPrompt = () => {
-    if (newPromptText.trim() && selectedSetId) {
-      onAddPrompt(selectedSetId, newPromptText.trim());
+  const [addingPrompts, setAddingPrompts] = useState(false);
+
+  const handleAddPrompt = async () => {
+    if (!newPromptText.trim() || !selectedSetId) return;
+    const lines = newPromptText
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+    if (lines.length === 0) return;
+    setAddingPrompts(true);
+    try {
+      for (const line of lines) {
+        await onAddPrompt(selectedSetId, line);
+      }
       setNewPromptText("");
       setNewPromptDialogOpen(false);
+    } finally {
+      setAddingPrompts(false);
     }
   };
 
@@ -273,27 +286,35 @@ export function PromptsTab({
       <Dialog open={newPromptDialogOpen} onOpenChange={setNewPromptDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Prompt</DialogTitle>
+            <DialogTitle>Add Prompts</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="prompt-text">Prompt Question</Label>
+              <Label htmlFor="prompt-text">Prompt Questions</Label>
+              <p className="text-xs text-muted-foreground">
+                Enter one prompt per line. You can add multiple prompts at once.
+              </p>
               <Textarea
                 id="prompt-text"
                 value={newPromptText}
                 onChange={(e) => setNewPromptText(e.target.value)}
-                placeholder="e.g., What's the best CRM for startups in the UK?"
-                rows={3}
+                placeholder={"What's the best CRM for startups in the UK?\nWhich project management tool do agencies recommend?\nWhat software do small businesses use for invoicing?"}
+                rows={6}
                 data-testid="input-prompt-text"
               />
+              {newPromptText.trim() && (
+                <p className="text-xs text-muted-foreground" data-testid="text-prompt-count">
+                  {newPromptText.split("\n").filter((l) => l.trim().length > 0).length} prompt{newPromptText.split("\n").filter((l) => l.trim().length > 0).length === 1 ? "" : "s"} to add
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setNewPromptDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setNewPromptDialogOpen(false)} disabled={addingPrompts}>
               Cancel
             </Button>
-            <Button onClick={handleAddPrompt} data-testid="button-submit-prompt">
-              Add Prompt
+            <Button onClick={handleAddPrompt} disabled={addingPrompts} data-testid="button-submit-prompt">
+              {addingPrompts ? "Adding..." : "Add Prompts"}
             </Button>
           </DialogFooter>
         </DialogContent>
