@@ -301,22 +301,35 @@ export class DatabaseStorage implements IStorage {
     const latestScan = await this.getLatestScan(projectId);
     if (!latestScan) return [];
 
+    const project = await this.getProject(projectId);
+    if (!project) return [];
+
     const results = await this.getScanResults(latestScan.id);
     const gaps: GapAnalysis[] = [];
 
     for (const result of results) {
-      const hasCompetitorMention = Object.values(result.competitorScores).some(
-        (score) => score > 0
-      );
-      if (result.brandScore === 0 && hasCompetitorMention) {
+      if (result.brandScore === 0) {
         const prompt = await this.getPrompt(result.promptId);
         if (prompt) {
           const suggestion = this.gapSuggestions.get(result.promptId);
+          const mentionedCompetitors = Object.entries(result.competitorScores)
+            .filter(([, score]) => score > 0)
+            .map(([name]) => name);
+          const discoveredBrands = this.extractBrandsFromAnswer(
+            result.answer,
+            project.brandName,
+            [...project.competitors, ...mentionedCompetitors]
+          );
+          const allMentioned = [...new Set([...mentionedCompetitors, ...discoveredBrands])];
+
           gaps.push({
             promptId: result.promptId,
             promptText: prompt.text,
             brandScore: result.brandScore,
             competitorScores: result.competitorScores,
+            mentionedBrands: allMentioned,
+            engine: result.engine,
+            answer: result.answer,
             suggestedAnswer: suggestion?.suggestedAnswer,
             suggestedPageType: suggestion?.suggestedPageType,
           });
@@ -325,6 +338,46 @@ export class DatabaseStorage implements IStorage {
     }
 
     return gaps;
+  }
+
+  private extractBrandsFromAnswer(answer: string, brandName: string, knownCompetitors: string[]): string[] {
+    const brandPatterns = [
+      /\b([A-Z][a-zA-Z]+(?:\s[A-Z][a-zA-Z]+)*(?:\.[a-z]{2,})?)\b/g,
+      /\b([A-Z][a-zA-Z]*(?:ly|ify|hub|desk|flow|stack|base|craft|wise|bit|spot|form|kit|jar|pod|box|lab|pad|doc|app|ai|io))\b/gi,
+    ];
+
+    const discovered = new Set<string>();
+    const lowerAnswer = answer.toLowerCase();
+    const lowerBrand = brandName.toLowerCase();
+    const lowerKnown = knownCompetitors.map(c => c.toLowerCase());
+    const commonWords = new Set([
+      "the", "and", "for", "are", "but", "not", "you", "all", "can", "had", "her", "was", "one", "our",
+      "out", "has", "his", "how", "its", "may", "new", "now", "old", "see", "way", "who", "did", "get",
+      "let", "say", "she", "too", "use", "this", "that", "with", "have", "from", "they", "been", "some",
+      "when", "what", "your", "each", "make", "like", "just", "over", "such", "take", "than", "them",
+      "very", "after", "also", "made", "many", "most", "must", "name", "much", "only", "other", "then",
+      "time", "well", "into", "here", "there", "these", "those", "where", "which", "while", "about",
+      "could", "would", "should", "their", "first", "being", "still", "using", "known", "based",
+      "however", "another", "because", "before", "between", "through", "during", "without",
+      "several", "include", "including", "especially", "consider", "depending", "overall",
+      "whether", "various", "popular", "great", "good", "best", "better", "tool", "tools",
+      "platform", "software", "service", "solution", "option", "options", "features", "offers",
+    ]);
+
+    for (const pattern of brandPatterns) {
+      let match;
+      while ((match = pattern.exec(answer)) !== null) {
+        const word = match[1].trim();
+        if (word.length < 3 || word.length > 30) continue;
+        const lower = word.toLowerCase();
+        if (lower === lowerBrand) continue;
+        if (lowerKnown.includes(lower)) continue;
+        if (commonWords.has(lower)) continue;
+        discovered.add(word);
+      }
+    }
+
+    return Array.from(discovered).slice(0, 10);
   }
 
   async updateGapSuggestion(

@@ -148,6 +148,9 @@ export type GapAnalysis = {
   promptText: string;
   brandScore: number;
   competitorScores: Record<string, number>;
+  mentionedBrands: string[];
+  engine: string;
+  answer: string;
   suggestedAnswer?: string;
   suggestedPageType?: string;
 };

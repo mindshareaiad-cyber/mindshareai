@@ -111,14 +111,31 @@ export function SuggestionsTab({ gaps, isGenerating, onGenerateSuggestion, planI
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2 text-sm">
-                <span className="text-muted-foreground">Competitors mentioned:</span>
-                {Object.entries(gap.competitorScores)
-                  .filter(([, score]) => score > 0)
-                  .map(([competitor, score]) => (
-                    <span key={competitor} className="font-medium">
-                      {competitor} ({score === 2 ? "recommended" : "mentioned"})
-                    </span>
-                  ))}
+                {Object.entries(gap.competitorScores).some(([, s]) => s > 0) && (
+                  <>
+                    <span className="text-muted-foreground">Listed competitors mentioned:</span>
+                    {Object.entries(gap.competitorScores)
+                      .filter(([, score]) => score > 0)
+                      .map(([competitor, score]) => (
+                        <span key={competitor} className="font-medium">
+                          {competitor} ({score === 2 ? "recommended" : "mentioned"})
+                        </span>
+                      ))}
+                  </>
+                )}
+                {gap.mentionedBrands && gap.mentionedBrands.length > 0 && (
+                  <div className="w-full flex flex-wrap gap-2 items-center">
+                    <span className="text-muted-foreground">Other brands mentioned:</span>
+                    {gap.mentionedBrands
+                      .filter(b => !Object.entries(gap.competitorScores).some(([name, s]) => s > 0 && name.toLowerCase() === b.toLowerCase()))
+                      .map((brand) => (
+                        <Badge key={brand} variant="secondary" className="text-xs">{brand}</Badge>
+                      ))}
+                  </div>
+                )}
+                {!Object.entries(gap.competitorScores).some(([, s]) => s > 0) && (!gap.mentionedBrands || gap.mentionedBrands.length === 0) && (
+                  <span className="text-muted-foreground italic">No brands mentioned — opportunity to be the first recommendation</span>
+                )}
               </div>
               
               {gap.suggestedAnswer ? (
