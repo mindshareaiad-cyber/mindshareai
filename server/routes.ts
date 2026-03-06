@@ -86,6 +86,7 @@ export async function registerRoutes(
   app.post("/api/user-profile", requireAuth, async (req, res) => {
     try {
       const { id, email, firstName, lastName, companyName } = req.body;
+      console.log(`[profile] POST /api/user-profile - userId: ${req.userId}, bodyId: ${id}, email: ${email}`);
       
       if (id !== req.userId) {
         return res.status(403).json({ error: "Access denied" });
@@ -632,8 +633,13 @@ export async function registerRoutes(
       const { multiEngine, notes } = parsed.data;
       const projectId = req.params.projectId;
 
+      console.log(`[scan] Starting scan for project ${projectId}, user ${req.userId}`);
+      
       const { project, error: ownerError, status: ownerStatus } = await verifyProjectOwnership(projectId, req.userId!);
-      if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
+      if (ownerError) {
+        console.log(`[scan] Ownership error: ${ownerError}`);
+        return res.status(ownerStatus!).json({ error: ownerError });
+      }
 
       const effectiveUserId = req.userId!;
       let planId: PlanId = "starter";
@@ -641,6 +647,7 @@ export async function registerRoutes(
       {
         const profile = await storage.getUserProfile(effectiveUserId);
         planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+        console.log(`[scan] User plan: ${planId}, email: ${profile?.email}, subscriptionStatus: ${profile?.subscriptionStatus}`);
         
         // Check scan limit
         const scansThisMonth = await storage.countScansThisMonth(effectiveUserId);
@@ -675,6 +682,8 @@ export async function registerRoutes(
       if (enginesToUse.length === 0) {
         return res.status(503).json({ error: "No AI engines are currently available for your plan. Please try again later." });
       }
+      
+      console.log(`[scan] Engines to use: ${enginesToUse.join(", ")}, configured: ${configuredEngines.join(", ")}`);
 
       const prompts = await storage.getPromptsByProject(projectId);
       if (prompts.length === 0) {
@@ -696,11 +705,12 @@ export async function registerRoutes(
       });
 
       // Process each prompt
+      console.log(`[scan] Processing ${promptsToScan.length} prompts with ${enginesToUse.length} engine(s)`);
+      
       const results = [];
       for (const prompt of promptsToScan) {
         for (const engine of enginesToUse) {
           try {
-            // Generate answer using LLM
             const answer = await generateAnswer(prompt.text, engine as LLMEngine);
             
             // Score visibility
