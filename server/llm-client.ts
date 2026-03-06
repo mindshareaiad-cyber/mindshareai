@@ -240,8 +240,12 @@ export async function generateSuggestedAnswer(
   promptText: string,
   brandName: string,
   brandDomain: string,
-  engine: LLMEngine = "chatgpt"
+  engine?: LLMEngine
 ): Promise<{ suggestedAnswer: string; suggestedPageType: string }> {
+  if (!engine) {
+    const available = getAvailableEngines();
+    engine = available.includes("chatgpt") ? "chatgpt" : available[0];
+  }
   try {
     const messages = [
       {
@@ -325,7 +329,9 @@ Generate ${count} unique, realistic prompts that potential customers might ask A
       },
     ];
 
-    const content = await callEngine("chatgpt", messages, 1000, 0.8);
+    const available = getAvailableEngines();
+    const engine = available.includes("chatgpt") ? "chatgpt" : available[0];
+    const content = await callEngine(engine, messages, 1000, 0.8);
     const jsonContent = content.replace(/```json\n?|\n?```/g, "").trim();
     const parsed = JSON.parse(jsonContent);
 

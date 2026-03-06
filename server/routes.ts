@@ -654,15 +654,26 @@ export async function registerRoutes(
 
       const plan = getPlan(planId);
       
-      // Determine which engines to use based on plan
+      const configuredEngines = getAvailableEngines();
+      
       let enginesToUse: string[];
       
       if (multiEngine && plan.features.multiEngineComparison) {
-        // Multi-engine comparison: use allowed engines for this plan
-        enginesToUse = plan.allowedEngines.filter(e => canUseEngine(planId, e));
+        enginesToUse = plan.allowedEngines.filter(e => canUseEngine(planId, e) && configuredEngines.includes(e as LLMEngine));
       } else {
-        // Default: always use primary (cheapest) engine only
-        enginesToUse = [ENGINE_TIERS.primary];
+        if (configuredEngines.includes(ENGINE_TIERS.primary as LLMEngine)) {
+          enginesToUse = [ENGINE_TIERS.primary];
+        } else {
+          const fallback = plan.allowedEngines.find(e => configuredEngines.includes(e as LLMEngine));
+          if (!fallback) {
+            return res.status(503).json({ error: "No AI engines are currently available. Please try again later." });
+          }
+          enginesToUse = [fallback];
+        }
+      }
+      
+      if (enginesToUse.length === 0) {
+        return res.status(503).json({ error: "No AI engines are currently available for your plan. Please try again later." });
       }
 
       const prompts = await storage.getPromptsByProject(projectId);
