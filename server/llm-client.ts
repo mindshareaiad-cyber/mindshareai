@@ -144,7 +144,11 @@ async function callEngine(
   }
 }
 
-export async function generateAnswer(promptText: string, engine: LLMEngine = "chatgpt"): Promise<string> {
+export async function generateAnswer(promptText: string, engine?: LLMEngine): Promise<string> {
+  if (!engine) {
+    const available = getAvailableEngines();
+    engine = available.includes("chatgpt") ? "chatgpt" : available[0];
+  }
   try {
     const messages = [
       {
@@ -170,8 +174,12 @@ export async function scoreVisibility(
   brandName: string,
   brandDomain: string,
   competitors: string[],
-  engine: LLMEngine = "chatgpt"
+  engine?: LLMEngine
 ): Promise<{ brandScore: number; competitorScores: Record<string, number> }> {
+  if (!engine) {
+    const available = getAvailableEngines();
+    engine = available.includes("chatgpt") ? "chatgpt" : available[0];
+  }
   try {
     const competitorList = competitors.map((c) => `- ${c}`).join("\n");
 

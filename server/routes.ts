@@ -663,24 +663,21 @@ export async function registerRoutes(
       
       const configuredEngines = getAvailableEngines();
       
+      if (configuredEngines.length === 0) {
+        return res.status(503).json({ error: "No AI engines are currently available. Please try again later." });
+      }
+      
       let enginesToUse: string[];
       
       if (multiEngine && plan.features.multiEngineComparison) {
         enginesToUse = plan.allowedEngines.filter(e => canUseEngine(planId, e) && configuredEngines.includes(e as LLMEngine));
-      } else {
-        if (configuredEngines.includes(ENGINE_TIERS.primary as LLMEngine)) {
-          enginesToUse = [ENGINE_TIERS.primary];
-        } else {
-          const fallback = plan.allowedEngines.find(e => configuredEngines.includes(e as LLMEngine));
-          if (!fallback) {
-            return res.status(503).json({ error: "No AI engines are currently available. Please try again later." });
-          }
-          enginesToUse = [fallback];
+        if (enginesToUse.length === 0) {
+          enginesToUse = [configuredEngines[0]];
         }
-      }
-      
-      if (enginesToUse.length === 0) {
-        return res.status(503).json({ error: "No AI engines are currently available for your plan. Please try again later." });
+      } else {
+        const preferredOrder = [ENGINE_TIERS.primary, ...plan.allowedEngines];
+        const picked = preferredOrder.find(e => configuredEngines.includes(e as LLMEngine));
+        enginesToUse = [picked || configuredEngines[0]];
       }
       
       console.log(`[scan] Engines to use: ${enginesToUse.join(", ")}, configured: ${configuredEngines.join(", ")}`);
