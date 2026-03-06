@@ -155,7 +155,7 @@ export default function DashboardPage() {
     setIsScanning(true);
     try {
       await apiRequest("POST", `/api/projects/${selectedProjectId}/scans`, {
-        engines: ["chatgpt"],
+        multiEngine: currentPlanId === "growth" || currentPlanId === "pro",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "scans", "latest"] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "gaps"] });
