@@ -702,15 +702,18 @@ export async function registerRoutes(
       });
 
       // Process each prompt
-      console.log(`[scan] Processing ${promptsToScan.length} prompts with ${enginesToUse.length} engine(s)`);
+      console.log(`[scan] Processing ${promptsToScan.length} prompts with ${enginesToUse.length} engine(s): ${enginesToUse.join(", ")}`);
       
       const results = [];
+      let failedCount = 0;
+      const errors: string[] = [];
+      
       for (const prompt of promptsToScan) {
         for (const engine of enginesToUse) {
           try {
+            console.log(`[scan] Running prompt "${prompt.text.substring(0, 50)}..." with ${engine}`);
             const answer = await generateAnswer(prompt.text, engine as LLMEngine);
             
-            // Score visibility
             const { brandScore, competitorScores } = await scoreVisibility(
               answer,
               project.brandName,
@@ -719,7 +722,6 @@ export async function registerRoutes(
               engine as LLMEngine
             );
 
-            // Save result
             const result = await storage.createScanResult({
               scanId: scan.id,
               promptId: prompt.id,
@@ -730,19 +732,32 @@ export async function registerRoutes(
             });
 
             results.push(result);
-          } catch (error) {
-            console.error(`Error processing prompt ${prompt.id} with ${engine}:`, error);
+            console.log(`[scan] Result: brand=${brandScore}, competitors=${JSON.stringify(competitorScores)}`);
+          } catch (error: any) {
+            failedCount++;
+            const errMsg = `${engine}: ${error.message || "Unknown error"}`;
+            errors.push(errMsg);
+            console.error(`[scan] FAILED prompt ${prompt.id} with ${engine}:`, error.message || error);
           }
         }
       }
 
-      // Calculate visibility score
+      console.log(`[scan] Complete: ${results.length} succeeded, ${failedCount} failed`);
+
       const totalScore = results.reduce((sum, r) => sum + r.brandScore, 0);
       const visibilityScore = results.length > 0 ? totalScore / results.length : 0;
+
+      if (results.length === 0 && failedCount > 0) {
+        return res.status(500).json({ 
+          error: `Scan failed — all ${failedCount} prompt(s) failed. ${errors[0] || "Check your AI engine API keys."}`,
+          engineErrors: [...new Set(errors)],
+        });
+      }
 
       res.status(201).json({
         scan,
         resultsCount: results.length,
+        failedCount,
         visibilityScore,
         enginesUsed: enginesToUse,
         promptsScanned: promptsToScan.length,

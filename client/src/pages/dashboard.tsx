@@ -154,12 +154,14 @@ export default function DashboardPage() {
     
     setIsScanning(true);
     try {
-      await apiRequest("POST", `/api/projects/${selectedProjectId}/scans`, {
+      const response = await apiRequest("POST", `/api/projects/${selectedProjectId}/scans`, {
         multiEngine: currentPlanId === "growth" || currentPlanId === "pro",
       });
+      const scanResult = await response.json();
       queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "scans", "latest"] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "gaps"] });
-      toast({ title: "Scan completed successfully" });
+      const engineList = scanResult.enginesUsed?.join(", ") || "unknown";
+      toast({ title: `Scan complete — ${scanResult.resultsCount} results from ${engineList}${scanResult.failedCount ? ` (${scanResult.failedCount} failed)` : ""}` });
     } catch (error: any) {
       let message = "Scan failed. Please try again.";
       try {
