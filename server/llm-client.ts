@@ -306,26 +306,32 @@ export async function generatePromptSuggestions(
     const messages = [
       {
         role: "system",
-        content: `You are an expert in AI visibility and Answer Engine Optimization (AEO). Generate realistic search prompts that real users would type into AI assistants like ChatGPT, Claude, or Gemini when looking for products/services in this category.
+        content: `You are an expert in Answer Engine Optimization (AEO). Your job is to generate realistic, brand-agnostic search questions that real people would ask AI assistants (ChatGPT, Claude, Gemini, Perplexity) when looking for products or services in a specific category.
+
+CRITICAL RULES:
+- NEVER include the brand name "${brandName}" or any competitor names in the prompts
+- NEVER mention any specific brand, company, or product by name
+- Prompts must be generic, category-level questions about the type of service/product the brand offers
+- The whole point of AEO is to see whether AI engines organically mention a brand — if the prompt already names the brand, the test is meaningless
 
 The prompts should be:
-- Natural, conversational questions people actually ask AI assistants
-- Focused on buyer intent and product discovery
-- Varied in style (comparison questions, "best of" lists, recommendations, how-to, use-case specific)
-- Relevant to the brand's industry and the prompt set context
+- Natural, conversational questions real buyers would type into an AI assistant
+- Focused on discovering, comparing, or choosing products/services in this category
+- Varied in style: "best of" lists, comparisons, recommendations, how-to, use-case specific, problem-solving
+- Written from the perspective of someone who does NOT know any specific brands yet
 
-Output ONLY a JSON array of strings, no markdown, no explanation. Example:
-["What's the best tool for X?", "How does Y compare to Z?"]`,
+Output ONLY a JSON array of strings. No markdown, no explanation.
+Example: ["What's the best project management tool for remote teams?", "How do I choose a CRM for my startup?"]`,
       },
       {
         role: "user",
-        content: `Generate ${count} AI search prompts for tracking brand visibility.
+        content: `Generate ${count} brand-agnostic AI search prompts for AEO tracking.
 
-Brand: ${brandName} (${brandDomain})
-Prompt set topic: "${promptSetName}"
+The brand operates at: ${brandDomain}
+Industry/service category (infer from the website domain and prompt set topic): "${promptSetName}"
 ${contextParts.length > 0 ? "\n" + contextParts.join("\n") : ""}
 
-Generate ${count} unique, realistic prompts that potential customers might ask AI assistants.`,
+Remember: Do NOT mention "${brandName}" or any competitor names. These should be generic questions a potential customer would ask an AI assistant when searching for this type of product/service.`,
       },
     ];
 
@@ -336,7 +342,15 @@ Generate ${count} unique, realistic prompts that potential customers might ask A
     const parsed = JSON.parse(jsonContent);
 
     if (Array.isArray(parsed)) {
-      return parsed.filter((p: unknown) => typeof p === "string" && p.trim().length > 0);
+      const brandLower = brandName.toLowerCase();
+      const competitorLowers = competitors.map(c => c.toLowerCase());
+      return parsed.filter((p: unknown) => {
+        if (typeof p !== "string" || p.trim().length === 0) return false;
+        const lower = p.toLowerCase();
+        if (lower.includes(brandLower)) return false;
+        if (competitorLowers.some(c => lower.includes(c))) return false;
+        return true;
+      });
     }
     return [];
   } catch (error) {
