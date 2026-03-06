@@ -62,11 +62,6 @@ function getUserPlanId(subscriptionStatus: string | null | undefined, stripePric
   return 'starter';
 }
 
-// Keep old function for backward compatibility
-function getSubscriptionTier(subscriptionStatus: string | null | undefined): SubscriptionTier {
-  return getUserPlanId(subscriptionStatus) as SubscriptionTier;
-}
-
 export async function registerRoutes(
   httpServer: Server,
   app: Express
