@@ -266,6 +266,7 @@ export default function DashboardPage() {
             gaps={gaps}
             isGenerating={isGeneratingSuggestion}
             onGenerateSuggestion={generateSuggestion}
+            onNavigateToSuggestions={() => setActiveSection("suggestions")}
             planId={currentPlanId}
             userId={user?.id}
           />

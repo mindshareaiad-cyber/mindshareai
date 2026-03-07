@@ -1,0 +1,135 @@
+Goal of the Gap Analysis page
+Make it the place where users quickly understand:
+
+Where AI is ignoring their brand.
+
+Which gaps are most important.
+
+What has already been sent to the SEO Suggestions page, and what hasn’t.
+
+No SEO copy here – just diagnosis and prioritisation.
+
+Layout suggestions
+1. Top summary strip
+Keep a single row of key cards:
+
+Total Gaps – count of prompts where brand not mentioned.
+
+By Engine – e.g. “ChatGPT: 8, Gemini: 4” (click to filter).
+
+Other Brands Found – count of unique competitor brands across all gaps.
+
+Gaps with SEO Suggestions – e.g. “5 / 12” (click to show only those).
+
+Each card should be clickable and act as a filter toggle.
+
+2. Gap list: columns and info
+Each gap should feel like a row in a table, even if visually styled as cards.
+
+For each gap show:
+
+Prompt & engine
+
+Prompt text (1–2 lines, truncated).
+
+Small badge: “Engine: ChatGPT” / “Engine: Gemini”.
+
+Impact
+
+Badge: High / Medium / Low, computed from intent + volume model.
+
+Optional: small tooltip “Why high impact?” (e.g. “Commercial intent, many competitors”).
+
+Other brands AI mentioned
+
+Show up to 3–5 competitor brand names or tags (with “+X more” if long).
+
+Make brand names visually distinct (pills or chips).
+
+Status / link to SEO suggestions
+
+Pill showing:
+
+“Not analysed” (no suggestion yet), or
+
+“SEO suggestion ready”.
+
+Button:
+
+If no suggestion: Send to SEO Suggestions (creates/link records and opens that page filtered to this prompt).
+
+If suggestion exists: View SEO Suggestions (takes user there with this gap pre‑selected).
+
+Utility actions
+
+“Mark not relevant” (e.g. small kebab menu item) to hide or archive a gap.
+
+“View AI answer” (you already have this, keep it as a small icon/button).
+
+3. Filters and sorting
+Add a horizontal filter bar above the list:
+
+Dropdowns / chips:
+
+Engine: All / ChatGPT / Gemini / etc.
+
+Impact: All / High / Medium / Low.
+
+Status: All / With SEO suggestion / Without SEO suggestion.
+
+Sort dropdown:
+
+Sort by: Impact (desc, default), Number of competitors, Prompt A–Z, Latest scan.
+
+This lets SEOs switch instantly between “strategic view” (high‑impact gaps) and “cleanup view” (all low‑impact gaps marked not relevant).
+
+4. Empty / low‑data states
+If there are no gaps:
+
+Show a positive message:
+“Good news – for the prompts we scanned, AI already mentions your brand. Try adding more prompts or competitors to discover new gaps.”
+
+If there are gaps but no SEO suggestions yet:
+
+Banner near the top:
+“You have 12 gaps with no SEO suggestions yet. Start by sending your top 5 High‑impact gaps to the SEO Suggestions page.”
+
+5. Visual hierarchy & UX details
+Keep prompt text as the primary element in each row (bigger, darker).
+
+Use colour sparingly:
+
+Impact: High (red/orange), Medium (amber), Low (grey).
+
+Status: Suggestion ready (green), Not analysed (neutral).
+
+Keep a consistent button label:
+
+Always “Send to SEO Suggestions” or “View SEO Suggestions” – avoid mixing terminology.
+
+6. Data model hints for dev
+For each gap record, you’ll likely want fields like:
+
+prompt_id
+
+prompt_text
+
+engine
+
+impact_score (numeric) and impact_level (High/Med/Low)
+
+competitor_brands (array of strings)
+
+has_seo_suggestion (bool)
+
+seo_suggestion_id (nullable)
+
+status (active / archived_not_relevant)
+
+last_scanned_at
+
+This will make it easy to:
+
+Filter/sort in the UI.
+
+Link a gap directly to one or more SEO suggestions on the other page.
