@@ -142,13 +142,13 @@ export function GapsTab({ gaps, isGenerating, onGenerateSuggestion, onNavigateTo
     return counts;
   }, [activeGaps]);
 
-  const allBrands = useMemo(() => {
+  const allBrandNames = useMemo(() => {
     const set = new Set<string>();
     activeGaps.forEach(g => {
       (g.mentionedBrands || []).forEach(b => set.add(b));
       Object.entries(g.competitorScores).filter(([, s]) => s > 0).forEach(([name]) => set.add(name));
     });
-    return set.size;
+    return Array.from(set).sort();
   }, [activeGaps]);
 
   const gapsWithSuggestions = activeGaps.filter(g => g.suggestedAnswer);
@@ -270,8 +270,21 @@ export function GapsTab({ gaps, isGenerating, onGenerateSuggestion, onNavigateTo
 
         <Card className="cursor-default" data-testid="card-brands-found">
           <CardContent className="p-4">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Other Brands Found</p>
-            <p className="text-2xl font-bold text-primary" data-testid="text-brands-found">{allBrands}</p>
+            <p className="text-xs font-medium text-muted-foreground mb-1">Other Brands Found ({allBrandNames.length})</p>
+            {allBrandNames.length > 0 ? (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {allBrandNames.slice(0, 8).map(name => (
+                  <span key={name} className="inline-flex items-center text-[11px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20" data-testid={`pill-summary-brand-${name}`}>
+                    {name}
+                  </span>
+                ))}
+                {allBrandNames.length > 8 && (
+                  <span className="text-xs text-muted-foreground self-center">+{allBrandNames.length - 8} more</span>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground mt-1">None detected</p>
+            )}
           </CardContent>
         </Card>
 
