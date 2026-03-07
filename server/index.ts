@@ -224,7 +224,17 @@ app.use((req, res, next) => {
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        const safeKeys = ["error", "message", "success", "received"];
+        const summary: Record<string, any> = {};
+        for (const key of safeKeys) {
+          if (key in capturedJsonResponse) summary[key] = capturedJsonResponse[key];
+        }
+        if (Array.isArray(capturedJsonResponse)) {
+          summary["count"] = capturedJsonResponse.length;
+        }
+        if (Object.keys(summary).length > 0) {
+          logLine += ` :: ${JSON.stringify(summary)}`;
+        }
       }
 
       log(logLine);

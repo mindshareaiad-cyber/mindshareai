@@ -32,7 +32,6 @@ export interface IStorage {
   createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
   updateUserProfile(id: string, data: UpdateUserProfile): Promise<UserProfile | undefined>;
 
-  getProjects(): Promise<Project[]>;
   getProjectsByUser(userId: string): Promise<Project[]>;
   getProject(id: string): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
@@ -158,10 +157,6 @@ export class DatabaseStorage implements IStorage {
     } catch {
       return null;
     }
-  }
-
-  async getProjects(): Promise<Project[]> {
-    return db.select().from(projects).orderBy(desc(projects.createdAt));
   }
 
   async getProjectsByUser(userId: string): Promise<Project[]> {
