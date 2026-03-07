@@ -182,7 +182,8 @@ export async function registerRoutes(
         await storage.updateUserProfile(userId, { stripeCustomerId: customerId });
       }
 
-      const baseUrl = (process.env.APP_URL || 'http://localhost:5000').replace(/\/+$/, '');
+      const origin = req.headers.origin || req.headers.referer?.replace(/\/+$/, '') || process.env.APP_URL || 'http://localhost:5000';
+      const baseUrl = origin.replace(/\/+$/, '');
 
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
@@ -284,6 +285,73 @@ export async function registerRoutes(
     }
   });
 
+  let cachedPortalConfigId: string | null = null;
+
+  async function getPortalConfigId(stripe: any): Promise<string | null> {
+    if (cachedPortalConfigId) return cachedPortalConfigId;
+
+    const starterPriceId = process.env.STRIPE_STARTER_PRICE_ID;
+    const growthPriceId = process.env.STRIPE_GROWTH_PRICE_ID;
+    const proPriceId = process.env.STRIPE_PRO_PRICE_ID;
+
+    if (!starterPriceId || !growthPriceId || !proPriceId) return null;
+
+    try {
+      const [starterPrice, growthPrice, proPrice] = await Promise.all([
+        stripe.prices.retrieve(starterPriceId),
+        stripe.prices.retrieve(growthPriceId),
+        stripe.prices.retrieve(proPriceId),
+      ]);
+
+      const products = new Set<string>();
+      [starterPrice, growthPrice, proPrice].forEach((p: any) => {
+        const prodId = typeof p.product === 'string' ? p.product : p.product?.id;
+        if (prodId) products.add(prodId);
+      });
+
+      const allPrices = [starterPriceId, growthPriceId, proPriceId];
+      const allPriceObjs = [starterPrice, growthPrice, proPrice];
+
+      const productConfigs = Array.from(products).map(productId => ({
+        product: productId,
+        prices: allPrices.filter((pid, i) => {
+          const prodId = typeof allPriceObjs[i].product === 'string' ? allPriceObjs[i].product : allPriceObjs[i].product?.id;
+          return prodId === productId;
+        }),
+      }));
+
+      const config = await stripe.billingPortal.configurations.create({
+        business_profile: {
+          headline: 'Manage your Mindshare AI subscription',
+        },
+        features: {
+          subscription_update: {
+            enabled: true,
+            default_allowed_updates: ['price'],
+            products: productConfigs,
+            proration_behavior: 'create_prorations',
+          },
+          subscription_cancel: {
+            enabled: true,
+            mode: 'at_period_end',
+          },
+          payment_method_update: {
+            enabled: true,
+          },
+          invoice_history: {
+            enabled: true,
+          },
+        },
+      });
+
+      cachedPortalConfigId = config.id;
+      return config.id;
+    } catch (err) {
+      console.warn("Could not create portal config with plan switching, using default:", err);
+      return null;
+    }
+  }
+
   app.post("/api/stripe/customer-portal", requireAuth, async (req, res) => {
     try {
       const userId = req.userId!;
@@ -294,12 +362,20 @@ export async function registerRoutes(
         return res.status(400).json({ error: "No customer found" });
       }
 
-      const baseUrl = process.env.APP_URL || 'http://localhost:5000';
+      const origin = req.headers.origin || req.headers.referer?.replace(/\/+$/, '') || process.env.APP_URL || 'http://localhost:5000';
+      const baseUrl = origin.replace(/\/+$/, '');
 
-      const session = await stripe.billingPortal.sessions.create({
+      const configId = await getPortalConfigId(stripe);
+
+      const portalParams: any = {
         customer: profile.stripeCustomerId,
         return_url: `${baseUrl}/dashboard`,
-      });
+      };
+      if (configId) {
+        portalParams.configuration = configId;
+      }
+
+      const session = await stripe.billingPortal.sessions.create(portalParams);
 
       res.json({ url: session.url });
     } catch (error) {
