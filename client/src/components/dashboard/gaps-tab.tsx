@@ -34,7 +34,7 @@ import {
 
 interface GapsTabProps {
   gaps: GapAnalysis[];
-  isGenerating: boolean;
+  isGenerating: string | null;
   onGenerateSuggestion: (promptId: string) => void;
   onNavigateToSuggestions?: () => void;
   planId?: string;
@@ -446,7 +446,7 @@ export function GapsTab({ gaps, isGenerating, onGenerateSuggestion, onNavigateTo
                           variant="default"
                           size="sm"
                           className="text-xs gap-1.5"
-                          disabled={isGenerating}
+                          disabled={isGenerating !== null}
                           onClick={async () => {
                             onGenerateSuggestion(gap.promptId);
                             if (onNavigateToSuggestions) {
@@ -455,7 +455,7 @@ export function GapsTab({ gaps, isGenerating, onGenerateSuggestion, onNavigateTo
                           }}
                           data-testid={`button-send-suggestion-${gap.promptId}`}
                         >
-                          {isGenerating ? (
+                          {isGenerating === gap.promptId ? (
                             <>
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
                               Generating…

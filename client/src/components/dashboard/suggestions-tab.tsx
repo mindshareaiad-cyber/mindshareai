@@ -40,7 +40,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface SuggestionsTabProps {
   gaps: GapAnalysis[];
-  isGenerating: boolean;
+  isGenerating: string | null;
   onGenerateSuggestion: (promptId: string) => void;
   planId?: string;
   userId?: string;
@@ -125,7 +125,7 @@ function SuggestionCard({
   impact: { level: ImpactLevel; reason: string };
   status: TaskStatus;
   expanded: boolean;
-  isGenerating: boolean;
+  isGenerating: string | null;
   onToggleExpand: () => void;
   onGenerate: () => void;
   onMarkDone: () => void;
@@ -185,11 +185,11 @@ function SuggestionCard({
                 variant="default"
                 size="sm"
                 className="text-xs gap-1.5"
-                disabled={isGenerating}
+                disabled={isGenerating !== null}
                 onClick={onGenerate}
                 data-testid={`button-generate-suggestion-${gap.promptId}`}
               >
-                {isGenerating ? (
+                {isGenerating === gap.promptId ? (
                   <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating…</>
                 ) : (
                   <><Sparkles className="h-3.5 w-3.5" /> Generate Brief</>

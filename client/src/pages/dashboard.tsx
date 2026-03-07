@@ -33,7 +33,7 @@ export default function DashboardPage() {
   });
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
+  const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<DashboardSection>("overview");
 
   const handleSelectProject = useCallback((id: string | null) => {
@@ -175,7 +175,7 @@ export default function DashboardPage() {
   };
 
   const generateSuggestion = async (promptId: string) => {
-    setIsGeneratingSuggestion(true);
+    setIsGeneratingSuggestion(promptId);
     try {
       await apiRequest("POST", `/api/gaps/${promptId}/suggest`);
       queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "gaps"] });
@@ -183,7 +183,7 @@ export default function DashboardPage() {
     } catch (error) {
       toast({ title: "Failed to generate suggestion", variant: "destructive" });
     } finally {
-      setIsGeneratingSuggestion(false);
+      setIsGeneratingSuggestion(null);
     }
   };
 
