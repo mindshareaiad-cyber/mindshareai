@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { SiLinkedin, SiX } from "react-icons/si";
 
 export function Footer() {
   return (
@@ -60,8 +61,16 @@ export function Footer() {
           </div>
         </div>
         
-        <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
+        <div className="border-t mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} Mindshare AI. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <a href="https://www.linkedin.com/company/mindshare-ai2/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors" data-testid="link-footer-linkedin">
+              <SiLinkedin className="h-5 w-5" />
+            </a>
+            <a href="https://x.com/Mindshare_ai2" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors" data-testid="link-footer-twitter">
+              <SiX className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
