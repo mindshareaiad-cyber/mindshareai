@@ -34,9 +34,11 @@ import {
   Copy,
   CheckCircle2,
   Info,
+  Download,
 } from "lucide-react";
 import type { GapAnalysis, AeoSuggestion } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import * as XLSX from "xlsx";
 
 interface SuggestionsTabProps {
   gaps: GapAnalysis[];
@@ -425,6 +427,48 @@ export function SuggestionsTab({ gaps, isGenerating, onGenerateSuggestion, onGen
     });
   };
 
+  const exportToExcel = () => {
+    const withBriefs = filteredGaps.filter(g => g.suggestion);
+    if (withBriefs.length === 0) return;
+
+    const rows = withBriefs.map((g, i) => {
+      const s = g.suggestion!;
+      const status = getStatus(g.promptId);
+      return {
+        "#": i + 1,
+        "Status": status === "done" ? "Done" : status === "not_relevant" ? "Not Relevant" : "To-do",
+        "Priority": g.impact.level.charAt(0).toUpperCase() + g.impact.level.slice(1),
+        "Intent": s.intentTag || "",
+        "Prompt": g.promptText,
+        "Content Task": s.contentTask || "",
+        "Content Type": s.contentType || "",
+        "Coverage Checklist": (s.coverageChecklist || []).join("\n"),
+        "Where to Implement": s.implementationPlace || "",
+        "Internal Link Ideas": (s.internalLinkIdeas || []).join("\n"),
+        "Suggested Title (H1)": s.suggestedTitle || "",
+        "Suggested Headings (H2s)": (s.suggestedHeadings || []).join("\n"),
+        "Draft Intro": s.suggestedIntro || "",
+        "Engine": g.engine || "",
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+
+    const colWidths = [
+      { wch: 4 }, { wch: 12 }, { wch: 10 }, { wch: 14 },
+      { wch: 40 }, { wch: 40 }, { wch: 16 }, { wch: 40 },
+      { wch: 25 }, { wch: 30 }, { wch: 40 }, { wch: 40 },
+      { wch: 50 }, { wch: 12 },
+    ];
+    ws["!cols"] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "AEO Suggestions");
+    XLSX.writeFile(wb, "aeo-suggestions.xlsx");
+
+    toast({ title: `Exported ${withBriefs.length} suggestions to Excel` });
+  };
+
   if (planId === "starter") {
     return (
       <div className="space-y-6">
@@ -472,16 +516,28 @@ export function SuggestionsTab({ gaps, isGenerating, onGenerateSuggestion, onGen
         </div>
 
         {filteredGaps.some(g => g.suggestion) && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs gap-1.5 flex-shrink-0"
-            onClick={copyAllVisible}
-            data-testid="button-copy-all"
-          >
-            <Copy className="h-3.5 w-3.5" />
-            Copy All Visible
-          </Button>
+          <div className="flex gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1.5"
+              onClick={exportToExcel}
+              data-testid="button-export-excel"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export Excel
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1.5"
+              onClick={copyAllVisible}
+              data-testid="button-copy-all"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              Copy All
+            </Button>
+          </div>
         )}
       </div>
 
