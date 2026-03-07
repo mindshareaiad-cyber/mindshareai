@@ -36,6 +36,8 @@ interface GapsTabProps {
   gaps: GapAnalysis[];
   isGenerating: string | null;
   onGenerateSuggestion: (promptId: string) => void;
+  onGenerateAll?: (promptIds: string[]) => void;
+  bulkProgress?: { current: number; total: number } | null;
   onNavigateToSuggestions?: () => void;
   planId?: string;
   userId?: string;
@@ -102,7 +104,7 @@ function UpgradePrompt({ feature }: { feature: string }) {
   );
 }
 
-export function GapsTab({ gaps, isGenerating, onGenerateSuggestion, onNavigateToSuggestions, planId }: GapsTabProps) {
+export function GapsTab({ gaps, isGenerating, onGenerateSuggestion, onGenerateAll, bulkProgress, onNavigateToSuggestions, planId }: GapsTabProps) {
   const [expandedAnswers, setExpandedAnswers] = useState<Set<string>>(new Set());
   const [hiddenGaps, setHiddenGaps] = useState<Set<string>>(new Set());
   const [engineFilter, setEngineFilter] = useState<string>("all");
@@ -306,13 +308,34 @@ export function GapsTab({ gaps, isGenerating, onGenerateSuggestion, onNavigateTo
       {gapsWithoutSuggestions.length > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20" data-testid="banner-no-suggestions">
           <Info className="h-4 w-4 text-amber-600 flex-shrink-0" />
-          <p className="text-sm text-amber-700 dark:text-amber-400">
+          <p className="text-sm text-amber-700 dark:text-amber-400 flex-1">
             You have {gapsWithoutSuggestions.length} gap{gapsWithoutSuggestions.length !== 1 ? "s" : ""} with no SEO suggestions yet.{" "}
             {highImpactWithoutSuggestion > 0
               ? <>Start by sending your top {Math.min(highImpactWithoutSuggestion, 5)} high-impact gaps to SEO Suggestions.</>
               : <>Send gaps to SEO Suggestions to get actionable content recommendations.</>
             }
           </p>
+          {onGenerateAll && (
+            <Button
+              size="sm"
+              className="flex-shrink-0 gap-1.5"
+              disabled={isGenerating !== null}
+              onClick={() => onGenerateAll(gapsWithoutSuggestions.map(g => g.promptId))}
+              data-testid="button-send-all-suggestions"
+            >
+              {bulkProgress ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {bulkProgress.current}/{bulkProgress.total}
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Send All ({gapsWithoutSuggestions.length})
+                </>
+              )}
+            </Button>
+          )}
         </div>
       )}
 

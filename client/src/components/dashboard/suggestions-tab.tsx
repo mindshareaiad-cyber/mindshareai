@@ -42,6 +42,8 @@ interface SuggestionsTabProps {
   gaps: GapAnalysis[];
   isGenerating: string | null;
   onGenerateSuggestion: (promptId: string) => void;
+  onGenerateAll?: (promptIds: string[]) => void;
+  bulkProgress?: { current: number; total: number } | null;
   planId?: string;
   userId?: string;
 }
@@ -321,7 +323,7 @@ function SuggestionCard({
   );
 }
 
-export function SuggestionsTab({ gaps, isGenerating, onGenerateSuggestion, planId }: SuggestionsTabProps) {
+export function SuggestionsTab({ gaps, isGenerating, onGenerateSuggestion, onGenerateAll, bulkProgress, planId }: SuggestionsTabProps) {
   const { toast } = useToast();
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [statuses, setStatuses] = useState<Record<string, TaskStatus>>({});
@@ -483,12 +485,36 @@ export function SuggestionsTab({ gaps, isGenerating, onGenerateSuggestion, planI
         )}
       </div>
 
-      {counts.withoutSuggestion > 0 && counts.withSuggestion > 0 && (
+      {counts.withoutSuggestion > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20" data-testid="banner-generate-more">
           <Info className="h-4 w-4 text-amber-600 flex-shrink-0" />
-          <p className="text-sm text-amber-700 dark:text-amber-400">
-            {counts.withoutSuggestion} gaps still need content briefs. Generate suggestions from the Gap Analysis page or click "Generate Brief" below.
+          <p className="text-sm text-amber-700 dark:text-amber-400 flex-1">
+            {counts.withoutSuggestion} gap{counts.withoutSuggestion !== 1 ? "s" : ""} still need content briefs.
           </p>
+          {onGenerateAll && (
+            <Button
+              size="sm"
+              className="flex-shrink-0 gap-1.5"
+              disabled={isGenerating !== null}
+              onClick={() => {
+                const withoutBrief = gaps.filter(g => !g.suggestion).map(g => g.promptId);
+                onGenerateAll(withoutBrief);
+              }}
+              data-testid="button-generate-all-briefs"
+            >
+              {bulkProgress ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {bulkProgress.current}/{bulkProgress.total}
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Generate All ({counts.withoutSuggestion})
+                </>
+              )}
+            </Button>
+          )}
         </div>
       )}
 

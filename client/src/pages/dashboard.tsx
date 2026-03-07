@@ -174,6 +174,8 @@ export default function DashboardPage() {
     }
   };
 
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number } | null>(null);
+
   const generateSuggestion = async (promptId: string) => {
     setIsGeneratingSuggestion(promptId);
     try {
@@ -185,6 +187,30 @@ export default function DashboardPage() {
     } finally {
       setIsGeneratingSuggestion(null);
     }
+  };
+
+  const generateAllSuggestions = async (promptIds: string[]) => {
+    if (promptIds.length === 0) return;
+    let succeeded = 0;
+    let failed = 0;
+    setBulkProgress({ current: 0, total: promptIds.length });
+    for (let i = 0; i < promptIds.length; i++) {
+      setIsGeneratingSuggestion(promptIds[i]);
+      setBulkProgress({ current: i + 1, total: promptIds.length });
+      try {
+        await apiRequest("POST", `/api/gaps/${promptIds[i]}/suggest`);
+        succeeded++;
+      } catch {
+        failed++;
+      }
+    }
+    setIsGeneratingSuggestion(null);
+    setBulkProgress(null);
+    queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "gaps"] });
+    toast({
+      title: `Bulk generation complete`,
+      description: `${succeeded} generated${failed > 0 ? `, ${failed} failed` : ""}`,
+    });
   };
 
   const promptCount = promptSetsData.reduce((acc, set) => acc + set.prompts.length, 0);
@@ -266,6 +292,8 @@ export default function DashboardPage() {
             gaps={gaps}
             isGenerating={isGeneratingSuggestion}
             onGenerateSuggestion={generateSuggestion}
+            onGenerateAll={generateAllSuggestions}
+            bulkProgress={bulkProgress}
             onNavigateToSuggestions={() => setActiveSection("suggestions")}
             planId={currentPlanId}
             userId={user?.id}
@@ -277,6 +305,8 @@ export default function DashboardPage() {
             gaps={gaps}
             isGenerating={isGeneratingSuggestion}
             onGenerateSuggestion={generateSuggestion}
+            onGenerateAll={generateAllSuggestions}
+            bulkProgress={bulkProgress}
             planId={currentPlanId}
             userId={user?.id}
           />
