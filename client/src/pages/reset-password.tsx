@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
-import { Eye, Loader2, Lock, CheckCircle2 } from "lucide-react";
+import { Loader2, Lock, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,11 +13,9 @@ import { z } from "zod";
 
 const resetSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-}).refine((data) => data.password === data.confirmPassword, {
+  confirmPassword: z.string().min(1, "Please confirm your password") }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+  path: ["confirmPassword"] });
 
 type ResetFormData = z.infer<typeof resetSchema>;
 
@@ -30,23 +28,19 @@ export default function ResetPasswordPage() {
     resolver: zodResolver(resetSchema),
     defaultValues: {
       password: "",
-      confirmPassword: "",
-    },
-  });
+      confirmPassword: "" } });
 
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (data: ResetFormData) => {
     const { error } = await supabase.auth.updateUser({
-      password: data.password,
-    });
+      password: data.password });
 
     if (error) {
       toast({
         title: "Update failed",
         description: error.message,
-        variant: "destructive",
-      });
+        variant: "destructive" });
     } else {
       setUpdated(true);
     }
@@ -57,9 +51,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2" data-testid="logo">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-              <Eye className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src="/logo.png" alt="Mindshare AI" className="h-10 w-10 rounded-xl" />
             <span className="font-bold text-2xl">Mindshare AI</span>
           </div>
         </div>

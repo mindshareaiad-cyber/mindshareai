@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Loader2, Globe, Building2, Users, Briefcase } from "lucide-react";
+import { Loader2, Globe, Building2, Users, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,8 +15,7 @@ import { apiRequest } from "@/lib/queryClient";
 const onboardingSchema = z.object({
   websiteUrl: z.string().url("Please enter a valid website URL"),
   industry: z.string().min(1, "Please select your industry"),
-  companySize: z.string().min(1, "Please select your company size"),
-});
+  companySize: z.string().min(1, "Please select your company size") });
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
@@ -56,9 +55,7 @@ export default function OnboardingPage() {
     defaultValues: {
       websiteUrl: "",
       industry: "",
-      companySize: "",
-    },
-  });
+      companySize: "" } });
 
   const isLoading = form.formState.isSubmitting;
 
@@ -67,8 +64,7 @@ export default function OnboardingPage() {
       toast({
         title: "Error",
         description: "You must be logged in to continue.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
@@ -76,20 +72,17 @@ export default function OnboardingPage() {
       await apiRequest("POST", `/api/user-profile/${user.id}/onboarding`, {
         websiteUrl: data.websiteUrl,
         industry: data.industry,
-        companySize: data.companySize,
-      });
+        companySize: data.companySize });
 
       toast({
         title: "Business info saved!",
-        description: "Now let's set up your subscription.",
-      });
+        description: "Now let's set up your subscription." });
       setLocation("/payment");
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to save your information. Please try again.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
     }
   };
 
@@ -98,9 +91,7 @@ export default function OnboardingPage() {
       <div className="w-full max-w-lg">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2" data-testid="logo">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-              <Eye className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src="/logo.png" alt="Mindshare AI" className="h-10 w-10 rounded-xl" />
             <span className="font-bold text-2xl">Mindshare AI</span>
           </div>
         </div>

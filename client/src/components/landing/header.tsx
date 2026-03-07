@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Eye, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
@@ -16,9 +16,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer" data-testid="link-logo">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <Eye className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img src="/logo.png" alt="Mindshare AI" className="h-8 w-8 rounded-lg" />
               <span className="font-bold text-lg">Mindshare AI</span>
             </div>
           </Link>

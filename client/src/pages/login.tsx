@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
-import { Eye, Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail, Lock } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -16,8 +16,7 @@ import { z } from "zod";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
+  password: z.string().min(1, "Password is required") });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
@@ -41,9 +40,7 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
-      password: "",
-    },
-  });
+      password: "" } });
 
   const isLoading = form.formState.isSubmitting;
 
@@ -54,8 +51,7 @@ export default function LoginPage() {
       toast({
         title: "Login failed",
         description: error.message,
-        variant: "destructive",
-      });
+        variant: "destructive" });
     } else {
       const { data: { user: freshUser } } = await supabase.auth.getUser();
       if (freshUser && !freshUser.email_confirmed_at) {
@@ -73,8 +69,7 @@ export default function LoginPage() {
       toast({
         title: "Google sign in failed",
         description: error.message,
-        variant: "destructive",
-      });
+        variant: "destructive" });
       setGoogleLoading(false);
     }
   };
@@ -84,24 +79,20 @@ export default function LoginPage() {
     if (!email || !z.string().email().safeParse(email).success) {
       toast({
         title: "Enter your email first",
-        description: "Please enter your email address above, then click Forgot password.",
-      });
+        description: "Please enter your email address above, then click Forgot password." });
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    });
+      redirectTo: `${window.location.origin}/auth/callback` });
     if (error) {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive",
-      });
+        variant: "destructive" });
     } else {
       toast({
         title: "Reset link sent",
-        description: "Check your email for a password reset link.",
-      });
+        description: "Check your email for a password reset link." });
     }
   };
 
@@ -111,9 +102,7 @@ export default function LoginPage() {
         <div className="flex justify-center mb-8">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer" data-testid="link-logo">
-              <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-                <Eye className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <img src="/logo.png" alt="Mindshare AI" className="h-10 w-10 rounded-xl" />
               <span className="font-bold text-2xl">Mindshare AI</span>
             </div>
           </Link>

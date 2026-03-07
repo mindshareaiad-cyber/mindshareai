@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, TrendingUp, Eye } from "lucide-react";
+import { ArrowRight, Sparkles, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
 
 export function HeroSection() {
@@ -39,9 +39,7 @@ export function HeroSection() {
               <div className="relative bg-card border border-card-border rounded-xl p-6 shadow-lg">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Eye className="h-5 w-5 text-primary" />
-                    </div>
+                    <img src="/logo.png" alt="Mindshare AI" className="h-10 w-10 rounded-lg" />
                     <div>
                       <p className="font-semibold">AI Visibility Score</p>
                       <p className="text-sm text-muted-foreground">Your Brand</p>

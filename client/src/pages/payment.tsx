@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Loader2, Check, CreditCard, LogOut, Zap, Crown } from "lucide-react";
+import { Loader2, Check, CreditCard, LogOut, Zap, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -27,8 +27,7 @@ const plans = [
       "50 prompts",
       "1 AI engine (ChatGPT)",
       "10 scans per month",
-    ],
-  },
+    ] },
   {
     id: "growth",
     name: "Growth",
@@ -43,8 +42,7 @@ const plans = [
       "50 scans per month",
       "Gap analysis",
       "AEO suggestions",
-    ],
-  },
+    ] },
   {
     id: "pro",
     name: "Pro",
@@ -59,8 +57,7 @@ const plans = [
       "Gap analysis",
       "AEO suggestions",
       "Priority support",
-    ],
-  },
+    ] },
 ];
 
 export default function PaymentPage() {
@@ -70,16 +67,14 @@ export default function PaymentPage() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const { data: priceIds } = useQuery<PriceIds>({
-    queryKey: ["/api/stripe/price-ids"],
-  });
+    queryKey: ["/api/stripe/price-ids"] });
 
   const handleSubscribe = async (planId: string) => {
     if (!user) {
       toast({
         title: "Error",
         description: "You must be logged in to subscribe.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
@@ -88,16 +83,14 @@ export default function PaymentPage() {
       toast({
         title: "Unavailable",
         description: "This plan is not available yet. Please try another plan.",
-        variant: "destructive",
-      });
+        variant: "destructive" });
       return;
     }
 
     setLoadingPlan(planId);
     try {
       const response = await apiRequest("POST", "/api/stripe/create-checkout-session", {
-        priceId,
-      });
+        priceId });
 
       const data = await response.json();
 
@@ -118,8 +111,7 @@ export default function PaymentPage() {
       toast({
         title: "Checkout Error",
         description,
-        variant: "destructive",
-      });
+        variant: "destructive" });
       setLoadingPlan(null);
     }
   };
@@ -134,9 +126,7 @@ export default function PaymentPage() {
       <div className="w-full max-w-5xl mx-auto">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2" data-testid="logo">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-              <Eye className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src="/logo.png" alt="Mindshare AI" className="h-10 w-10 rounded-xl" />
             <span className="font-bold text-2xl">Mindshare AI</span>
           </div>
         </div>

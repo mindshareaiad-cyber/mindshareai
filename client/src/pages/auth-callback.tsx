@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
-import { Eye, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -29,8 +29,7 @@ export default function AuthCallbackPage() {
         if (accessToken && refreshToken) {
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
-            refresh_token: refreshToken,
-          });
+            refresh_token: refreshToken });
 
           if (error) {
             setStatus("error");
@@ -147,9 +146,7 @@ export default function AuthCallbackPage() {
             email: currentUser.email,
             firstName: metadata.first_name || metadata.given_name || null,
             lastName: metadata.last_name || metadata.family_name || null,
-            companyName: metadata.company_name || null,
-          }),
-        });
+            companyName: metadata.company_name || null }) });
 
         const subRes = await fetch(`/api/stripe/subscription/${currentUser.id}`, { headers });
         const subData = await subRes.json();
@@ -185,9 +182,7 @@ export default function AuthCallbackPage() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2" data-testid="logo">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-              <Eye className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src="/logo.png" alt="Mindshare AI" className="h-10 w-10 rounded-xl" />
             <span className="font-bold text-2xl">Mindshare AI</span>
           </div>
         </div>

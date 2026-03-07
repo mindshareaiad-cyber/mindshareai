@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { 
-  Eye, 
+  
   Plus, 
   FolderOpen, 
   Settings, 
@@ -78,9 +78,7 @@ export function AppSidebar({
     <Sidebar>
       <SidebarHeader className="border-b p-4">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <Eye className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src="/logo.png" alt="Mindshare AI" className="h-8 w-8 rounded-lg" />
           <span className="font-bold">Mindshare AI</span>
         </div>
       </SidebarHeader>

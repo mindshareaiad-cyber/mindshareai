@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
-import { Eye, Loader2, Mail, Lock, User, Building2 } from "lucide-react";
+import { Loader2, Mail, Lock, User, Building2 } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -19,11 +19,9 @@ const signupSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(1, "Please confirm your password"),
-}).refine((data) => data.password === data.confirmPassword, {
+  confirmPassword: z.string().min(1, "Please confirm your password") }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+  path: ["confirmPassword"] });
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
@@ -51,9 +49,7 @@ export default function SignUpPage() {
       companyName: "",
       email: "",
       password: "",
-      confirmPassword: "",
-    },
-  });
+      confirmPassword: "" } });
 
   const isLoading = form.formState.isSubmitting;
 
@@ -61,15 +57,13 @@ export default function SignUpPage() {
     const { error, session } = await signUp(data.email, data.password, {
       firstName: data.firstName,
       lastName: data.lastName,
-      companyName: data.companyName,
-    });
+      companyName: data.companyName });
 
     if (error) {
       toast({
         title: "Sign up failed",
         description: error.message,
-        variant: "destructive",
-      });
+        variant: "destructive" });
     } else if (session) {
       setLocation("/verify-email");
     } else {
@@ -84,8 +78,7 @@ export default function SignUpPage() {
       toast({
         title: "Google sign up failed",
         description: error.message,
-        variant: "destructive",
-      });
+        variant: "destructive" });
       setGoogleLoading(false);
     }
   };
@@ -96,9 +89,7 @@ export default function SignUpPage() {
         <div className="flex justify-center mb-8">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer" data-testid="link-logo">
-              <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-                <Eye className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <img src="/logo.png" alt="Mindshare AI" className="h-10 w-10 rounded-xl" />
               <span className="font-bold text-2xl">Mindshare AI</span>
             </div>
           </Link>

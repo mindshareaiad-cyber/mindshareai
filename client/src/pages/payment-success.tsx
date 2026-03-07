@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 
 export default function PaymentSuccessPage() {
@@ -58,14 +58,12 @@ export default function PaymentSuccessPage() {
 
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentSession.access_token}`,
-        };
+          "Authorization": `Bearer ${currentSession.access_token}` };
 
         const response = await fetch("/api/stripe/verify-payment", {
           method: "POST",
           headers,
-          body: JSON.stringify({ sessionId }),
-        });
+          body: JSON.stringify({ sessionId }) });
 
         const data = await response.json();
 
@@ -96,9 +94,7 @@ export default function PaymentSuccessPage() {
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2" data-testid="logo">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-              <Eye className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src="/logo.png" alt="Mindshare AI" className="h-10 w-10 rounded-xl" />
             <span className="font-bold text-2xl">Mindshare AI</span>
           </div>
         </div>
