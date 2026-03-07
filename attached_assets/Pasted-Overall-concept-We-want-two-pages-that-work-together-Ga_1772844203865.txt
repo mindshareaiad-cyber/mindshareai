@@ -1,0 +1,157 @@
+Overall concept
+We want two pages that work together:
+
+Gap Analysis = diagnosis and prioritisation (what’s broken, which gaps matter).
+
+AEO Suggestions = direction and tasks (what content work to do for each gap).
+
+The AEO Suggestions page should not write full content, but give clear, opinionated guidance so SEOs and content teams know exactly what to brief or create.
+
+Role of the AEO Suggestions page
+This page answers: “For each opportunity, what should I create or improve, and what must it include so AI starts mentioning my brand?”
+
+Key principles:
+
+Turn each opportunity into a content task, not just a generated answer.
+
+Give enough structure (page type, sections, talking points) that a human can brief or write easily.
+
+Track status so users see progress across opportunities.
+
+What each suggestion card should include
+For every opportunity on the AEO Suggestions page:
+
+Priority and intent
+
+Priority label: High / Medium / Low.
+
+One short reason under the label, e.g.:
+
+“High – commercial, bottom‑funnel query.”
+
+“Medium – informational, early research.”
+
+Intent tag: Informational / Comparison / Transactional / FAQ, etc.
+
+Content task (what to do)
+
+A simple, explicit instruction line, for example:
+
+“Create a new guide page focused on: ‘types of exhibition stands’.”
+
+“Add a detailed FAQ section to the ‘Exhibition Stands’ page answering this question.”
+
+“Expand your comparison content for modular vs custom‑built stands.”
+
+Also add a Recommended content type tag such as:
+
+Blog guide
+
+FAQ block
+
+Landing page
+
+Comparison page
+
+Product/feature page
+
+Coverage checklist (what to include)
+
+Short bullet list describing the points the content should cover so AI has strong reasons to surface the brand, e.g.:
+
+Cover modular, custom‑built and portable stand options with pros/cons.
+
+Include example budgets or price ranges.
+
+Add at least one case study or testimonial.
+
+Explain how to choose a stand based on objectives, space and budget.
+
+This is where the product adds real value beyond a generic answer.
+
+Implementation guidance (where to put it)
+
+Fields that help them decide where to implement:
+
+Best place to implement:
+
+“New page”
+
+“Update existing page: /exhibition-stands/guide”
+
+“Add FAQ block to: /exhibition-stands”.
+
+Internal link ideas, for example:
+
+“Link from: /exhibition-stands, /modular-stands.”
+
+“Suggested anchor text: ‘types of exhibition stands’, ‘how to choose a stand’.”
+
+Light SEO scaffolding (not full content)
+
+Optional but useful structure:
+
+Suggested H1 / page title idea (one line).
+
+2–3 suggested H2s.
+
+Short 30–40 word summary paragraph labelled as “Suggested intro/answer (edit before publishing)” so it’s clearly a starting point, not final copy.
+
+Workflow controls and status
+
+We should treat each opportunity like a mini task:
+
+Status actions on the card:
+
+“Mark as Done”
+
+“Mark as Not relevant”
+
+(Optional) “Snooze” or “Review later”.
+
+When marked done or not relevant, move the card to a separate tab or collapsible section so the main view stays focused on active work.
+
+Page‑level UX for AEO Suggestions
+At the top:
+
+Summary line:
+
+“12 AEO opportunities: 3 High, 5 Medium, 4 Low.”
+
+“2 completed, 1 dismissed, 9 to do.”
+
+Filters:
+
+Priority (All / High / Medium / Low).
+
+Intent (Informational / Comparison / Transactional / FAQ).
+
+Status (All / To‑do / Done / Not relevant).
+
+Optional but valuable:
+
+A simple export / copy flow:
+
+“Copy all visible suggestions”
+
+or “Export to CSV / Send to Jira/Notion” so teams can convert them into tickets.
+
+Relationship to Gap Analysis page
+Gap Analysis = where we discover and prioritise missing mentions.
+
+AEO Suggestions = where we plan the content work to close those gaps.
+
+From a Gap Analysis row, there should be a direct link like:
+
+“View AEO suggestion” (if one exists).
+
+“Create AEO suggestion” (if not yet created, then land on the AEO page with that gap pre‑selected).
+
+This makes the flow feel like:
+
+Identify important gaps (Gap Analysis).
+
+Get clear content direction and brief (AEO Suggestions).
+
+Execute and mark as done.
+

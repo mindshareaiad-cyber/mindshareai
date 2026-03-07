@@ -20,8 +20,8 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
    - **Overview** - Core AI visibility metrics (Score, Mentions, Recommendations, Share of Voice, Gap Opportunities) with clickable drill-down detail views showing engine breakdowns, competitor comparisons, prompt-level data, and priority-sorted lists
    - **Prompts** - Organize buyer-intent questions by persona, funnel stage, country
    - **Results** - View scan results after running AI visibility scans
-   - **Gap Analysis** - Identify where competitors are mentioned but you're not
-   - **AEO Suggestions** - AI-generated recommendations for content improvement
+   - **Gap Analysis** - Diagnosis & prioritisation: filter by engine/impact/status, impact badges (High/Medium/Low), brand pills, "Send to SEO Suggestions" workflow, "Mark not relevant" action
+   - **AEO Suggestions** - Content task management: structured briefs with content task, coverage checklist, implementation guidance, SEO scaffolding (H1/H2s/intro), intent tags, status tracking (To-do/Done/Not relevant), copy-all export
    - **Settings** - Account info, subscription management (Stripe billing portal), sign out
    - **Guided Tour** - First-time user onboarding tour explaining all dashboard metrics (localStorage-tracked, one-time only)
 3. **AI Visibility Scans** - Run prompts through 4 AI engines, score brand visibility (0-2)

@@ -249,7 +249,19 @@ export async function generateSuggestedAnswer(
   brandName: string,
   brandDomain: string,
   engine?: LLMEngine
-): Promise<{ suggestedAnswer: string; suggestedPageType: string }> {
+): Promise<{
+  suggestedAnswer: string;
+  suggestedPageType: string;
+  contentTask: string;
+  contentType: string;
+  coverageChecklist: string[];
+  implementationPlace: string;
+  internalLinkIdeas: string[];
+  suggestedTitle: string;
+  suggestedHeadings: string[];
+  suggestedIntro: string;
+  intentTag: string;
+}> {
   if (!engine) {
     const available = getAvailableEngines();
     engine = available.includes("chatgpt") ? "chatgpt" : available[0];
@@ -258,13 +270,24 @@ export async function generateSuggestedAnswer(
     const messages = [
       {
         role: "system",
-        content: `You are an AEO (Answer Engine Optimization) expert. Your job is to suggest how a brand should be mentioned in AI responses, and what type of content page would help achieve that visibility.
+        content: `You are an AEO (Answer Engine Optimization) expert. Your job is to give clear, opinionated content direction so SEOs and content teams know exactly what to create or improve so AI engines start mentioning their brand.
 
 Output ONLY valid JSON (no markdown, no explanation) with this exact shape:
 {
-  "suggested_answer": "A concise answer that naturally mentions and recommends the brand (under 100 words)",
-  "suggested_page_type": "The type of content page to create (e.g., 'Comparison Guide', 'How-To Article', 'Product Page', 'FAQ Page', 'Case Study')"
-}`,
+  "suggested_answer": "A concise answer (under 100 words) showing how AI should ideally mention and recommend the brand",
+  "suggested_page_type": "The type of content page (e.g. 'Comparison Guide', 'How-To Article', 'Product Page', 'FAQ Page', 'Case Study')",
+  "content_task": "A simple, explicit instruction line, e.g. 'Create a new guide page focused on: types of exhibition stands' or 'Add a detailed FAQ section to your Exhibition Stands page answering this question'",
+  "content_type": "One of: Blog guide, FAQ block, Landing page, Comparison page, Product/feature page, Case study, How-to guide",
+  "coverage_checklist": ["Point 1 the content should cover", "Point 2", "Point 3", "Point 4"],
+  "implementation_place": "Where to implement, e.g. 'New page', 'Update existing page: /example-page', 'Add FAQ block to: /example'",
+  "internal_link_ideas": ["Link from: /page1, /page2", "Suggested anchor text: 'keyword phrase'"],
+  "suggested_title": "Suggested H1 / page title (one line)",
+  "suggested_headings": ["Suggested H2 heading 1", "Suggested H2 heading 2", "Suggested H2 heading 3"],
+  "suggested_intro": "A 30-40 word summary paragraph as a starting point (clearly a draft, not final copy)",
+  "intent_tag": "One of: Informational, Comparison, Transactional, FAQ, How-to"
+}
+
+Be specific and opinionated. The coverage checklist should include 4-6 concrete points that would give AI strong reasons to surface this brand. Think about what information AI engines need to see on the page to confidently recommend the brand.`,
       },
       {
         role: "user",
@@ -274,17 +297,26 @@ Brand to optimize for:
 - Name: ${brandName}
 - Domain: ${brandDomain}
 
-Generate a suggested answer that would naturally recommend this brand, and suggest what type of content page the brand should create to improve their visibility for this query.`,
+Generate a comprehensive AEO content brief for this query. Be specific to the brand and query — avoid generic advice.`,
       },
     ];
 
-    const content = await callEngine(engine, messages, 300, 0.7);
+    const content = await callEngine(engine, messages, 800, 0.7);
     const jsonContent = content.replace(/```json\n?|\n?```/g, "").trim();
     const parsed = JSON.parse(jsonContent);
 
     return {
       suggestedAnswer: parsed.suggested_answer || "",
       suggestedPageType: parsed.suggested_page_type || "Landing Page",
+      contentTask: parsed.content_task || "",
+      contentType: parsed.content_type || parsed.suggested_page_type || "Blog guide",
+      coverageChecklist: Array.isArray(parsed.coverage_checklist) ? parsed.coverage_checklist : [],
+      implementationPlace: parsed.implementation_place || "New page",
+      internalLinkIdeas: Array.isArray(parsed.internal_link_ideas) ? parsed.internal_link_ideas : [],
+      suggestedTitle: parsed.suggested_title || "",
+      suggestedHeadings: Array.isArray(parsed.suggested_headings) ? parsed.suggested_headings : [],
+      suggestedIntro: parsed.suggested_intro || "",
+      intentTag: parsed.intent_tag || "Informational",
     };
   } catch (error) {
     console.error(`Error generating suggestion with ${engine}:`, error);

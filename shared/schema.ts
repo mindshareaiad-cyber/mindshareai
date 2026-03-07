@@ -143,6 +143,18 @@ export type ScanResultWithPrompt = ScanResult & {
   prompt: Prompt;
 };
 
+export type AeoSuggestion = {
+  contentTask: string;
+  contentType: string;
+  coverageChecklist: string[];
+  implementationPlace: string;
+  internalLinkIdeas: string[];
+  suggestedTitle: string;
+  suggestedHeadings: string[];
+  suggestedIntro: string;
+  intentTag: string;
+};
+
 export type GapAnalysis = {
   promptId: string;
   promptText: string;
@@ -153,6 +165,7 @@ export type GapAnalysis = {
   answer: string;
   suggestedAnswer?: string;
   suggestedPageType?: string;
+  suggestion?: AeoSuggestion;
 };
 
 // SEO Readiness Assessment

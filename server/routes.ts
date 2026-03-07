@@ -895,17 +895,15 @@ export async function registerRoutes(
         });
       }
 
-      // Generate suggestion
-      const { suggestedAnswer, suggestedPageType } = await generateSuggestedAnswer(
+      const result = await generateSuggestedAnswer(
         prompt.text,
         project.brandName,
         project.brandDomain
       );
 
-      // Store the suggestion
-      await storage.updateGapSuggestion(promptId, suggestedAnswer, suggestedPageType);
+      await storage.updateGapSuggestion(promptId, result);
 
-      res.json({ suggestedAnswer, suggestedPageType });
+      res.json(result);
     } catch (error) {
       console.error("Error generating suggestion:", error);
       res.status(500).json({ error: "Failed to generate suggestion" });

@@ -62,7 +62,7 @@ export interface IStorage {
   createScanResult(result: InsertScanResult): Promise<ScanResult>;
 
   getGaps(projectId: string): Promise<GapAnalysis[]>;
-  updateGapSuggestion(promptId: string, suggestedAnswer: string, suggestedPageType: string): Promise<void>;
+  updateGapSuggestion(promptId: string, data: GapSuggestionData): Promise<void>;
 
   getStripeProduct(productId: string): Promise<any>;
   listStripeProducts(): Promise<any[]>;
@@ -73,8 +73,22 @@ export interface IStorage {
   updateSeoReadiness(projectId: string, data: Partial<InsertSeoReadiness>): Promise<SeoReadiness | undefined>;
 }
 
+type GapSuggestionData = {
+  suggestedAnswer: string;
+  suggestedPageType: string;
+  contentTask?: string;
+  contentType?: string;
+  coverageChecklist?: string[];
+  implementationPlace?: string;
+  internalLinkIdeas?: string[];
+  suggestedTitle?: string;
+  suggestedHeadings?: string[];
+  suggestedIntro?: string;
+  intentTag?: string;
+};
+
 export class DatabaseStorage implements IStorage {
-  private gapSuggestions: Map<string, { suggestedAnswer: string; suggestedPageType: string }> = new Map();
+  private gapSuggestions: Map<string, GapSuggestionData> = new Map();
 
   async getUserProfile(id: string): Promise<UserProfile | undefined> {
     const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, id));
@@ -332,6 +346,17 @@ export class DatabaseStorage implements IStorage {
             answer: result.answer,
             suggestedAnswer: suggestion?.suggestedAnswer,
             suggestedPageType: suggestion?.suggestedPageType,
+            suggestion: suggestion ? {
+              contentTask: suggestion.contentTask || "",
+              contentType: suggestion.contentType || suggestion.suggestedPageType || "",
+              coverageChecklist: suggestion.coverageChecklist || [],
+              implementationPlace: suggestion.implementationPlace || "",
+              internalLinkIdeas: suggestion.internalLinkIdeas || [],
+              suggestedTitle: suggestion.suggestedTitle || "",
+              suggestedHeadings: suggestion.suggestedHeadings || [],
+              suggestedIntro: suggestion.suggestedIntro || "",
+              intentTag: suggestion.intentTag || "Informational",
+            } : undefined,
           });
         }
       }
@@ -380,12 +405,8 @@ export class DatabaseStorage implements IStorage {
     return Array.from(discovered).slice(0, 10);
   }
 
-  async updateGapSuggestion(
-    promptId: string,
-    suggestedAnswer: string,
-    suggestedPageType: string
-  ): Promise<void> {
-    this.gapSuggestions.set(promptId, { suggestedAnswer, suggestedPageType });
+  async updateGapSuggestion(promptId: string, data: GapSuggestionData): Promise<void> {
+    this.gapSuggestions.set(promptId, data);
   }
 
   async getSeoReadiness(projectId: string): Promise<SeoReadiness | undefined> {
