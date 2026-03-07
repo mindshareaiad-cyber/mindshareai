@@ -168,6 +168,33 @@ export type GapAnalysis = {
   suggestion?: AeoSuggestion;
 };
 
+// Gap Suggestions table - persisted AEO content briefs
+export const gapSuggestions = pgTable("gap_suggestions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  promptId: varchar("prompt_id").notNull(),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  suggestedAnswer: text("suggested_answer"),
+  suggestedPageType: text("suggested_page_type"),
+  contentTask: text("content_task"),
+  contentType: text("content_type"),
+  coverageChecklist: jsonb("coverage_checklist").$type<string[]>().default(sql`'[]'::jsonb`),
+  implementationPlace: text("implementation_place"),
+  internalLinkIdeas: jsonb("internal_link_ideas").$type<string[]>().default(sql`'[]'::jsonb`),
+  suggestedTitle: text("suggested_title"),
+  suggestedHeadings: jsonb("suggested_headings").$type<string[]>().default(sql`'[]'::jsonb`),
+  suggestedIntro: text("suggested_intro"),
+  intentTag: text("intent_tag").default("Informational"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertGapSuggestionSchema = createInsertSchema(gapSuggestions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertGapSuggestion = z.infer<typeof insertGapSuggestionSchema>;
+export type GapSuggestion = typeof gapSuggestions.$inferSelect;
+
 // SEO Readiness Assessment
 export const seoReadinessAssessments = pgTable("seo_readiness_assessments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

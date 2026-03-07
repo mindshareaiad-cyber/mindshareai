@@ -129,6 +129,24 @@ async function initDatabase() {
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
           );
 
+          CREATE TABLE IF NOT EXISTS gap_suggestions (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            prompt_id VARCHAR NOT NULL,
+            project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            suggested_answer TEXT,
+            suggested_page_type TEXT,
+            content_task TEXT,
+            content_type TEXT,
+            coverage_checklist JSONB DEFAULT '[]'::jsonb,
+            implementation_place TEXT,
+            internal_link_ideas JSONB DEFAULT '[]'::jsonb,
+            suggested_title TEXT,
+            suggested_headings JSONB DEFAULT '[]'::jsonb,
+            suggested_intro TEXT,
+            intent_tag TEXT DEFAULT 'Informational',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
           CREATE TABLE IF NOT EXISTS seo_readiness_assessments (
             id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
             project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -151,6 +169,25 @@ async function initDatabase() {
         log('Database tables created successfully', 'db');
       } else {
         log('Database tables already exist', 'db');
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS gap_suggestions (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            prompt_id VARCHAR NOT NULL,
+            project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            suggested_answer TEXT,
+            suggested_page_type TEXT,
+            content_task TEXT,
+            content_type TEXT,
+            coverage_checklist JSONB DEFAULT '[]'::jsonb,
+            implementation_place TEXT,
+            internal_link_ideas JSONB DEFAULT '[]'::jsonb,
+            suggested_title TEXT,
+            suggested_headings JSONB DEFAULT '[]'::jsonb,
+            suggested_intro TEXT,
+            intent_tag TEXT DEFAULT 'Informational',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
       }
     } finally {
       client.release();

@@ -977,7 +977,7 @@ export async function registerRoutes(
         project.brandDomain
       );
 
-      await storage.updateGapSuggestion(promptId, result);
+      await storage.updateGapSuggestion(promptId, result, promptSet.projectId);
 
       res.json(result);
     } catch (error) {

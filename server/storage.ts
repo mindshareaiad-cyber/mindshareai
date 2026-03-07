@@ -15,6 +15,7 @@ import {
   type UpdateUserProfile,
   type SeoReadiness,
   type InsertSeoReadiness,
+  type GapSuggestion,
   userProfiles,
   projects,
   promptSets,
@@ -22,6 +23,7 @@ import {
   scans,
   scanResults,
   seoReadinessAssessments,
+  gapSuggestions,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc, and, gte, inArray } from "drizzle-orm";
@@ -61,7 +63,7 @@ export interface IStorage {
   createScanResult(result: InsertScanResult): Promise<ScanResult>;
 
   getGaps(projectId: string): Promise<GapAnalysis[]>;
-  updateGapSuggestion(promptId: string, data: GapSuggestionData): Promise<void>;
+  updateGapSuggestion(promptId: string, data: GapSuggestionData, projectId?: string): Promise<void>;
 
   getStripeProduct(productId: string): Promise<any>;
   listStripeProducts(): Promise<any[]>;
@@ -87,7 +89,6 @@ type GapSuggestionData = {
 };
 
 export class DatabaseStorage implements IStorage {
-  private gapSuggestions: Map<string, GapSuggestionData> = new Map();
 
   async getUserProfile(id: string): Promise<UserProfile | undefined> {
     const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, id));
@@ -314,46 +315,61 @@ export class DatabaseStorage implements IStorage {
     if (!project) return [];
 
     const results = await this.getScanResults(latestScan.id);
+    const gapResults = results.filter(r => r.brandScore === 0);
+    if (gapResults.length === 0) return [];
+
+    const promptIds = gapResults.map(r => r.promptId);
+    const [promptRows, suggestionRows] = await Promise.all([
+      db.select().from(prompts).where(inArray(prompts.id, promptIds)),
+      db.select().from(gapSuggestions).where(
+        and(
+          eq(gapSuggestions.projectId, projectId),
+          inArray(gapSuggestions.promptId, promptIds)
+        )
+      ),
+    ]);
+
+    const promptMap = new Map(promptRows.map(p => [p.id, p]));
+    const suggestionMap = new Map(suggestionRows.map(s => [s.promptId, s]));
+
     const gaps: GapAnalysis[] = [];
 
-    for (const result of results) {
-      if (result.brandScore === 0) {
-        const prompt = await this.getPrompt(result.promptId);
-        if (prompt) {
-          const suggestion = this.gapSuggestions.get(result.promptId);
-          const mentionedCompetitors = Object.entries(result.competitorScores)
-            .filter(([, score]) => score > 0)
-            .map(([name]) => name);
-          const discoveredBrands = this.extractBrandsFromAnswer(
-            result.answer,
-            project.brandName,
-            [...project.competitors, ...mentionedCompetitors]
-          );
-          const allMentioned = [...new Set([...mentionedCompetitors, ...discoveredBrands])];
+    for (const result of gapResults) {
+      const prompt = promptMap.get(result.promptId);
+      if (prompt) {
+        const suggestion = suggestionMap.get(result.promptId);
+        const mentionedCompetitors = Object.entries(result.competitorScores)
+          .filter(([, score]) => score > 0)
+          .map(([name]) => name);
+        const discoveredBrands = this.extractBrandsFromAnswer(
+          result.answer,
+          project.brandName,
+          [...project.competitors, ...mentionedCompetitors]
+        );
+        const allMentioned = [...new Set([...mentionedCompetitors, ...discoveredBrands])];
 
-          gaps.push({
-            promptId: result.promptId,
-            promptText: prompt.text,
-            brandScore: result.brandScore,
-            competitorScores: result.competitorScores,
-            mentionedBrands: allMentioned,
-            engine: result.engine,
-            answer: result.answer,
-            suggestedAnswer: suggestion?.suggestedAnswer,
-            suggestedPageType: suggestion?.suggestedPageType,
-            suggestion: suggestion ? {
-              contentTask: suggestion.contentTask || "",
-              contentType: suggestion.contentType || suggestion.suggestedPageType || "",
-              coverageChecklist: suggestion.coverageChecklist || [],
-              implementationPlace: suggestion.implementationPlace || "",
-              internalLinkIdeas: suggestion.internalLinkIdeas || [],
-              suggestedTitle: suggestion.suggestedTitle || "",
-              suggestedHeadings: suggestion.suggestedHeadings || [],
-              suggestedIntro: suggestion.suggestedIntro || "",
-              intentTag: suggestion.intentTag || "Informational",
-            } : undefined,
-          });
-        }
+        gaps.push({
+          promptId: result.promptId,
+          promptText: prompt.text,
+          brandScore: result.brandScore,
+          competitorScores: result.competitorScores,
+          mentionedBrands: allMentioned,
+          engine: result.engine,
+          answer: result.answer,
+          suggestedAnswer: suggestion?.suggestedAnswer || undefined,
+          suggestedPageType: suggestion?.suggestedPageType || undefined,
+          suggestion: suggestion ? {
+            contentTask: suggestion.contentTask || "",
+            contentType: suggestion.contentType || suggestion.suggestedPageType || "",
+            coverageChecklist: (suggestion.coverageChecklist as string[]) || [],
+            implementationPlace: suggestion.implementationPlace || "",
+            internalLinkIdeas: (suggestion.internalLinkIdeas as string[]) || [],
+            suggestedTitle: suggestion.suggestedTitle || "",
+            suggestedHeadings: (suggestion.suggestedHeadings as string[]) || [],
+            suggestedIntro: suggestion.suggestedIntro || "",
+            intentTag: suggestion.intentTag || "Informational",
+          } : undefined,
+        });
       }
     }
 
@@ -400,8 +416,57 @@ export class DatabaseStorage implements IStorage {
     return Array.from(discovered).slice(0, 10);
   }
 
-  async updateGapSuggestion(promptId: string, data: GapSuggestionData): Promise<void> {
-    this.gapSuggestions.set(promptId, data);
+  async updateGapSuggestion(promptId: string, data: GapSuggestionData, projectId?: string): Promise<void> {
+    if (!projectId) {
+      const prompt = await this.getPrompt(promptId);
+      if (!prompt) return;
+      const promptSet = await this.getPromptSet(prompt.promptSetId);
+      if (!promptSet) return;
+      projectId = promptSet.projectId;
+    }
+
+    const existing = await db.select().from(gapSuggestions)
+      .where(and(
+        eq(gapSuggestions.promptId, promptId),
+        eq(gapSuggestions.projectId, projectId)
+      ));
+
+    if (existing.length > 0) {
+      await db.update(gapSuggestions)
+        .set({
+          suggestedAnswer: data.suggestedAnswer,
+          suggestedPageType: data.suggestedPageType,
+          contentTask: data.contentTask,
+          contentType: data.contentType,
+          coverageChecklist: data.coverageChecklist || [],
+          implementationPlace: data.implementationPlace,
+          internalLinkIdeas: data.internalLinkIdeas || [],
+          suggestedTitle: data.suggestedTitle,
+          suggestedHeadings: data.suggestedHeadings || [],
+          suggestedIntro: data.suggestedIntro,
+          intentTag: data.intentTag,
+        })
+        .where(and(
+          eq(gapSuggestions.promptId, promptId),
+          eq(gapSuggestions.projectId, projectId)
+        ));
+    } else {
+      await db.insert(gapSuggestions).values({
+        promptId,
+        projectId,
+        suggestedAnswer: data.suggestedAnswer,
+        suggestedPageType: data.suggestedPageType,
+        contentTask: data.contentTask,
+        contentType: data.contentType,
+        coverageChecklist: data.coverageChecklist || [],
+        implementationPlace: data.implementationPlace,
+        internalLinkIdeas: data.internalLinkIdeas || [],
+        suggestedTitle: data.suggestedTitle,
+        suggestedHeadings: data.suggestedHeadings || [],
+        suggestedIntro: data.suggestedIntro,
+        intentTag: data.intentTag,
+      });
+    }
   }
 
   async getSeoReadiness(projectId: string): Promise<SeoReadiness | undefined> {

@@ -62,7 +62,7 @@ server/
 └── static.ts          # Production static file serving
 
 shared/
-└── schema.ts          # Drizzle ORM schema: UserProfile, Project, PromptSet, Prompt, Scan, ScanResult, SeoReadiness
+└── schema.ts          # Drizzle ORM schema: UserProfile, Project, PromptSet, Prompt, Scan, ScanResult, GapSuggestion, SeoReadiness
 
 script/
 └── build-external.ts  # Production build script (Vite client + esbuild server)
