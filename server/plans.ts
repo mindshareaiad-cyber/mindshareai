@@ -52,8 +52,8 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     priceMonthly: 79,
     maxProjects: 5,
     maxPrompts: 200,
-    maxEngines: 4,
-    allowedEngines: [...ENGINE_TIERS.all],
+    maxEngines: 2,
+    allowedEngines: [ENGINE_TIERS.primary, ENGINE_TIERS.secondary],
     maxScansPerMonth: 50,
     features: {
       advancedReports: true,
@@ -71,8 +71,8 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     priceMonthly: 199,
     maxProjects: 50,
     maxPrompts: 1000,
-    maxEngines: 2,
-    allowedEngines: [ENGINE_TIERS.primary, ENGINE_TIERS.secondary],
+    maxEngines: 4,
+    allowedEngines: [...ENGINE_TIERS.all],
     maxScansPerMonth: 500,
     features: {
       advancedReports: true,
