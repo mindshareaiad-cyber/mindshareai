@@ -245,6 +245,18 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+if (process.env.NODE_ENV === 'production' && process.env.APP_URL) {
+  const canonicalHost = new URL(process.env.APP_URL).host;
+  app.use((req, res, next) => {
+    const host = req.hostname;
+    if (host !== canonicalHost && host.endsWith('.onrender.com')) {
+      const redirectUrl = `${process.env.APP_URL}${req.originalUrl}`;
+      return res.redirect(301, redirectUrl);
+    }
+    next();
+  });
+}
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
