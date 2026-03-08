@@ -23,6 +23,7 @@ import {
   Mail,
   Download,
   Lock,
+  ArrowUpRight,
 } from "lucide-react";
 import {
   LineChart,
@@ -516,16 +517,20 @@ export function ReportsTab({ project, planId }: ReportsTabProps) {
 
   if (!isUnlocked) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <Lock className="h-12 w-12 text-muted-foreground mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Advanced Reports</h2>
-        <p className="text-muted-foreground mb-6 max-w-md">
-          Unlock trend analysis, scan comparisons, health scoring, and scheduled reports with a Growth or Pro plan.
-        </p>
-        <Button onClick={() => window.open("/payment", "_self")} data-testid="button-upgrade-reports">
-          Upgrade to Growth
-        </Button>
-      </div>
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="py-10 text-center">
+          <div className="inline-flex p-3 rounded-full bg-primary/10 mb-4">
+            <Lock className="h-8 w-8 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Advanced Reports is available on Growth and Pro plans</h3>
+          <p className="text-muted-foreground max-w-md mx-auto mb-6">
+            Upgrade your plan to unlock advanced reports, trend analysis, scan comparisons, health scoring, and scheduled email reports.
+          </p>
+          <Button onClick={() => window.location.href = "/payment"} size="lg" data-testid="button-upgrade-reports">
+            <ArrowUpRight className="h-4 w-4 mr-2" /> Upgrade Your Plan
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
