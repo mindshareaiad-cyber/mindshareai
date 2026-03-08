@@ -157,6 +157,18 @@ Events handled:
 - `RESEND_API_KEY` - Transactional emails
 - `RESEND_FROM_EMAIL` - Sender address (default: noreply@mindshare-ai.com)
 
+## Security
+- **HTTPS/TLS**: TLS termination at Render load balancer; HSTS enabled (1 year, includeSubDomains, preload)
+- **CSP**: Strict Content-Security-Policy via Helmet with upgradeInsecureRequests
+- **Rate Limiting**: express-rate-limit on all API routes (100/15min), auth routes (20/15min), scan routes (5/min)
+- **Password Rules**: Min 8 chars, uppercase, lowercase, number, special character required
+- **Auth**: Supabase JWT Bearer tokens (not cookies) — inherently CSRF-safe
+- **Input Validation**: Zod schemas on all POST/PATCH routes; Drizzle ORM parameterized queries prevent SQLi
+- **XSS Prevention**: React output escaping + Helmet CSP + X-Content-Type-Options nosniff
+- **Error Handling**: Generic error messages to clients; raw errors logged server-side only
+- **Headers**: X-Powered-By disabled, X-Frame-Options SAMEORIGIN, strict CSP
+- **MFA**: Available via Supabase dashboard (not enforced in code)
+
 ## Running the App
 The app runs on port 5000 with `npm run dev`. The frontend is served via Vite with Express backend.
 

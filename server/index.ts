@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -25,13 +26,49 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: connectSrcDirectives,
       frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
+      upgradeInsecureRequests: [],
     },
   },
   crossOriginEmbedderPolicy: false,
   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  strictTransportSecurity: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
 }));
 
 app.disable('x-powered-by');
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later" },
+  skip: (req) => req.path === "/api/stripe/webhook",
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many authentication attempts, please try again later" },
+});
+
+const scanLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many scan requests, please try again later" },
+});
+
+app.use("/api/", apiLimiter);
+app.use("/api/user-profile", authLimiter);
+app.use("/api/stripe/create-checkout-session", authLimiter);
+app.use("/api/projects/:id/scans", scanLimiter);
 
 declare module "http" {
   interface IncomingMessage {
