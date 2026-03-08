@@ -1279,7 +1279,13 @@ export async function registerRoutes(
       }
 
       const results = await storage.getScanResults(req.params.scanId);
-      res.json(results);
+      const promptIds = [...new Set(results.map(r => r.promptId))];
+      const promptRows = promptIds.length > 0
+        ? await Promise.all(promptIds.map(id => storage.getPrompt(id)))
+        : [];
+      const promptMap = new Map(promptRows.filter(Boolean).map(p => [p!.id, p!.text]));
+      const enriched = results.map(r => ({ ...r, promptText: promptMap.get(r.promptId) || "Unknown prompt" }));
+      res.json(enriched);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
@@ -1470,8 +1476,8 @@ export async function registerRoutes(
       if (!plan.features.advancedReports) {
         return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
       }
-      const { frequency, enabled, recipientEmails } = req.body;
-      const updated = await storage.updateReportSchedule(req.params.id, userId, { frequency, enabled, recipientEmails });
+      const { name, frequency, enabled, recipientEmails, sections } = req.body;
+      const updated = await storage.updateReportSchedule(req.params.id, userId, { name, frequency, enabled, recipientEmails, sections });
       if (!updated) return res.status(404).json({ error: "Schedule not found" });
       res.json(updated);
     } catch (err: any) {

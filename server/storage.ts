@@ -94,7 +94,7 @@ export interface IStorage {
 
   getReportSchedules(projectId: string, userId: string): Promise<ReportSchedule[]>;
   createReportSchedule(schedule: InsertReportSchedule): Promise<ReportSchedule>;
-  updateReportSchedule(id: string, userId: string, data: { frequency?: string; enabled?: boolean; recipientEmails?: string[] }): Promise<ReportSchedule | undefined>;
+  updateReportSchedule(id: string, userId: string, data: { name?: string; frequency?: string; enabled?: boolean; recipientEmails?: string[]; sections?: string[] }): Promise<ReportSchedule | undefined>;
   deleteReportSchedule(id: string, userId: string): Promise<void>;
 }
 
@@ -731,7 +731,7 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateReportSchedule(id: string, userId: string, data: { frequency?: string; enabled?: boolean; recipientEmails?: string[] }): Promise<ReportSchedule | undefined> {
+  async updateReportSchedule(id: string, userId: string, data: { name?: string; frequency?: string; enabled?: boolean; recipientEmails?: string[]; sections?: string[] }): Promise<ReportSchedule | undefined> {
     const [updated] = await db.update(reportSchedules)
       .set(data)
       .where(and(eq(reportSchedules.id, id), eq(reportSchedules.userId, userId)))

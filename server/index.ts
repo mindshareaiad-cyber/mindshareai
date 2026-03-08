@@ -179,8 +179,10 @@ async function initDatabase() {
             id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
             project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
             user_id VARCHAR NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+            name TEXT NOT NULL DEFAULT 'Report',
             frequency TEXT NOT NULL DEFAULT 'weekly',
             recipient_emails JSONB NOT NULL DEFAULT '[]'::jsonb,
+            sections JSONB NOT NULL DEFAULT '["health_score","wins_losses","trends","scan_history"]'::jsonb,
             enabled BOOLEAN NOT NULL DEFAULT true,
             last_sent_at TIMESTAMP,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -221,12 +223,17 @@ async function initDatabase() {
             id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
             project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
             user_id VARCHAR NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+            name TEXT NOT NULL DEFAULT 'Report',
             frequency TEXT NOT NULL DEFAULT 'weekly',
             recipient_emails JSONB NOT NULL DEFAULT '[]'::jsonb,
+            sections JSONB NOT NULL DEFAULT '["health_score","wins_losses","trends","scan_history"]'::jsonb,
             enabled BOOLEAN NOT NULL DEFAULT true,
             last_sent_at TIMESTAMP,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
           );
+
+          ALTER TABLE report_schedules ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT 'Report';
+          ALTER TABLE report_schedules ADD COLUMN IF NOT EXISTS sections JSONB NOT NULL DEFAULT '["health_score","wins_losses","trends","scan_history"]'::jsonb;
         `);
       }
     } finally {
