@@ -6,6 +6,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import { WebhookHandlers } from './webhookHandlers';
 import { pool } from './db';
+import { requestIdMiddleware, monitoringMiddleware, trackWebhookFailure, auditLog, getMonitoringStats } from './monitoring';
 
 const app = express();
 const httpServer = createServer(app);
@@ -69,6 +70,8 @@ app.use("/api/", apiLimiter);
 app.use("/api/user-profile", authLimiter);
 app.use("/api/stripe/create-checkout-session", authLimiter);
 app.use("/api/projects/:id/scans", scanLimiter);
+
+app.use(requestIdMiddleware);
 
 declare module "http" {
   interface IncomingMessage {
@@ -311,9 +314,12 @@ app.post(
       }
 
       await WebhookHandlers.processWebhook(req.body as Buffer, sig);
+      auditLog("webhook.processed", { source: "stripe", status: "success" });
       res.status(200).json({ received: true });
     } catch (error: any) {
       console.error('Webhook error:', error.message);
+      auditLog("webhook.failed", { source: "stripe", error: error.message });
+      trackWebhookFailure("stripe_webhook", error.message);
       res.status(400).json({ error: 'Webhook processing error' });
     }
   }
@@ -341,41 +347,7 @@ if (process.env.NODE_ENV === 'production' && process.env.APP_URL) {
   });
 }
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        const safeKeys = ["error", "message", "success", "received"];
-        const summary: Record<string, any> = {};
-        for (const key of safeKeys) {
-          if (key in capturedJsonResponse) summary[key] = capturedJsonResponse[key];
-        }
-        if (Array.isArray(capturedJsonResponse)) {
-          summary["count"] = capturedJsonResponse.length;
-        }
-        if (Object.keys(summary).length > 0) {
-          logLine += ` :: ${JSON.stringify(summary)}`;
-        }
-      }
-
-      log(logLine);
-    }
-  });
-
-  next();
-});
+app.use(monitoringMiddleware);
 
 (async () => {
   await registerRoutes(httpServer, app);

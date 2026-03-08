@@ -4,6 +4,7 @@ import { userProfiles } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { getPlanByPriceId } from './plans';
 import { sendPlanChangedEmail, sendCancellationEmail, sendPaymentFailedEmail } from './email-service';
+import { auditLog } from './monitoring';
 
 export class WebhookHandlers {
   static async processWebhook(payload: Buffer, signature: string): Promise<void> {
@@ -84,6 +85,13 @@ export class WebhookHandlers {
       await db.update(userProfiles)
         .set(updateData)
         .where(eq(userProfiles.stripeCustomerId, customerId));
+
+      auditLog("billing.subscription_changed", {
+        userId: existingProfile?.id || "unknown",
+        status,
+        oldStatus: oldStatus || "none",
+        priceId: priceId || "unchanged",
+      });
 
       if (existingProfile?.email) {
         const firstName = existingProfile.firstName || null;

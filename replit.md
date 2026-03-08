@@ -50,6 +50,7 @@ client/src/
 server/
 ├── index.ts           # Server entry point with database auto-init
 ├── routes.ts          # API endpoints
+├── monitoring.ts      # Structured logging, error rate tracking, email alerts, secret scrubbing
 ├── storage.ts         # PostgreSQL data storage via Drizzle ORM
 ├── db.ts              # Database connection pool
 ├── llm-client.ts      # Multi-engine AI client (OpenAI, Anthropic, Gemini, Perplexity)
@@ -168,6 +169,15 @@ Events handled:
 - **Error Handling**: Generic error messages to clients; raw errors logged server-side only
 - **Headers**: X-Powered-By disabled, X-Frame-Options SAMEORIGIN, strict CSP
 - **MFA**: Available via Supabase dashboard (not enforced in code)
+
+## Monitoring & Observability
+- **Structured JSON logs**: Every API request logged with requestId, userId, method, path, statusCode, durationMs, timestamp
+- **Secret scrubbing**: Stripe keys, JWTs, API keys, passwords auto-redacted from all log output
+- **Error rate alerts**: Email sent to ADMIN_EMAILS when 5xx errors exceed 20 per 5-minute window (30-min cooldown)
+- **Webhook failure alerts**: Email sent immediately on any Stripe webhook processing failure
+- **Audit logging**: Key events logged as structured JSON: user.signup, user.profile_updated, billing.checkout_created, billing.payment_verified, billing.subscription_changed, webhook.processed, webhook.failed
+- **Admin health endpoint**: GET /api/monitoring/health (admin-only) returns uptime, memory, error rate, recent webhook failures
+- **Load test script**: `npx tsx script/load-test.ts` runs spike test against public endpoints
 
 ## Running the App
 The app runs on port 5000 with `npm run dev`. The frontend is served via Vite with Express backend.

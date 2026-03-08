@@ -11,6 +11,7 @@ import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClie
 import { getPlan, getPlanByPriceId, canCreateProject, canAddPrompts, canRunScan, canUseEngine, getPromptsForMultiEngine, ENGINE_TIERS, type PlanId } from "./plans";
 import { sendWelcomeEmail, sendSubscriptionActivatedEmail } from "./email-service";
 import { requireAuth, requireOwnership } from "./auth-middleware";
+import { auditLog, getMonitoringStats } from "./monitoring";
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'mindshareai@gmail.com,mabz.miah93@gmail.com').split(',').map(e => e.trim().toLowerCase());
 
@@ -67,6 +68,27 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  // ============= Monitoring =============
+
+  app.get("/api/monitoring/health", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const profile = await storage.getUserProfile(userId);
+      if (!isAdminEmail(profile?.email)) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+      const stats = getMonitoringStats();
+      res.json({
+        status: "healthy",
+        uptime: process.uptime(),
+        memoryUsage: process.memoryUsage(),
+        ...stats,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get monitoring stats" });
+    }
+  });
+
   // ============= User Profiles =============
 
   // Get user profile
@@ -96,6 +118,7 @@ export async function registerRoutes(
       
       if (profile) {
         profile = await storage.updateUserProfile(id, { email, firstName, lastName, companyName });
+        auditLog("user.profile_updated", { userId: id });
       } else {
         profile = await storage.createUserProfile({
           id,
@@ -104,6 +127,7 @@ export async function registerRoutes(
           lastName,
           companyName,
         });
+        auditLog("user.signup", { userId: id });
         sendWelcomeEmail(email, firstName || null).catch(() => {});
       }
       
@@ -197,6 +221,7 @@ export async function registerRoutes(
         cancel_url: `${baseUrl}/payment`,
       });
 
+      auditLog("billing.checkout_created", { userId, priceId });
       res.json({ url: session.url });
     } catch (error: any) {
       console.error("Error creating checkout session:", JSON.stringify({
@@ -206,8 +231,7 @@ export async function registerRoutes(
         statusCode: error?.statusCode,
         raw: error?.raw?.message,
       }));
-      const message = error?.message || "Failed to create checkout session";
-      res.status(500).json({ error: message });
+      res.status(500).json({ error: "Failed to create checkout session" });
     }
   });
 
@@ -252,6 +276,7 @@ export async function registerRoutes(
         }
         
         await storage.updateUserProfile(userId, updateData);
+        auditLog("billing.payment_verified", { userId, subscriptionStatus: subscriptionStatus });
 
         const updatedProfile = await storage.getUserProfile(userId);
         if (updatedProfile?.email) {
