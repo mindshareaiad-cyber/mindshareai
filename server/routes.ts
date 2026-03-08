@@ -220,6 +220,16 @@ export async function registerRoutes(
       const session = await stripe.checkout.sessions.retrieve(sessionId, {
         expand: ['line_items.data.price'],
       });
+
+      const profile = await storage.getUserProfile(userId);
+      if (!profile) {
+        return res.status(404).json({ error: "User profile not found" });
+      }
+
+      const sessionCustomerId = typeof session.customer === 'string' ? session.customer : (session.customer as any)?.id;
+      if (profile.stripeCustomerId && sessionCustomerId && profile.stripeCustomerId !== sessionCustomerId) {
+        return res.status(403).json({ error: "Session does not belong to this account" });
+      }
       
       const isPaid = session.payment_status === 'paid';
       const isTrial = session.payment_status === 'no_payment_required';
@@ -236,13 +246,17 @@ export async function registerRoutes(
         if (priceId) {
           updateData.stripePriceId = priceId;
         }
+
+        if (sessionCustomerId && !profile.stripeCustomerId) {
+          updateData.stripeCustomerId = sessionCustomerId;
+        }
         
         await storage.updateUserProfile(userId, updateData);
 
-        const profile = await storage.getUserProfile(userId);
-        if (profile?.email) {
+        const updatedProfile = await storage.getUserProfile(userId);
+        if (updatedProfile?.email) {
           const planId = getPlanByPriceId(priceId || null);
-          sendSubscriptionActivatedEmail(profile.email, profile.firstName || null, planId).catch(() => {});
+          sendSubscriptionActivatedEmail(updatedProfile.email, updatedProfile.firstName || null, planId).catch(() => {});
         }
 
         res.json({ success: true });
@@ -897,13 +911,18 @@ export async function registerRoutes(
   // Update scan notes
   app.patch("/api/scans/:scanId/notes", requireAuth, async (req, res) => {
     try {
-      const { notes } = req.body;
+      const notesSchema = z.object({ notes: z.string().max(2000).default("") });
+      const parsed = notesSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromError(parsed.error).message });
+      }
+
       const existingScan = await storage.getScan(req.params.scanId);
       if (!existingScan) return res.status(404).json({ error: "Scan not found" });
       const { error: ownerError, status: ownerStatus } = await verifyProjectOwnership(existingScan.projectId, req.userId!);
       if (ownerError) return res.status(ownerStatus!).json({ error: ownerError });
 
-      const scan = await storage.updateScanNotes(req.params.scanId, notes || "");
+      const scan = await storage.updateScanNotes(req.params.scanId, parsed.data.notes);
       res.json(scan);
     } catch (error) {
       console.error("Error updating scan notes:", error);
@@ -1263,7 +1282,8 @@ export async function registerRoutes(
       const history = await storage.getScansWithStats(req.params.id);
       res.json(history);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error getting scan history:", err);
+      res.status(500).json({ error: "Failed to get scan history" });
     }
   });
 
@@ -1287,7 +1307,8 @@ export async function registerRoutes(
       const enriched = results.map(r => ({ ...r, promptText: promptMap.get(r.promptId) || "Unknown prompt" }));
       res.json(enriched);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error getting scan results:", err);
+      res.status(500).json({ error: "Failed to get scan results" });
     }
   });
 
@@ -1307,7 +1328,8 @@ export async function registerRoutes(
       const trends = await storage.getTrendData(req.params.id);
       res.json(trends);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error getting trend data:", err);
+      res.status(500).json({ error: "Failed to get trend data" });
     }
   });
 
@@ -1327,7 +1349,8 @@ export async function registerRoutes(
       const comparison = await storage.getScanComparison(req.params.id);
       res.json(comparison);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error getting scan comparison:", err);
+      res.status(500).json({ error: "Failed to get scan comparison" });
     }
   });
 
@@ -1347,7 +1370,8 @@ export async function registerRoutes(
       const healthScore = await storage.getHealthScore(req.params.id);
       res.json(healthScore);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error getting health score:", err);
+      res.status(500).json({ error: "Failed to get health score" });
     }
   });
 
@@ -1368,7 +1392,8 @@ export async function registerRoutes(
       const views = await storage.getSavedViews(req.params.id, userId);
       res.json(views);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error getting saved views:", err);
+      res.status(500).json({ error: "Failed to get saved views" });
     }
   });
 
@@ -1397,7 +1422,8 @@ export async function registerRoutes(
       const view = await storage.createSavedView(parsed.data);
       res.json(view);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error creating saved view:", err);
+      res.status(500).json({ error: "Failed to create saved view" });
     }
   });
 
@@ -1413,7 +1439,8 @@ export async function registerRoutes(
       await storage.deleteSavedView(req.params.id, userId);
       res.json({ success: true });
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error deleting saved view:", err);
+      res.status(500).json({ error: "Failed to delete saved view" });
     }
   });
 
@@ -1434,7 +1461,8 @@ export async function registerRoutes(
       const schedules = await storage.getReportSchedules(req.params.id, userId);
       res.json(schedules);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error getting report schedules:", err);
+      res.status(500).json({ error: "Failed to get report schedules" });
     }
   });
 
@@ -1463,7 +1491,8 @@ export async function registerRoutes(
       const schedule = await storage.createReportSchedule(parsed.data);
       res.json(schedule);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error creating report schedule:", err);
+      res.status(500).json({ error: "Failed to create report schedule" });
     }
   });
 
@@ -1476,12 +1505,25 @@ export async function registerRoutes(
       if (!plan.features.advancedReports) {
         return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
       }
-      const { name, frequency, enabled, recipientEmails, sections } = req.body;
-      const updated = await storage.updateReportSchedule(req.params.id, userId, { name, frequency, enabled, recipientEmails, sections });
+
+      const updateSchema = z.object({
+        name: z.string().min(1).max(200).optional(),
+        frequency: z.enum(["weekly", "monthly"]).optional(),
+        enabled: z.boolean().optional(),
+        recipientEmails: z.array(z.string().email()).max(20).optional(),
+        sections: z.array(z.enum(["health_score", "wins_losses", "trends", "scan_history"])).optional(),
+      });
+      const parsed = updateSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromError(parsed.error).message });
+      }
+
+      const updated = await storage.updateReportSchedule(req.params.id, userId, parsed.data);
       if (!updated) return res.status(404).json({ error: "Schedule not found" });
       res.json(updated);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error updating report schedule:", err);
+      res.status(500).json({ error: "Failed to update report schedule" });
     }
   });
 
@@ -1497,7 +1539,8 @@ export async function registerRoutes(
       await storage.deleteReportSchedule(req.params.id, userId);
       res.json({ success: true });
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      console.error("Error deleting report schedule:", err);
+      res.status(500).json({ error: "Failed to delete report schedule" });
     }
   });
 
