@@ -16,6 +16,14 @@ import {
   type SeoReadiness,
   type InsertSeoReadiness,
   type GapSuggestion,
+  type SavedView,
+  type InsertSavedView,
+  type ReportSchedule,
+  type InsertReportSchedule,
+  type ScanWithStats,
+  type TrendDataPoint,
+  type ScanComparisonResult,
+  type HealthScore,
   userProfiles,
   projects,
   promptSets,
@@ -24,9 +32,11 @@ import {
   scanResults,
   seoReadinessAssessments,
   gapSuggestions,
+  savedViews,
+  reportSchedules,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql, desc, and, gte, inArray } from "drizzle-orm";
+import { eq, sql, desc, and, gte, inArray, asc } from "drizzle-orm";
 
 export interface IStorage {
   getUserProfile(id: string): Promise<UserProfile | undefined>;
@@ -72,6 +82,20 @@ export interface IStorage {
   getSeoReadiness(projectId: string): Promise<SeoReadiness | undefined>;
   createSeoReadiness(assessment: InsertSeoReadiness): Promise<SeoReadiness>;
   updateSeoReadiness(projectId: string, data: Partial<InsertSeoReadiness>): Promise<SeoReadiness | undefined>;
+
+  getScansWithStats(projectId: string): Promise<ScanWithStats[]>;
+  getTrendData(projectId: string): Promise<TrendDataPoint[]>;
+  getScanComparison(projectId: string): Promise<ScanComparisonResult[]>;
+  getHealthScore(projectId: string): Promise<HealthScore>;
+
+  getSavedViews(projectId: string, userId: string): Promise<SavedView[]>;
+  createSavedView(view: InsertSavedView): Promise<SavedView>;
+  deleteSavedView(id: string, userId: string): Promise<void>;
+
+  getReportSchedules(projectId: string, userId: string): Promise<ReportSchedule[]>;
+  createReportSchedule(schedule: InsertReportSchedule): Promise<ReportSchedule>;
+  updateReportSchedule(id: string, userId: string, data: { frequency?: string; enabled?: boolean; recipientEmails?: string[] }): Promise<ReportSchedule | undefined>;
+  deleteReportSchedule(id: string, userId: string): Promise<void>;
 }
 
 type GapSuggestionData = {
@@ -486,6 +510,237 @@ export class DatabaseStorage implements IStorage {
       .where(eq(seoReadinessAssessments.projectId, projectId))
       .returning();
     return updated;
+  }
+
+  async getScansWithStats(projectId: string): Promise<ScanWithStats[]> {
+    const allScans = await db.select().from(scans)
+      .where(eq(scans.projectId, projectId))
+      .orderBy(desc(scans.createdAt));
+
+    if (allScans.length === 0) return [];
+
+    const project = await this.getProject(projectId);
+    if (!project) return [];
+
+    const scanStats: ScanWithStats[] = [];
+
+    for (const scan of allScans) {
+      const results = await this.getScanResults(scan.id);
+      const totalPrompts = results.length;
+      if (totalPrompts === 0) {
+        scanStats.push({ ...scan, visibilityScore: 0, mentionCount: 0, recommendationCount: 0, totalPrompts: 0, shareOfVoice: 0 });
+        continue;
+      }
+
+      const brandScores = results.map(r => r.brandScore);
+      const visibilityScore = brandScores.reduce((a, b) => a + b, 0) / totalPrompts;
+      const mentionCount = brandScores.filter(s => s >= 1).length;
+      const recommendationCount = brandScores.filter(s => s >= 2).length;
+
+      let totalBrandMentions = mentionCount;
+      let totalAllMentions = mentionCount;
+      for (const r of results) {
+        const compScores = r.competitorScores || {};
+        for (const score of Object.values(compScores)) {
+          if (score >= 1) totalAllMentions++;
+        }
+      }
+      const shareOfVoice = totalAllMentions > 0 ? Math.round((totalBrandMentions / totalAllMentions) * 100) : 0;
+
+      scanStats.push({ ...scan, visibilityScore: Math.round(visibilityScore * 100) / 100, mentionCount, recommendationCount, totalPrompts, shareOfVoice });
+    }
+
+    return scanStats;
+  }
+
+  async getTrendData(projectId: string): Promise<TrendDataPoint[]> {
+    const allScans = await db.select().from(scans)
+      .where(eq(scans.projectId, projectId))
+      .orderBy(asc(scans.createdAt));
+
+    if (allScans.length === 0) return [];
+
+    const trendData: TrendDataPoint[] = [];
+
+    for (const scan of allScans) {
+      const results = await this.getScanResults(scan.id);
+      if (results.length === 0) continue;
+
+      const totalPrompts = results.length;
+      const brandScores = results.map(r => r.brandScore);
+      const visibilityScore = brandScores.reduce((a, b) => a + b, 0) / totalPrompts;
+      const mentionRate = brandScores.filter(s => s >= 1).length / totalPrompts;
+      const recommendationRate = brandScores.filter(s => s >= 2).length / totalPrompts;
+
+      trendData.push({
+        scanId: scan.id,
+        date: scan.createdAt.toISOString(),
+        visibilityScore: Math.round(visibilityScore * 100) / 100,
+        mentionRate: Math.round(mentionRate * 100) / 100,
+        recommendationRate: Math.round(recommendationRate * 100) / 100,
+      });
+
+      const engines = (scan.engines as string[]) || [];
+      for (const engine of engines) {
+        const engineResults = results.filter(r => r.engine === engine);
+        if (engineResults.length === 0) continue;
+        const engineScores = engineResults.map(r => r.brandScore);
+        trendData.push({
+          scanId: scan.id,
+          date: scan.createdAt.toISOString(),
+          visibilityScore: Math.round((engineScores.reduce((a, b) => a + b, 0) / engineResults.length) * 100) / 100,
+          mentionRate: Math.round((engineScores.filter(s => s >= 1).length / engineResults.length) * 100) / 100,
+          recommendationRate: Math.round((engineScores.filter(s => s >= 2).length / engineResults.length) * 100) / 100,
+          engine,
+        });
+      }
+    }
+
+    return trendData;
+  }
+
+  async getScanComparison(projectId: string): Promise<ScanComparisonResult[]> {
+    const recentScans = await db.select().from(scans)
+      .where(eq(scans.projectId, projectId))
+      .orderBy(desc(scans.createdAt))
+      .limit(2);
+
+    if (recentScans.length < 2) return [];
+
+    const [currentScan, previousScan] = recentScans;
+    const [currentResults, previousResults] = await Promise.all([
+      this.getScanResults(currentScan.id),
+      this.getScanResults(previousScan.id),
+    ]);
+
+    const prevMap = new Map<string, ScanResult>();
+    for (const r of previousResults) {
+      prevMap.set(`${r.promptId}:${r.engine}`, r);
+    }
+
+    const promptIds = [...new Set([...currentResults.map(r => r.promptId), ...previousResults.map(r => r.promptId)])];
+    const promptRows = promptIds.length > 0
+      ? await db.select().from(prompts).where(inArray(prompts.id, promptIds))
+      : [];
+    const promptMap = new Map(promptRows.map(p => [p.id, p]));
+
+    const comparisons: ScanComparisonResult[] = [];
+
+    for (const curr of currentResults) {
+      const key = `${curr.promptId}:${curr.engine}`;
+      const prev = prevMap.get(key);
+      const previousScore = prev ? prev.brandScore : 0;
+      const change = curr.brandScore - previousScore;
+      const prompt = promptMap.get(curr.promptId);
+
+      if (change !== 0) {
+        comparisons.push({
+          promptId: curr.promptId,
+          promptText: prompt?.text || "Unknown prompt",
+          engine: curr.engine,
+          previousScore,
+          currentScore: curr.brandScore,
+          change,
+          type: change > 0 ? "win" : "loss",
+        });
+      }
+    }
+
+    comparisons.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+    return comparisons;
+  }
+
+  async getHealthScore(projectId: string): Promise<HealthScore> {
+    const defaultScore: HealthScore = {
+      overall: 0,
+      factors: { visibility: 0, mentionRate: 0, recommendationRate: 0, gapRatio: 0, trendDirection: 0 },
+    };
+
+    const latestScan = await this.getLatestScan(projectId);
+    if (!latestScan) return defaultScore;
+
+    const results = await this.getScanResults(latestScan.id);
+    if (results.length === 0) return defaultScore;
+
+    const totalPrompts = results.length;
+    const brandScores = results.map(r => r.brandScore);
+    const avgVisibility = brandScores.reduce((a, b) => a + b, 0) / totalPrompts;
+    const mentionRate = brandScores.filter(s => s >= 1).length / totalPrompts;
+    const recommendationRate = brandScores.filter(s => s >= 2).length / totalPrompts;
+    const gapCount = brandScores.filter(s => s === 0).length;
+    const gapRatio = 1 - (gapCount / totalPrompts);
+
+    let trendDirection = 0.5;
+    const comparison = await this.getScanComparison(projectId);
+    if (comparison.length > 0) {
+      const wins = comparison.filter(c => c.type === "win").length;
+      const losses = comparison.filter(c => c.type === "loss").length;
+      const total = wins + losses;
+      trendDirection = total > 0 ? wins / total : 0.5;
+    }
+
+    const visibilityScore = Math.round((avgVisibility / 2) * 100);
+    const mentionScore = Math.round(mentionRate * 100);
+    const recScore = Math.round(recommendationRate * 100);
+    const gapScore = Math.round(gapRatio * 100);
+    const trendScore = Math.round(trendDirection * 100);
+
+    const overall = Math.round(
+      visibilityScore * 0.3 +
+      mentionScore * 0.2 +
+      recScore * 0.2 +
+      gapScore * 0.15 +
+      trendScore * 0.15
+    );
+
+    return {
+      overall: Math.min(100, Math.max(0, overall)),
+      factors: {
+        visibility: visibilityScore,
+        mentionRate: mentionScore,
+        recommendationRate: recScore,
+        gapRatio: gapScore,
+        trendDirection: trendScore,
+      },
+    };
+  }
+
+  async getSavedViews(projectId: string, userId: string): Promise<SavedView[]> {
+    return db.select().from(savedViews)
+      .where(and(eq(savedViews.projectId, projectId), eq(savedViews.userId, userId)))
+      .orderBy(desc(savedViews.createdAt));
+  }
+
+  async createSavedView(view: InsertSavedView): Promise<SavedView> {
+    const [created] = await db.insert(savedViews).values(view).returning();
+    return created;
+  }
+
+  async deleteSavedView(id: string, userId: string): Promise<void> {
+    await db.delete(savedViews).where(and(eq(savedViews.id, id), eq(savedViews.userId, userId)));
+  }
+
+  async getReportSchedules(projectId: string, userId: string): Promise<ReportSchedule[]> {
+    return db.select().from(reportSchedules)
+      .where(and(eq(reportSchedules.projectId, projectId), eq(reportSchedules.userId, userId)))
+      .orderBy(desc(reportSchedules.createdAt));
+  }
+
+  async createReportSchedule(schedule: InsertReportSchedule): Promise<ReportSchedule> {
+    const [created] = await db.insert(reportSchedules).values(schedule).returning();
+    return created;
+  }
+
+  async updateReportSchedule(id: string, userId: string, data: { frequency?: string; enabled?: boolean; recipientEmails?: string[] }): Promise<ReportSchedule | undefined> {
+    const [updated] = await db.update(reportSchedules)
+      .set(data)
+      .where(and(eq(reportSchedules.id, id), eq(reportSchedules.userId, userId)))
+      .returning();
+    return updated;
+  }
+
+  async deleteReportSchedule(id: string, userId: string): Promise<void> {
+    await db.delete(reportSchedules).where(and(eq(reportSchedules.id, id), eq(reportSchedules.userId, userId)));
   }
 }
 

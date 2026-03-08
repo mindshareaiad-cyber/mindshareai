@@ -22,13 +22,14 @@ import {
   BarChart3,
   AlertTriangle,
   Lightbulb,
+  TrendingUp,
   ChevronDown,
   ChevronRight
 } from "lucide-react";
 import { useState } from "react";
 import type { Project } from "@shared/schema";
 
-export type DashboardSection = "overview" | "prompts" | "results" | "gaps" | "suggestions" | "settings";
+export type DashboardSection = "overview" | "prompts" | "results" | "gaps" | "suggestions" | "reports" | "settings";
 
 interface AppSidebarProps {
   projects: Project[];
@@ -45,6 +46,7 @@ const sections = [
   { id: "results" as const, label: "Results", icon: BarChart3 },
   { id: "gaps" as const, label: "Gap Analysis", icon: AlertTriangle },
   { id: "suggestions" as const, label: "AEO Suggestions", icon: Lightbulb },
+  { id: "reports" as const, label: "Reports", icon: TrendingUp },
 ];
 
 export function AppSidebar({

@@ -165,6 +165,26 @@ async function initDatabase() {
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
           );
+
+          CREATE TABLE IF NOT EXISTS saved_views (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            user_id VARCHAR NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            filters JSONB NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE TABLE IF NOT EXISTS report_schedules (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            user_id VARCHAR NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+            frequency TEXT NOT NULL DEFAULT 'weekly',
+            recipient_emails JSONB NOT NULL DEFAULT '[]'::jsonb,
+            enabled BOOLEAN NOT NULL DEFAULT true,
+            last_sent_at TIMESTAMP,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
         `);
         log('Database tables created successfully', 'db');
       } else {
@@ -185,6 +205,26 @@ async function initDatabase() {
             suggested_headings JSONB DEFAULT '[]'::jsonb,
             suggested_intro TEXT,
             intent_tag TEXT DEFAULT 'Informational',
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE TABLE IF NOT EXISTS saved_views (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            user_id VARCHAR NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            filters JSONB NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE TABLE IF NOT EXISTS report_schedules (
+            id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+            user_id VARCHAR NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+            frequency TEXT NOT NULL DEFAULT 'weekly',
+            recipient_emails JSONB NOT NULL DEFAULT '[]'::jsonb,
+            enabled BOOLEAN NOT NULL DEFAULT true,
+            last_sent_at TIMESTAMP,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
           );
         `);

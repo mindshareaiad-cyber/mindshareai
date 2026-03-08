@@ -22,6 +22,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
    - **Results** - View scan results after running AI visibility scans
    - **Gap Analysis** - Diagnosis & prioritisation: filter by engine/impact/status, impact badges (High/Medium/Low), brand pills, "Send to SEO Suggestions" workflow, "Mark not relevant" action
    - **AEO Suggestions** - Content task management: structured briefs with content task, coverage checklist, implementation guidance, SEO scaffolding (H1/H2s/intro), intent tags, status tracking (To-do/Done/Not relevant), copy-all export
+   - **Reports** - Advanced reporting (Growth/Pro only): visibility trend charts over time, health score gauge (0-100), scan comparison (wins/losses), scan history timeline, saved custom views, scheduled email reports, CSV export
    - **Settings** - Account info, subscription management (Stripe billing portal), sign out
    - **Guided Tour** - First-time user onboarding tour explaining all dashboard metrics (localStorage-tracked, one-time only)
 3. **AI Visibility Scans** - Run prompts through 4 AI engines, score brand visibility (0-2)
@@ -33,7 +34,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
 client/src/
 ├── components/
 │   ├── landing/       # Hero, Solutions, Features, ROI, Pricing, Header, Footer
-│   ├── dashboard/     # AppSidebar, DashboardHeader, Tabs (Overview, Prompts, Results, Suggestions), MetricDetailViews
+│   ├── dashboard/     # AppSidebar, DashboardHeader, Tabs (Overview, Prompts, Results, Suggestions, Reports), MetricDetailViews
 │   └── ui/            # shadcn components
 ├── contexts/
 │   └── auth-context.tsx  # Supabase auth context provider
@@ -62,7 +63,7 @@ server/
 └── static.ts          # Production static file serving
 
 shared/
-└── schema.ts          # Drizzle ORM schema: UserProfile, Project, PromptSet, Prompt, Scan, ScanResult, GapSuggestion, SeoReadiness
+└── schema.ts          # Drizzle ORM schema: UserProfile, Project, PromptSet, Prompt, Scan, ScanResult, GapSuggestion, SeoReadiness, SavedView, ReportSchedule
 
 script/
 └── build-external.ts  # Production build script (Vite client + esbuild server)
@@ -85,6 +86,15 @@ All user-specific endpoints require a valid Supabase JWT token in the `Authoriza
 - `POST /api/gaps/:promptId/suggest` - Generate AEO suggestion
 - `GET /api/projects/:id/seo-readiness` - Get SEO readiness assessment
 - `PATCH /api/projects/:id/seo-readiness` - Update SEO readiness checklist
+- `GET /api/projects/:id/scans/history` - Scan history with stats (Growth/Pro)
+- `GET /api/projects/:id/scans/:scanId/results` - Results for any historical scan
+- `GET /api/projects/:id/trends` - Trend data over time (Growth/Pro)
+- `GET /api/projects/:id/scan-comparison` - Wins/losses vs previous scan (Growth/Pro)
+- `GET /api/projects/:id/health-score` - Brand health score 0-100 (Growth/Pro)
+- `GET/POST /api/projects/:id/saved-views` - Saved filter views (Growth/Pro)
+- `DELETE /api/saved-views/:id` - Delete a saved view
+- `GET/POST /api/projects/:id/report-schedules` - Scheduled email reports (Growth/Pro)
+- `PATCH/DELETE /api/report-schedules/:id` - Update/delete a schedule
 
 ## AI Visibility Scoring
 - **2** = Clearly recommended or strongly endorsed

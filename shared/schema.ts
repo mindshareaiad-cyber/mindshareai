@@ -262,3 +262,86 @@ export type SeoReadinessReport = {
   guidance: GuidanceMessage[];
   aeoReady: boolean;
 };
+
+// Saved Views table - custom filter combinations for reports
+export const savedViews = pgTable("saved_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => userProfiles.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  filters: jsonb("filters").notNull().$type<{
+    engines?: string[];
+    funnelStage?: string;
+    country?: string;
+    persona?: string;
+  }>(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertSavedViewSchema = createInsertSchema(savedViews).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSavedView = z.infer<typeof insertSavedViewSchema>;
+export type SavedView = typeof savedViews.$inferSelect;
+
+// Report Schedules table - automated email reports
+export const reportSchedules = pgTable("report_schedules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => userProfiles.id, { onDelete: "cascade" }),
+  frequency: text("frequency").notNull().default("weekly"),
+  recipientEmails: jsonb("recipient_emails").notNull().$type<string[]>().default(sql`'[]'::jsonb`),
+  enabled: boolean("enabled").notNull().default(true),
+  lastSentAt: timestamp("last_sent_at"),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+export const insertReportScheduleSchema = createInsertSchema(reportSchedules).omit({
+  id: true,
+  lastSentAt: true,
+  createdAt: true,
+});
+
+export type InsertReportSchedule = z.infer<typeof insertReportScheduleSchema>;
+export type ReportSchedule = typeof reportSchedules.$inferSelect;
+
+// Advanced reporting types
+export type ScanWithStats = Scan & {
+  visibilityScore: number;
+  mentionCount: number;
+  recommendationCount: number;
+  totalPrompts: number;
+  shareOfVoice: number;
+};
+
+export type TrendDataPoint = {
+  scanId: string;
+  date: string;
+  visibilityScore: number;
+  mentionRate: number;
+  recommendationRate: number;
+  engine?: string;
+};
+
+export type ScanComparisonResult = {
+  promptId: string;
+  promptText: string;
+  engine: string;
+  previousScore: number;
+  currentScore: number;
+  change: number;
+  type: "win" | "loss" | "unchanged";
+};
+
+export type HealthScore = {
+  overall: number;
+  factors: {
+    visibility: number;
+    mentionRate: number;
+    recommendationRate: number;
+    gapRatio: number;
+    trendDirection: number;
+  };
+};

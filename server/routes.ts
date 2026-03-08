@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateAnswer, scoreVisibility, generateSuggestedAnswer, generatePromptSuggestions, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, type LLMEngine, type SubscriptionTier } from "./llm-client";
-import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema, updateSeoReadinessSchema } from "@shared/schema";
+import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema, updateSeoReadinessSchema, insertSavedViewSchema, insertReportScheduleSchema } from "@shared/schema";
 import { calculateOverallScore, getRecommendationLevel, buildReadinessReport, createDefaultAssessment } from "./seo-readiness";
 import { analyzeWebsite, analysisToAssessment } from "./seo-analyzer";
 import { z } from "zod";
@@ -1244,6 +1244,256 @@ export async function registerRoutes(
   });
 
   // ============= Sitemap & Robots =============
+
+  // ==================== Advanced Reports Routes ====================
+
+  app.get("/api/projects/:id/scans/history", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { error, status } = await verifyProjectOwnership(req.params.id, userId);
+      if (error) return res.status(status!).json({ error });
+
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+
+      const history = await storage.getScansWithStats(req.params.id);
+      res.json(history);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/projects/:id/scans/:scanId/results", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { error, status } = await verifyProjectOwnership(req.params.id, userId);
+      if (error) return res.status(status!).json({ error });
+
+      const scan = await storage.getScan(req.params.scanId);
+      if (!scan || scan.projectId !== req.params.id) {
+        return res.status(404).json({ error: "Scan not found" });
+      }
+
+      const results = await storage.getScanResults(req.params.scanId);
+      res.json(results);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/projects/:id/trends", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { error, status } = await verifyProjectOwnership(req.params.id, userId);
+      if (error) return res.status(status!).json({ error });
+
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+
+      const trends = await storage.getTrendData(req.params.id);
+      res.json(trends);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/projects/:id/scan-comparison", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { error, status } = await verifyProjectOwnership(req.params.id, userId);
+      if (error) return res.status(status!).json({ error });
+
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+
+      const comparison = await storage.getScanComparison(req.params.id);
+      res.json(comparison);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/projects/:id/health-score", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { error, status } = await verifyProjectOwnership(req.params.id, userId);
+      if (error) return res.status(status!).json({ error });
+
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+
+      const healthScore = await storage.getHealthScore(req.params.id);
+      res.json(healthScore);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Saved Views
+  app.get("/api/projects/:id/saved-views", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { error, status } = await verifyProjectOwnership(req.params.id, userId);
+      if (error) return res.status(status!).json({ error });
+
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+
+      const views = await storage.getSavedViews(req.params.id, userId);
+      res.json(views);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/projects/:id/saved-views", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { error, status } = await verifyProjectOwnership(req.params.id, userId);
+      if (error) return res.status(status!).json({ error });
+
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+
+      const parsed = insertSavedViewSchema.safeParse({
+        ...req.body,
+        projectId: req.params.id,
+        userId,
+      });
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromError(parsed.error).message });
+      }
+
+      const view = await storage.createSavedView(parsed.data);
+      res.json(view);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete("/api/saved-views/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+      await storage.deleteSavedView(req.params.id, userId);
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Report Schedules
+  app.get("/api/projects/:id/report-schedules", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { error, status } = await verifyProjectOwnership(req.params.id, userId);
+      if (error) return res.status(status!).json({ error });
+
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+
+      const schedules = await storage.getReportSchedules(req.params.id, userId);
+      res.json(schedules);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/projects/:id/report-schedules", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const { error, status } = await verifyProjectOwnership(req.params.id, userId);
+      if (error) return res.status(status!).json({ error });
+
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+
+      const parsed = insertReportScheduleSchema.safeParse({
+        ...req.body,
+        projectId: req.params.id,
+        userId,
+      });
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromError(parsed.error).message });
+      }
+
+      const schedule = await storage.createReportSchedule(parsed.data);
+      res.json(schedule);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.patch("/api/report-schedules/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+      const { frequency, enabled, recipientEmails } = req.body;
+      const updated = await storage.updateReportSchedule(req.params.id, userId, { frequency, enabled, recipientEmails });
+      if (!updated) return res.status(404).json({ error: "Schedule not found" });
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete("/api/report-schedules/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.userId!;
+      const profile = await storage.getUserProfile(userId);
+      const planId = getUserPlanId(profile?.subscriptionStatus, profile?.stripePriceId, profile?.email);
+      const plan = getPlan(planId);
+      if (!plan.features.advancedReports) {
+        return res.status(403).json({ error: "Advanced reports require Growth or Pro plan" });
+      }
+      await storage.deleteReportSchedule(req.params.id, userId);
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 
   app.get("/sitemap.xml", (_req, res) => {
     const baseUrl = (process.env.APP_URL || "https://mindshare-ai.com").replace(/\/$/, "");

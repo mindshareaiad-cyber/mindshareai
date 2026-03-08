@@ -11,6 +11,7 @@ import { ResultsTab } from "@/components/dashboard/results-tab";
 import { SuggestionsTab } from "@/components/dashboard/suggestions-tab";
 import { GapsTab } from "@/components/dashboard/gaps-tab";
 import { SettingsTab } from "@/components/dashboard/settings-tab";
+import { ReportsTab } from "@/components/dashboard/reports-tab";
 import { DashboardTour } from "@/components/dashboard/dashboard-tour";
 import { CreateProjectDialog } from "@/components/dashboard/create-project-dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -160,6 +161,10 @@ export default function DashboardPage() {
       const scanResult = await response.json();
       queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "scans", "latest"] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "gaps"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "scans", "history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "trends"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "scan-comparison"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "health-score"] });
       const engineList = scanResult.enginesUsed?.join(", ") || "unknown";
       toast({ title: `Scan complete — ${scanResult.resultsCount} results from ${engineList}${scanResult.failedCount ? ` (${scanResult.failedCount} failed)` : ""}` });
     } catch (error: any) {
@@ -309,6 +314,13 @@ export default function DashboardPage() {
             bulkProgress={bulkProgress}
             planId={currentPlanId}
             userId={user?.id}
+          />
+        );
+      case "reports":
+        return (
+          <ReportsTab
+            project={selectedProject}
+            planId={currentPlanId}
           />
         );
       case "settings":
