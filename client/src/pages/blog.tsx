@@ -3,8 +3,25 @@ import { Calendar, Clock } from "lucide-react";
 import { Header } from "@/components/landing/header";
 import { Footer } from "@/components/landing/footer";
 import { Link } from "wouter";
+import googleVsAiImg from "@assets/stock_images/google-vs-ai-search.jpg";
+import multimodalImg from "@assets/stock_images/blog-multimodal-retrieval.jpg";
+import aeoMythImg from "@assets/stock_images/blog-aeo-myth.jpg";
+import businessesAeoImg from "@assets/stock_images/blog-businesses-aeo.jpg";
+import whatIsAeoImg from "@assets/stock_images/blog-what-is-aeo.jpg";
+import aiChoosesBrandsImg from "@assets/stock_images/blog-ai-chooses-brands.jpg";
+import contentStrategiesImg from "@assets/stock_images/blog-content-strategies.jpg";
 
 const posts = [
+  {
+    id: 7,
+    slug: "is-google-worried-about-answer-engines",
+    title: "Is Google Worried About Answer Engines? Here's What's Really Changing",
+    excerpt: "User behaviour is shifting from 10 blue links to direct AI answers. What this means for Google, for businesses, and for how we think about search.",
+    date: "10 March 2026",
+    readTime: "14 min read",
+    category: "AI Insights",
+    image: googleVsAiImg,
+  },
   {
     id: 1,
     slug: "multimodal-retrieval-aeo",
@@ -13,6 +30,7 @@ const posts = [
     date: "6 February 2026",
     readTime: "10 min read",
     category: "Strategy",
+    image: multimodalImg,
   },
   {
     id: 2,
@@ -22,6 +40,7 @@ const posts = [
     date: "6 February 2026",
     readTime: "8 min read",
     category: "AI Insights",
+    image: aeoMythImg,
   },
   {
     id: 3,
@@ -31,6 +50,7 @@ const posts = [
     date: "6 February 2026",
     readTime: "14 min read",
     category: "Strategy",
+    image: businessesAeoImg,
   },
   {
     id: 4,
@@ -40,6 +60,7 @@ const posts = [
     date: "31 January 2026",
     readTime: "5 min read",
     category: "Getting Started",
+    image: whatIsAeoImg,
   },
   {
     id: 5,
@@ -49,6 +70,7 @@ const posts = [
     date: "28 January 2026",
     readTime: "12 min read",
     category: "AI Insights",
+    image: aiChoosesBrandsImg,
   },
   {
     id: 6,
@@ -58,6 +80,7 @@ const posts = [
     date: "25 January 2026",
     readTime: "10 min read",
     category: "Strategy",
+    image: contentStrategiesImg,
   },
 ];
 
@@ -78,7 +101,17 @@ export default function Blog() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (
               <Link key={post.id} href={`/blog/${post.slug}`}>
-                <Card className="hover-elevate cursor-pointer h-full" data-testid={`card-blog-post-${post.id}`}>
+                <Card className="group cursor-pointer h-full overflow-hidden border hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200" data-testid={`card-blog-post-${post.id}`}>
+                  {post.image && (
+                    <div className="aspect-video w-full overflow-hidden">
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
                   <CardHeader>
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">

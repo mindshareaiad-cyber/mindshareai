@@ -4,6 +4,23 @@ import { Footer } from "@/components/landing/footer";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
+import googleVsAiImg from "@assets/stock_images/google-vs-ai-search.jpg";
+import multimodalImg from "@assets/stock_images/blog-multimodal-retrieval.jpg";
+import aeoMythImg from "@assets/stock_images/blog-aeo-myth.jpg";
+import businessesAeoImg from "@assets/stock_images/blog-businesses-aeo.jpg";
+import whatIsAeoImg from "@assets/stock_images/blog-what-is-aeo.jpg";
+import aiChoosesBrandsImg from "@assets/stock_images/blog-ai-chooses-brands.jpg";
+import contentStrategiesImg from "@assets/stock_images/blog-content-strategies.jpg";
+
+const postImages: Record<string, string> = {
+  "is-google-worried-about-answer-engines": googleVsAiImg,
+  "multimodal-retrieval-aeo": multimodalImg,
+  "is-aeo-a-myth": aeoMythImg,
+  "why-businesses-need-aeo": businessesAeoImg,
+  "what-is-aeo": whatIsAeoImg,
+  "how-ai-chooses-brands": aiChoosesBrandsImg,
+  "content-strategies-ai-visibility": contentStrategiesImg,
+};
 
 const posts: Record<string, {
   title: string;
@@ -1299,6 +1316,248 @@ const posts: Record<string, {
       </>
     ),
   },
+  "is-google-worried-about-answer-engines": {
+    title: "Is Google Worried About Answer Engines? Here's What's Really Changing",
+    date: "10 March 2026",
+    readTime: "14 min read",
+    category: "AI Insights",
+    content: (
+      <>
+        <p>
+          For over two decades, "search" has been almost a synonym for Google. If we needed an answer, we typed a query, scanned 10 blue links, and clicked through to websites.
+        </p>
+        <p>
+          That behaviour is quietly shifting.
+        </p>
+        <p>
+          More people are starting their research in answer engines like ChatGPT, Gemini, Perplexity and other AI assistants. Instead of scrolling, they ask:
+        </p>
+        <ul>
+          <li>"What are the best tools for [problem]?"</li>
+          <li>"Which platform should we use for [use case]?"</li>
+          <li>"How do we fix [specific issue] in [product]?"</li>
+        </ul>
+        <p>
+          We don't get a list of links. We get a direct answer and a short list of brands.
+        </p>
+        <p>
+          So should Google be worried? And what does this mean for businesses that rely on search traffic? Let's break it down.
+        </p>
+
+        <h2>What Is an Answer Engine?</h2>
+        <p>An answer engine is any AI-driven system that:</p>
+        <ul>
+          <li>Accepts natural-language questions.</li>
+          <li>Synthesises information from multiple sources.</li>
+          <li>Returns a single, conversational answer, often with a small set of recommended brands or resources.</li>
+        </ul>
+        <p>Examples include:</p>
+        <ul>
+          <li>ChatGPT, Gemini, Claude and other general AI assistants.</li>
+          <li>AI Overviews and "Search Generative Experience" style features inside Google itself.</li>
+          <li>Vertical tools (travel planners, code assistants, legal AI, etc.) that answer in plain language instead of sending us to 10 different websites.</li>
+        </ul>
+        <p>
+          The key shift: users are asking questions like they would ask a human expert, and expecting the engine to decide what matters most. We're no longer fighting for "position 3" in a list of 10. We're fighting to be named at all.
+        </p>
+
+        <h2>Google's Core Problem: Attention Is Moving Upstream</h2>
+        <p>
+          Is Google going to disappear? No. But Google's moat is being chipped away from two sides:
+        </p>
+        <h3>AI assistants that bypass Google completely</h3>
+        <ul>
+          <li>Users open ChatGPT or Gemini directly.</li>
+          <li>They ask for advice, comparisons, and how-to guides.</li>
+          <li>They might never search those queries on Google in the first place.</li>
+        </ul>
+        <h3>AI layers inside Google that keep users on Google's page</h3>
+        <ul>
+          <li>AI Overviews attempt to answer questions without a click.</li>
+          <li>Fewer clicks means less traffic for traditional SEO pages.</li>
+          <li>Google still owns the session, but websites see less value.</li>
+        </ul>
+        <p>
+          In both cases, the traditional SEO game (title tags, backlinks, snippets) has less leverage. The answer engine decides who gets mentioned, and how.
+        </p>
+
+        <h2>Why Answer Engines Are So Powerful for Users</h2>
+        <p>There are a few reasons users love answer engines, especially for research and buying decisions:</p>
+        <h3>Less friction</h3>
+        <ul>
+          <li>One question, one conversation, one answer.</li>
+          <li>No need to open 5-10 tabs, skim content, and synthesise manually.</li>
+        </ul>
+        <h3>More context</h3>
+        <ul>
+          <li>We can add constraints: "for a team of 5", "on a limited budget", "must integrate with X".</li>
+          <li>The engine can tailor recommendations to those specifics.</li>
+        </ul>
+        <h3>Continuous dialogue</h3>
+        <ul>
+          <li>Follow-up questions refine the answer.</li>
+          <li>It feels more like messaging a consultant than "searching the web".</li>
+        </ul>
+        <p>
+          For busy decision-makers (founders, marketers, ecommerce managers), this is a massive time-saver. Once we get used to this experience, going back to classic search feels clunky.
+        </p>
+
+        <h2>Why This Is a Threat to Google's Model</h2>
+        <p>From Google's perspective, answer engines threaten three things:</p>
+        <h3>Query volume</h3>
+        <ul>
+          <li>Every question asked in ChatGPT instead of Google is lost ad inventory.</li>
+          <li>Even a small shift in high-value commercial queries matters.</li>
+        </ul>
+        <h3>Click-through rates</h3>
+        <ul>
+          <li>When AI answers on the results page, fewer people click.</li>
+          <li>Less traffic for publishers weakens the ecosystem Google relies on.</li>
+        </ul>
+        <h3>Perception of authority</h3>
+        <ul>
+          <li>If users start to think, "Real answers live in AI assistants, Google is just for navigation," Google's brand as the default answer engine erodes.</li>
+        </ul>
+        <p>
+          Google is responding by building its own answer engine inside Google Search. But that doesn't stop external assistants from capturing attention earlier in the journey.
+        </p>
+
+        <h2>Why Businesses Should Care More Than Google</h2>
+        <p>
+          Google has deep pockets, distribution, and time. Most businesses do not.
+        </p>
+        <p>
+          The bigger risk is not "Will Google die?" It's: "Will our brand quietly disappear from how people research?"
+        </p>
+        <p>Three uncomfortable truths:</p>
+        <ol>
+          <li>We can have strong SEO and still be absent from AI answers.</li>
+          <li>Most answer engines only mention a handful of brands for any given query.</li>
+          <li>Early winners can entrench themselves as the "default" recommendations in a niche.</li>
+        </ol>
+        <p>
+          If an AI assistant consistently recommends three competitors for "best [our niche] platform", we're starting every conversation already behind. This is where Answer Engine Optimization (AEO) comes in.
+        </p>
+
+        <h2>What Is Answer Engine Optimization (AEO)?</h2>
+        <p>
+          Answer Engine Optimization (AEO) is the practice of increasing our visibility and credibility inside AI-powered answer systems.
+        </p>
+        <p>In plain English:</p>
+        <p>
+          <strong>AEO is making sure AI assistants actually say our brand name when people ask buying questions in our category.</strong>
+        </p>
+        <p>It sits on top of traditional SEO and content, but with a different focus:</p>
+        <ul>
+          <li>"Which questions are our buyers asking AI assistants?"</li>
+          <li>"When they ask those questions, which brands get mentioned?"</li>
+          <li>"What evidence does the AI need to feel confident recommending us?"</li>
+        </ul>
+        <p>
+          AEO is about being in the answer, not just being in the results.
+        </p>
+
+        <h2>How Answer Engines Decide Which Brands to Recommend</h2>
+        <p>Every model is different, but in practice answer engines tend to rely on three broad signals:</p>
+        <h3>Topical authority</h3>
+        <ul>
+          <li>Do we have deep, clear, helpful content around the topic?</li>
+          <li>Do we explain problems, solutions, use cases and trade-offs?</li>
+        </ul>
+        <h3>Brand evidence</h3>
+        <ul>
+          <li>Are there reviews, case studies, mentions and comparisons that position us as a credible option?</li>
+          <li>Do third-party sites confirm our strengths and target audience?</li>
+        </ul>
+        <h3>Clarity and structure</h3>
+        <ul>
+          <li>Is it obvious who we serve and what we're best at?</li>
+          <li>Or is our messaging generic and confusing?</li>
+        </ul>
+        <p>
+          SEO already touches some of this, but AEO goes further: we deliberately create and structure content so that answer engines can extract key facts, understand our positioning, and trust us for specific use cases.
+        </p>
+
+        <h2>Why Google Should Be Worried - And Also Why It Will Fight Back</h2>
+        <p>So, should Google be worried?</p>
+        <p><strong>Yes, because:</strong></p>
+        <ul>
+          <li>User behaviour at the top of the funnel is changing.</li>
+          <li>AI assistants are capturing more "what should I use?" and "how should I do this?" questions.</li>
+          <li>Some of those queries never touch Google anymore.</li>
+        </ul>
+        <p><strong>But also no, because:</strong></p>
+        <ul>
+          <li>Google is aggressively building its own AI answer layer into search, Gmail, Docs, and Android.</li>
+          <li>It controls Chrome, default search deals, and billions of devices.</li>
+          <li>Many users will still treat Google as the default "starting point," even if the experience looks more like an answer engine over time.</li>
+        </ul>
+        <p>The likely outcome is not "answer engines kill Google," but:</p>
+        <ul>
+          <li>Google evolves into an answer-first experience.</li>
+          <li>External answer engines take meaningful market share in certain segments.</li>
+          <li>Brands that ignore AEO lose visibility across both.</li>
+        </ul>
+
+        <h2>What Smart Brands Should Do Right Now</h2>
+        <p>
+          We don't control the platform wars between Google and the new answer engines, but we do control how visible and compelling our brand looks across them.
+        </p>
+        <p>Three practical steps:</p>
+
+        <h3>1. Audit our AI visibility</h3>
+        <p>Ask the questions our buyers ask:</p>
+        <ul>
+          <li>"Best [category] tools for [audience]"</li>
+          <li>"Which [niche] platforms integrate with [tool]?"</li>
+          <li>"Alternatives to [competitor] for [use case]."</li>
+        </ul>
+        <p>Check which brands are mentioned in the answers. Note where we're missing or misrepresented. This gives us a baseline AEO visibility score, even if it's just manual at first.</p>
+
+        <h3>2. Strengthen our "reason to be recommended"</h3>
+        <p>From an AI's perspective, our site and external signals are evidence. We can strengthen that evidence by:</p>
+        <ul>
+          <li>Publishing content that clearly defines our category and ideal customer.</li>
+          <li>Explaining use cases and comparisons.</li>
+          <li>Showing outcomes (case studies, testimonials, metrics).</li>
+          <li>Structuring content so it's easy to parse: clear headings, FAQs, feature breakdowns, pricing clarity.</li>
+          <li>Using straightforward language instead of vague marketing fluff.</li>
+        </ul>
+        <p>
+          If a human would struggle to explain when our product is the right choice, an AI will struggle too.
+        </p>
+
+        <h3>3. Start tracking and optimising AEO, not just SEO</h3>
+        <p>Treat AEO as a parallel, complementary discipline:</p>
+        <ul>
+          <li>Keep doing the SEO basics (technical health, search intent, on-page).</li>
+          <li>Layer on AEO by tracking which prompts we win/lose in AI assistants.</li>
+          <li>Identify "gaps" where we should be mentioned but aren't.</li>
+          <li>Create or improve content that directly addresses those gaps.</li>
+        </ul>
+        <p>
+          Over time, we want a system where we can see where AI ignores us, understand why, and get guided suggestions for what to fix. That's how we turn answer engines from a threat into a channel.
+        </p>
+
+        <h2>Final Thoughts: Don't Wait for the Dust to Settle</h2>
+        <p>
+          Is Google worried about answer engines? Almost certainly.
+        </p>
+        <p>
+          But whether Google adapts or not is less important than whether our brand adapts.
+        </p>
+        <p>The companies that win the next decade of organic growth will be the ones who:</p>
+        <ul>
+          <li>Accept that "search" now includes answer engines.</li>
+          <li>Optimise not just for clicks, but for mentions in AI answers.</li>
+          <li>Build content that makes it obvious when and why they're the right choice.</li>
+        </ul>
+        <p>
+          SEO is not dead. But SEO without AEO increasingly looks like ranking well in a place fewer people are looking.
+        </p>
+      </>
+    ),
+  },
 };
 
 export default function BlogPost() {
@@ -1362,6 +1621,16 @@ export default function BlogPost() {
                 <span>{post.readTime}</span>
               </div>
             </div>
+
+            {postImages[slug] && (
+              <div className="aspect-video w-full overflow-hidden rounded-lg mb-8">
+                <img
+                  src={postImages[slug]}
+                  alt={post.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
 
             <div className="prose prose-slate dark:prose-invert max-w-none [&>h2]:text-2xl [&>h2]:font-semibold [&>h2]:mt-8 [&>h2]:mb-4 [&>h3]:text-xl [&>h3]:font-semibold [&>h3]:mt-6 [&>h3]:mb-3 [&>p]:text-muted-foreground [&>p]:mb-4 [&>ul]:list-disc [&>ul]:list-inside [&>ul]:text-muted-foreground [&>ul]:space-y-2 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:list-inside [&>ol]:text-muted-foreground [&>ol]:space-y-2 [&>ol]:mb-4">
               {post.content}
