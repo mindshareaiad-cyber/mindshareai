@@ -32,6 +32,11 @@ export function Footer() {
                 </a>
               </li>
               <li>
+                <Link href="/compare" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-compare">
+                  Compare
+                </Link>
+              </li>
+              <li>
                 <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-blog">
                   Blog
                 </Link>

@@ -28,6 +28,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
 3. **AI Visibility Scans** - Run prompts through 4 AI engines, score brand visibility (0-2)
 4. **Competitor Share of Voice** - Compare your visibility against competitors
 5. **Prompt-Level Performance** - Per-prompt table with filters (Gaps, Winning, Mentioned, Invisible)
+6. **Comparison Pages** - `/compare` index + `/compare/:slug` detail pages for competitor comparisons (GrackerAI, Peec AI, Scrunch AI) with feature tables, analysis sections, choose-if lists, and CTAs
 
 ## Project Structure
 ```
@@ -44,6 +45,7 @@ client/src/
 │   ├── landing.tsx    # Marketing landing page
 │   ├── login.tsx      # Custom login page
 │   ├── signup.tsx     # Custom signup page
+│   ├── compare.tsx    # Competitor comparison pages (index + detail)
 │   └── dashboard.tsx  # Main app dashboard (protected)
 └── App.tsx            # Router setup with auth
 

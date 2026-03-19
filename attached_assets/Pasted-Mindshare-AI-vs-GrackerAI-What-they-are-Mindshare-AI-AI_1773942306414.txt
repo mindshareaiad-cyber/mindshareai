@@ -1,0 +1,82 @@
+Mindshare AI vs GrackerAI
+What they are
+
+Mindshare AI: AI visibility and AEO platform that shows how AI assistants talk about your brand, gives you scores, competitor benchmarks, and a clear playbook (plus API) to improve visibility.
+
+GrackerAI: GEO + AI visibility platform for B2B SaaS that tracks citations and auto‑builds GEO‑optimised content hubs, comparison pages, and pSEO portals.
+
+Key differences
+
+Execution:
+
+Mindshare: Measures and advises; your team or agency executes the strategy.
+
+Gracker: Measures and executes, auto‑publishing content to win citations.
+
+Buyer fit:
+
+Mindshare: Best for SaaS marketers and agencies with existing content/SEO muscle who want a “radar + playbook” and flexible workflows.
+
+Gracker: Best for B2B SaaS wanting a semi‑done‑for‑you GEO system that ships portals and comparison pages on autopilot.
+
+Pricing/feel:
+
+Mindshare: Product‑led, API‑friendly, easier to plug into stacks.
+
+Gracker: More sales‑led, programmatic engagement with case‑study heavy value prop.
+
+Mindshare AI vs Peec AI
+What they are
+
+Peec AI: AI search analytics tool focused on monitoring brand visibility across ChatGPT, Perplexity, Gemini, and AI Overviews—clean dashboards, citation tracking, competitor SOV, and source analysis.
+
+Mindshare AI: Also tracks multi‑engine AI visibility and SOV, but is built from day one with an AEO improvement playbook and agency‑friendly workflows.
+
+Key differences
+
+Depth vs direction:
+
+Peec: Excellent monitoring—visibility %, citations, source domains, multi‑engine SOV—but widely described as “data without direction” (great diagnosis, weak on prescriptions).
+​
+
+Mindshare: Emphasises actionability—weekly actions, AEO recommendations, and concrete prompts/keywords to target, not just dashboards.
+
+ICP:
+
+Peec: Good for teams that already know AEO and just need analytics; suited to experienced in‑house SEO / content leads.
+
+Mindshare: Better for SaaS marketers and agencies who want both measurement and a clear playbook they can sell into stakeholders.
+
+Extensibility:
+
+Peec: Offers exports and some integrations; API is more enterprise‑gated.
+
+Mindshare: Public API and “Am I on AI?” style flows aimed at custom dashboards, multi‑client use, and embedding into existing reporting.
+
+Mindshare AI vs Scrunch AI
+What they are
+
+Scrunch AI: AEO / GEO platform with a strong Agent Experience Platform (AXP)—it builds AI‑optimised parallel versions of your pages, adds technical fixes at the edge, and focuses on how AI agents crawl, render, and cite your site.
+
+Mindshare AI: Focuses on what AI assistants actually say about you (answers, prompts, SOV, sentiment) and how to improve that through AEO content and distribution—not on deep edge‑side technical optimisation.
+
+Key differences
+
+Orientation:
+
+Mindshare: Content and visibility oriented—prompts, answers, share of voice, brand perception—ideal for marketers.
+
+Scrunch: Very technical—AXP, agent‑friendly mirrors, real‑time technical error detection, SOC2, RBAC.
+
+Coverage:
+
+Scrunch: Widest engine coverage at its tier (ChatGPT, Claude, Perplexity, Gemini, Google AI Overviews, AI Mode, Copilot, Meta AI).
+
+Mindshare: Multi‑engine coverage focused on the main assistants you care about for SaaS (positioned more as AI assistants generally).
+
+Best fit:
+
+Mindshare: SaaS brands and agencies who want clarity on AI visibility + actions, without ripping up infrastructure.
+
+Scrunch: Enterprises with complex, global sites and strong security needs who need deep technical AEO and an AI‑optimised parallel site layer.
+
