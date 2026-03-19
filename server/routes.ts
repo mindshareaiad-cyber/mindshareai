@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generateAnswer, scoreVisibility, generateSuggestedAnswer, generatePromptSuggestions, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, type LLMEngine, type SubscriptionTier } from "./llm-client";
+import { generateAnswer, scoreVisibility, generateSuggestedAnswer, generatePromptSuggestions, getAvailableEngines, getAvailableEnginesForUser, getEnginesForTier, getStrictAvailableEngines, generateWithSystemPrompt, type LLMEngine, type SubscriptionTier } from "./llm-client";
 import { insertProjectSchema, insertPromptSetSchema, insertPromptSchema, updateUserProfileSchema, updateSeoReadinessSchema, insertSavedViewSchema, insertReportScheduleSchema } from "@shared/schema";
 import { calculateOverallScore, getRecommendationLevel, buildReadinessReport, createDefaultAssessment } from "./seo-readiness";
 import { analyzeWebsite, analysisToAssessment } from "./seo-analyzer";
@@ -1569,6 +1569,131 @@ export async function registerRoutes(
     }
   });
 
+  // Free AI visibility check (no auth required)
+  app.post("/api/free-check", async (req, res) => {
+    try {
+      const freeCheckSchema = z.object({
+        brandName: z.string().min(1).max(100),
+        brandDomain: z.string().min(1).max(200),
+        competitors: z.array(z.string().max(100)).max(2).default([]),
+        category: z.string().min(1).max(200),
+      });
+
+      const parsed = freeCheckSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: fromError(parsed.error).message });
+      }
+
+      const { brandName, brandDomain, competitors, category } = parsed.data;
+
+      const configuredEngines = getStrictAvailableEngines();
+      if (configuredEngines.length === 0) {
+        return res.status(503).json({ error: "No AI engines are currently available. Please try again later." });
+      }
+
+      const engine = configuredEngines[0];
+
+      // Generate 5 buyer-intent prompts using proper system prompt
+      const systemPrompt = `You are an expert in Answer Engine Optimization (AEO). Generate exactly 5 realistic, brand-agnostic search questions that real people would ask AI assistants when looking for products or services in the given category.
+
+CRITICAL RULES:
+- NEVER include any brand or company name in the prompts
+- Prompts must be generic, category-level questions
+- Mix question types: "best of" lists, comparisons, recommendations, problem-solving
+- Write as natural conversational questions
+
+Output ONLY a JSON array of 5 strings. No markdown, no explanation.`;
+
+      const userPrompt = `Generate 5 AI search prompts for the category: "${category}"
+The brand operates at: ${brandDomain}`;
+
+      let prompts: string[];
+      try {
+        const promptContent = await generateWithSystemPrompt(systemPrompt, userPrompt, engine);
+        const jsonContent = promptContent.replace(/```json\n?|\n?```/g, "").trim();
+        const parsed = JSON.parse(jsonContent);
+        if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Invalid prompt response");
+        const brandLower = brandName.toLowerCase();
+        prompts = parsed
+          .filter((p: unknown) => typeof p === "string" && p.trim().length > 0 && !p.toLowerCase().includes(brandLower))
+          .slice(0, 5);
+        if (prompts.length < 3) throw new Error("Too few valid prompts generated");
+      } catch (promptErr) {
+        console.error("[free-check] Prompt generation failed, using fallbacks:", promptErr);
+        prompts = [
+          `What are the best ${category} tools available right now?`,
+          `Which ${category} platform should I use for my business?`,
+          `What should I look for when choosing a ${category} solution?`,
+          `Best ${category} for small to medium businesses?`,
+          `How do I compare different ${category} options?`,
+        ];
+      }
+
+      // Run each prompt through the engine and score
+      const results: {
+        prompt: string;
+        brandScore: number;
+        competitorScores: Record<string, number>;
+        engine: string;
+      }[] = [];
+      let failureCount = 0;
+
+      for (const prompt of prompts) {
+        try {
+          const answer = await generateAnswer(prompt, engine);
+          const scores = await scoreVisibility(answer, brandName, brandDomain, competitors, engine);
+          results.push({
+            prompt,
+            brandScore: scores.brandScore,
+            competitorScores: scores.competitorScores,
+            engine: engine as string,
+          });
+        } catch (err) {
+          console.error(`[free-check] Error processing prompt: ${prompt}`, err);
+          failureCount++;
+        }
+      }
+
+      // If all prompts failed, return an error
+      if (results.length === 0) {
+        return res.status(503).json({ error: "Unable to complete the visibility check right now. Please try again in a few minutes." });
+      }
+
+      // Calculate summary metrics from successful results only
+      const totalPrompts = results.length;
+      const totalBrandScore = results.reduce((sum, r) => sum + r.brandScore, 0);
+      const visibilityScore = Math.round((totalBrandScore / (totalPrompts * 2)) * 100);
+      const mentionCount = results.filter(r => r.brandScore >= 1).length;
+      const recommendCount = results.filter(r => r.brandScore >= 2).length;
+
+      const allBrandMentions = results.filter(r => r.brandScore >= 1).length;
+      const allCompMentions = competitors.reduce((sum, comp) => {
+        return sum + results.filter(r => (r.competitorScores[comp] || 0) >= 1).length;
+      }, 0);
+      const totalMentions = allBrandMentions + allCompMentions;
+      const shareOfVoice = totalMentions > 0 ? Math.round((allBrandMentions / totalMentions) * 100) : 0;
+
+      res.json({
+        brandName,
+        brandDomain,
+        competitors,
+        category,
+        engine,
+        results,
+        summary: {
+          visibilityScore,
+          mentionCount,
+          recommendCount,
+          totalPrompts,
+          shareOfVoice,
+        },
+      });
+    } catch (error) {
+      console.error("[free-check] Error:", error);
+      res.status(500).json({ error: "Something went wrong. Please try again." });
+    }
+  });
+
   app.get("/sitemap.xml", (_req, res) => {
     const baseUrl = (process.env.APP_URL || "https://mindshare-ai.com").replace(/\/$/, "");
     const pages = [
@@ -1577,6 +1702,11 @@ export async function registerRoutes(
       { loc: "/pricing", priority: "0.8", changefreq: "monthly" },
       { loc: "/about", priority: "0.6", changefreq: "monthly" },
       { loc: "/blog", priority: "0.7", changefreq: "weekly" },
+      { loc: "/free-check", priority: "0.8", changefreq: "monthly" },
+      { loc: "/compare", priority: "0.7", changefreq: "weekly" },
+      { loc: "/compare/mindshare-ai-vs-grackerai", priority: "0.7", changefreq: "monthly" },
+      { loc: "/compare/mindshare-ai-vs-peec-ai", priority: "0.7", changefreq: "monthly" },
+      { loc: "/compare/mindshare-ai-vs-scrunch-ai", priority: "0.7", changefreq: "monthly" },
       { loc: "/contact", priority: "0.5", changefreq: "monthly" },
       { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
       { loc: "/terms", priority: "0.3", changefreq: "yearly" },

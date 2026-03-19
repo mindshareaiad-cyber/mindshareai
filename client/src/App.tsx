@@ -20,6 +20,7 @@ import TermsPage from "@/pages/terms";
 import BlogPage from "@/pages/blog";
 import BlogPostPage from "@/pages/blog-post";
 import ComparePage, { CompareIndexPage } from "@/pages/compare";
+import FreeCheckPage from "@/pages/free-check";
 import ContactPage from "@/pages/contact";
 import AuthCallbackPage from "@/pages/auth-callback";
 import VerifyEmailPage from "@/pages/verify-email";
@@ -169,6 +170,7 @@ function Router() {
       <Route path="/blog/:slug" component={BlogPostPage} />
       <Route path="/compare" component={CompareIndexPage} />
       <Route path="/compare/:slug" component={ComparePage} />
+      <Route path="/free-check" component={FreeCheckPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/auth/callback" component={AuthCallbackPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />

@@ -24,10 +24,15 @@ export function HeroSection() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link href="/dashboard">
+              <Link href="/signup">
                 <Button size="lg" className="gap-2 w-full sm:w-auto" data-testid="button-cta-primary">
-                  Run an AI Visibility Scan
+                  Start Free Trial
                   <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/free-check">
+                <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto" data-testid="button-cta-free-check">
+                  Free AI Visibility Check
                 </Button>
               </Link>
             </div>

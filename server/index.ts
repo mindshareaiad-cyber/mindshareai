@@ -66,10 +66,19 @@ const scanLimiter = rateLimit({
   message: { error: "Too many scan requests, please try again later" },
 });
 
+const freeCheckLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "You've reached the limit for free checks. Sign up for unlimited scans." },
+});
+
 app.use("/api/", apiLimiter);
 app.use("/api/user-profile", authLimiter);
 app.use("/api/stripe/create-checkout-session", authLimiter);
 app.use("/api/projects/:id/scans", scanLimiter);
+app.use("/api/free-check", freeCheckLimiter);
 
 app.use(requestIdMiddleware);
 

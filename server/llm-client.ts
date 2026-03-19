@@ -418,11 +418,29 @@ export function getAvailableEngines(): LLMEngine[] {
     engines.push("perplexity");
   }
   
-  if (engines.length === 0) {
-    engines.push("chatgpt");
-  }
-  
   return engines;
+}
+
+export function getStrictAvailableEngines(): LLMEngine[] {
+  const engines: LLMEngine[] = [];
+  if (process.env.OPENAI_API_KEY) engines.push("chatgpt");
+  if (process.env.ANTHROPIC_API_KEY) engines.push("claude");
+  if (process.env.GOOGLE_API_KEY) engines.push("gemini");
+  if (process.env.PERPLEXITY_API_KEY) engines.push("perplexity");
+  return engines;
+}
+
+export async function generateWithSystemPrompt(
+  systemPrompt: string,
+  userPrompt: string,
+  engine: LLMEngine,
+  maxTokens: number = 1000
+): Promise<string> {
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt },
+  ];
+  return callEngine(engine, messages, maxTokens, 0.7);
 }
 
 export function getAvailableEnginesForUser(tier: SubscriptionTier): LLMEngine[] {

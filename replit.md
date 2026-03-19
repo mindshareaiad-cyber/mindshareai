@@ -29,6 +29,7 @@ A full-stack SaaS application for tracking and improving brand visibility in AI-
 4. **Competitor Share of Voice** - Compare your visibility against competitors
 5. **Prompt-Level Performance** - Per-prompt table with filters (Gaps, Winning, Mentioned, Invisible)
 6. **Comparison Pages** - `/compare` index + `/compare/:slug` detail pages for competitor comparisons (GrackerAI, Peec AI, Scrunch AI) with feature tables, analysis sections, choose-if lists, and CTAs
+7. **Free AI Visibility Check** - `/free-check` public tool (no auth): enter brand + competitors + category, runs 5 AI-generated prompts through an available engine, returns visibility score, mentions, recommendations, share of voice, and prompt-level results. Rate limited to 3/hour. Gates full features behind signup CTA.
 
 ## Project Structure
 ```
@@ -46,6 +47,7 @@ client/src/
 │   ├── login.tsx      # Custom login page
 │   ├── signup.tsx     # Custom signup page
 │   ├── compare.tsx    # Competitor comparison pages (index + detail)
+│   ├── free-check.tsx # Free AI visibility check (public, no auth)
 │   └── dashboard.tsx  # Main app dashboard (protected)
 └── App.tsx            # Router setup with auth
 
@@ -75,7 +77,7 @@ script/
 ## API Authentication
 All user-specific endpoints require a valid Supabase JWT token in the `Authorization: Bearer <token>` header. The backend verifies the token with Supabase and checks ownership (user can only access their own data). Sensitive fields (Stripe customer/subscription IDs) are stripped from all profile responses.
 
-**Public endpoints (no auth required):** `/api/plans`, `/api/engines`, `/api/stripe/publishable-key`, `/api/contact`
+**Public endpoints (no auth required):** `/api/plans`, `/api/engines`, `/api/stripe/publishable-key`, `/api/contact`, `/api/free-check`
 **Protected endpoints (auth required):** All user profile, project, scan, prompt, gap, and subscription endpoints
 
 ## API Endpoints

@@ -32,6 +32,11 @@ export function Footer() {
                 </a>
               </li>
               <li>
+                <Link href="/free-check" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-free-check">
+                  Free AI Visibility Check
+                </Link>
+              </li>
+              <li>
                 <Link href="/compare" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-footer-compare">
                   Compare
                 </Link>
