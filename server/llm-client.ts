@@ -2,23 +2,38 @@ import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI } from "@google/genai";
 
+const openaiApiKey = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY || "sk-placeholder";
+const openaiBaseUrl = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || undefined;
+const anthropicApiKey = process.env.ANTHROPIC_API_KEY || process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || "placeholder";
+const anthropicBaseUrl = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL || undefined;
+const geminiApiKey = process.env.GOOGLE_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY || "placeholder";
+const geminiBaseUrl = process.env.AI_INTEGRATIONS_GEMINI_BASE_URL || undefined;
+
+const hasOpenAI = !!(process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY);
+const hasAnthropic = !!(process.env.ANTHROPIC_API_KEY || process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY);
+const hasGemini = !!(process.env.GOOGLE_API_KEY || process.env.AI_INTEGRATIONS_GEMINI_API_KEY);
+const hasPerplexity = !!process.env.PERPLEXITY_API_KEY;
+
 const openaiClient = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "sk-placeholder",
+  apiKey: openaiApiKey,
+  ...(openaiBaseUrl ? { baseURL: openaiBaseUrl } : {}),
 });
 
 const anthropicClient = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "placeholder",
+  apiKey: anthropicApiKey,
+  ...(anthropicBaseUrl ? { baseURL: anthropicBaseUrl } : {}),
 });
 
 const geminiClient = new GoogleGenAI({
-  apiKey: process.env.GOOGLE_API_KEY || "placeholder",
+  apiKey: geminiApiKey,
+  ...(geminiBaseUrl ? { serverBaseUrl: geminiBaseUrl } : {}),
 });
 
 console.log("[AI Engines] Configuration:", {
-  openai: process.env.OPENAI_API_KEY ? "Configured" : "Not configured",
-  anthropic: process.env.ANTHROPIC_API_KEY ? "Configured" : "Not configured",
-  gemini: process.env.GOOGLE_API_KEY ? "Configured" : "Not configured",
-  perplexity: process.env.PERPLEXITY_API_KEY ? "Configured" : "Not configured",
+  openai: hasOpenAI ? "Configured" : "Not configured",
+  anthropic: hasAnthropic ? "Configured" : "Not configured",
+  gemini: hasGemini ? "Configured" : "Not configured",
+  perplexity: hasPerplexity ? "Configured" : "Not configured",
 });
 
 export type LLMEngine = "chatgpt" | "claude" | "gemini" | "perplexity";
@@ -39,8 +54,8 @@ export function isEngineAvailableForTier(engine: LLMEngine, tier: SubscriptionTi
 }
 
 async function callChatGPT(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is not configured");
+  if (!hasOpenAI) {
+    throw new Error("OpenAI is not configured");
   }
   const response = await openaiClient.chat.completions.create({
     model: "gpt-4o-mini",
@@ -52,8 +67,8 @@ async function callChatGPT(messages: { role: string; content: string }[], maxTok
 }
 
 async function callClaude(messages: { role: string; content: string }[], maxTokens: number, temperature: number): Promise<string> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error("ANTHROPIC_API_KEY is not configured");
+  if (!hasAnthropic) {
+    throw new Error("Anthropic is not configured");
   }
   const systemMessage = messages.find(m => m.role === "system");
   const userMessages = messages.filter(m => m.role !== "system");
@@ -73,8 +88,8 @@ async function callClaude(messages: { role: string; content: string }[], maxToke
 }
 
 async function callGemini(messages: { role: string; content: string }[], maxTokens: number): Promise<string> {
-  if (!process.env.GOOGLE_API_KEY) {
-    throw new Error("GOOGLE_API_KEY is not configured");
+  if (!hasGemini) {
+    throw new Error("Gemini is not configured");
   }
   const systemMessage = messages.find(m => m.role === "system");
   const userMessages = messages.filter(m => m.role !== "system");
@@ -401,33 +416,15 @@ Remember: Do NOT mention "${brandName}" or any competitor names. These should be
 
 export function getAvailableEngines(): LLMEngine[] {
   const engines: LLMEngine[] = [];
-  
-  if (process.env.OPENAI_API_KEY) {
-    engines.push("chatgpt");
-  }
-  
-  if (process.env.ANTHROPIC_API_KEY) {
-    engines.push("claude");
-  }
-  
-  if (process.env.GOOGLE_API_KEY) {
-    engines.push("gemini");
-  }
-  
-  if (process.env.PERPLEXITY_API_KEY) {
-    engines.push("perplexity");
-  }
-  
+  if (hasOpenAI) engines.push("chatgpt");
+  if (hasAnthropic) engines.push("claude");
+  if (hasGemini) engines.push("gemini");
+  if (hasPerplexity) engines.push("perplexity");
   return engines;
 }
 
 export function getStrictAvailableEngines(): LLMEngine[] {
-  const engines: LLMEngine[] = [];
-  if (process.env.OPENAI_API_KEY) engines.push("chatgpt");
-  if (process.env.ANTHROPIC_API_KEY) engines.push("claude");
-  if (process.env.GOOGLE_API_KEY) engines.push("gemini");
-  if (process.env.PERPLEXITY_API_KEY) engines.push("perplexity");
-  return engines;
+  return getAvailableEngines();
 }
 
 export async function generateWithSystemPrompt(
