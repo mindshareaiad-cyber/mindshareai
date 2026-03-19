@@ -72,7 +72,6 @@ const comparisons: Record<string, ComparisonData> = {
       { feature: "Programmatic SEO Portals", mindshare: false, competitor: true },
       { feature: "Prompt-Level Performance", mindshare: true, competitor: false },
       { feature: "Competitor Benchmarking", mindshare: true, competitor: true },
-      { feature: "API Access", mindshare: true, competitor: false },
       { feature: "Agency Multi-Client", mindshare: "Up to 50 projects", competitor: "Custom pricing" },
       { feature: "Onboarding Style", mindshare: "Product-led, self-serve", competitor: "Sales-led, demos" },
       { feature: "Pricing", mindshare: "From $29/mo", competitor: "Custom / enterprise" },
@@ -110,7 +109,7 @@ const comparisons: Record<string, ComparisonData> = {
       "You want to understand exactly how AI assistants talk about your brand across 4 engines",
       "You have a content team or agency that can act on insights and suggestions",
       "You need prompt-level performance data and competitor benchmarking",
-      "You want a self-serve product with transparent pricing and API access",
+      "You want a self-serve product with transparent pricing you can try today",
       "You manage multiple brands or clients and need a scalable multi-project setup",
     ],
     chooseCompetitorIf: [
@@ -141,7 +140,6 @@ const comparisons: Record<string, ComparisonData> = {
       { feature: "Prompt-Level Performance", mindshare: true, competitor: "Limited" },
       { feature: "Competitor Benchmarking", mindshare: true, competitor: true },
       { feature: "Trend Reports", mindshare: true, competitor: true },
-      { feature: "API Access", mindshare: true, competitor: "Enterprise-gated" },
       { feature: "Onboarding Style", mindshare: "Product-led, self-serve", competitor: "Product-led with sales" },
       { feature: "Pricing", mindshare: "From $29/mo", competitor: "From $39/mo (estimated)" },
     ],
@@ -165,12 +163,12 @@ const comparisons: Record<string, ComparisonData> = {
         ],
       },
       {
-        title: "Extensibility & Integration",
+        title: "Multi-Project & Agency Fit",
         icon: Layers,
         content: [
-          "Mindshare AI offers a public API and supports multi-project setups (up to 50 projects on Pro), making it a natural fit for agencies managing multiple clients or teams embedding AI visibility data into custom dashboards.",
-          "Peec AI offers exports and some integrations, but API access is typically gated behind enterprise plans. This makes it harder to build custom workflows or integrate into existing marketing toolchains without a larger commitment.",
-          "For teams that need programmatic access or want to build AI visibility into their existing reporting stack, Mindshare AI's openness is a meaningful advantage.",
+          "Mindshare AI supports multi-project setups (up to 50 projects on Pro), making it a natural fit for agencies managing multiple clients or teams tracking several brands from one account.",
+          "Peec AI offers exports and some integrations, but multi-brand management is less flexible. Scaling across several clients typically requires higher-tier plans or enterprise conversations.",
+          "For agencies or marketing teams managing multiple brands, Mindshare AI's self-serve multi-project model is more accessible and faster to scale.",
         ],
       },
     ],
@@ -178,7 +176,7 @@ const comparisons: Record<string, ComparisonData> = {
       "You want actionable AEO suggestions alongside your visibility data, not just dashboards",
       "You need structured content briefs you can hand directly to your content team",
       "You manage multiple clients or brands and need flexible multi-project support",
-      "You want transparent pricing with self-serve onboarding and API access",
+      "You want transparent pricing with self-serve onboarding you can start today",
       "You need gap analysis that shows exactly where competitors beat you in AI answers",
     ],
     chooseCompetitorIf: [
@@ -210,7 +208,6 @@ const comparisons: Record<string, ComparisonData> = {
       { feature: "Prompt-Level Performance", mindshare: true, competitor: false },
       { feature: "Competitor Benchmarking", mindshare: true, competitor: true },
       { feature: "SOC2 / RBAC Compliance", mindshare: false, competitor: true },
-      { feature: "API Access", mindshare: true, competitor: "Enterprise" },
       { feature: "Onboarding Style", mindshare: "Product-led, self-serve", competitor: "Enterprise sales" },
       { feature: "Pricing", mindshare: "From $29/mo", competitor: "Enterprise custom" },
     ],
@@ -469,7 +466,7 @@ export default function ComparePage() {
           <div className="max-w-2xl mx-auto text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-4">See how AI assistants talk about your brand</h2>
             <p className="text-muted-foreground mb-8">
-              Start your 14-day free trial. No credit card required. Track your AI visibility across ChatGPT, Claude, Gemini, and Perplexity.
+              Start your 14-day free trial and track your AI visibility across ChatGPT, Claude, Gemini, and Perplexity.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/signup">
