@@ -31,6 +31,9 @@ export function Header() {
             <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-blog">
               Blog
             </Link>
+            <Link href="/free-check" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-free-check">
+              Free AI Check
+            </Link>
             <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-contact">
               Contact
             </Link>
@@ -81,6 +84,9 @@ export function Header() {
               </Link>
               <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-pricing">
                 Pricing
+              </Link>
+              <Link href="/free-check" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-free-check">
+                Free AI Check
               </Link>
               <Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground" data-testid="link-mobile-contact">
                 Contact
